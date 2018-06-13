@@ -28,10 +28,10 @@ func (m *MovieDao) Connect() {
 }
 
 // Find list of movies
-func (m *MovieDao) FindAll(limit int,skip int) ([]Movie, error) {
-	var movies []Movie
-	err := db.C(COLLECTION).Find(bson.M{}).Limit(limit).Skip((skip-1)*10).All(&movies)
-	return movies, err
+func (m *MovieDao) FindAllMovieByQueryAndPaged(q interface{}, skip int, limit int) ([]Movie, error) {
+	var movie []Movie
+	err := db.C(COLLECTION).Find(q).Skip((skip-1)*10).Limit(limit).All(&movie)
+	return movie, err
 }
 
 // Find a movie by its id
