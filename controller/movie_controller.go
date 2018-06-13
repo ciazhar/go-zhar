@@ -14,22 +14,38 @@ import (
 var dao = MovieDao{}
 
 // GET list of movies
-func AllMoviesEndPoint(w http.ResponseWriter, r *http.Request) {
+func AllMoviesByQueryAndPagedEndpoint(w http.ResponseWriter, r *http.Request) {
+	q :=map[string]interface{}{}
+
+	name := r.URL.Query().Get("name")
+	coverImage := r.URL.Query().Get("coverImage")
+	description := r.URL.Query().Get("description")
 	skip, _ := strconv.Atoi(r.URL.Query().Get("skip"))
-	if skip==0 {skip=1}
-
 	limit, _ := strconv.Atoi(r.URL.Query().Get("limit"))
-	if limit==0 {limit=20}
 
-	movies, err := dao.FindAll(limit,skip)
+	if name!="" {
+		q["name"]=name
+	}
+	if coverImage!="" {
+		q["cover_image"]=coverImage
+	}
+	if description!="" {
+		q["description"]=description
+	}
+	if skip==0 {
+		skip=1
+	}
+	if limit==0 {
+		limit=20
+	}
 
+	movies, err := dao.FindAllMovieByQueryAndPaged(q,skip,limit)
 	if err != nil {
 		RespondWithError(w, http.StatusInternalServerError, err.Error())
 		return
 	}
 	RespondWithJson(w, http.StatusOK, movies)
 }
-
 // GET a movie by its ID
 func FindMovieEndpoint(w http.ResponseWriter, r *http.Request) {
 	params := mux.Vars(r)
