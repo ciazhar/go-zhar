@@ -15,12 +15,14 @@ var dao = MovieDao{}
 
 // GET list of movies
 func AllMoviesEndPoint(w http.ResponseWriter, r *http.Request) {
-	var limit =20
-	var skip  =1
+	skip, _ := strconv.Atoi(r.URL.Query().Get("skip"))
+	if skip==0 {skip=1}
 
-	skip, err := strconv.Atoi(r.URL.Query().Get("skip"))
-	limit, err = strconv.Atoi(r.URL.Query().Get("limit"))
+	limit, _ := strconv.Atoi(r.URL.Query().Get("limit"))
+	if limit==0 {limit=20}
+
 	movies, err := dao.FindAll(limit,skip)
+
 	if err != nil {
 		RespondWithError(w, http.StatusInternalServerError, err.Error())
 		return
