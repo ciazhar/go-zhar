@@ -4,30 +4,30 @@ import (
 	"log"
 	"net/http"
 	"github.com/gorilla/mux"
-	. "go-mongo-example/controller"
-	. "go-mongo-example/dao"
-	. "go-mongo-example/config"
 	"github.com/rs/cors"
+	"ciazhar.com/go-mongo-example/controller"
+	"ciazhar.com/go-mongo-example/config"
+	"ciazhar.com/go-mongo-example/dao"
 )
 
-var config = Config{}
-var movieDao = MovieDao{}
+var conf = config.Config{}
+var movieDao = dao.MovieDao{}
 
 func init() {
-	config.Read()
+	conf.Read()
 
-	movieDao.Server = config.Server
-	movieDao.Database = config.Database
+	movieDao.Server = conf.Server
+	movieDao.Database = conf.Database
 	movieDao.Connect()
 }
 
 func main() {
 	r := mux.NewRouter()
-	r.HandleFunc("/movies", AllMoviesByQueryAndPagedEndpoint).Methods("GET")
-	r.HandleFunc("/movies", CreateMovieEndPoint).Methods("POST")
-	r.HandleFunc("/movies", UpdateMovieEndPoint).Methods("PUT")
-	r.HandleFunc("/movies", DeleteMovieEndPoint).Methods("DELETE")
-	r.HandleFunc("/movies/{id}", FindMovieEndpoint).Methods("GET")
+	r.HandleFunc("/movies", controller.AllMoviesByQueryAndPagedEndpoint).Methods("GET")
+	r.HandleFunc("/movies", controller.CreateMovieEndPoint).Methods("POST")
+	r.HandleFunc("/movies", controller.UpdateMovieEndPoint).Methods("PUT")
+	r.HandleFunc("/movies", controller.DeleteMovieEndPoint).Methods("DELETE")
+	r.HandleFunc("/movies/{id}", controller.FindMovieEndpoint).Methods("GET")
 
 	handler:= cors.Default().Handler(r)
 

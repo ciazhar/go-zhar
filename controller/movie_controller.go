@@ -5,13 +5,13 @@ import (
 	"github.com/gorilla/mux"
 	"encoding/json"
 	"gopkg.in/mgo.v2/bson"
-	."go-mongo-example/dao"
-	."go-mongo-example/model"
-	."go-mongo-example/tool"
+	"ciazhar.com/go-mongo-example/dao"
 	"strconv"
+	"ciazhar.com/go-mongo-example/tool"
+	"ciazhar.com/go-mongo-example/model"
 )
 
-var dao = MovieDao{}
+var movieDao = dao.MovieDao{}
 
 // GET list of movies
 func AllMoviesByQueryAndPagedEndpoint(w http.ResponseWriter, r *http.Request) {
@@ -39,66 +39,66 @@ func AllMoviesByQueryAndPagedEndpoint(w http.ResponseWriter, r *http.Request) {
 		limit=20
 	}
 
-	movies, err := dao.FindAllMovieByQueryAndPaged(q,skip,limit)
+	movies, err := movieDao.FindAllMovieByQueryAndPaged(q,skip,limit)
 	if err != nil {
-		RespondWithError(w, http.StatusInternalServerError, err.Error())
+		tool.RespondWithError(w, http.StatusInternalServerError, err.Error())
 		return
 	}
-	RespondWithJson(w, http.StatusOK, movies)
+	tool.RespondWithJson(w, http.StatusOK, movies)
 }
 // GET a movie by its ID
 func FindMovieEndpoint(w http.ResponseWriter, r *http.Request) {
 	params := mux.Vars(r)
-	movie, err := dao.FindById(params["id"])
+	movie, err := movieDao.FindById(params["id"])
 	if err != nil {
-		RespondWithError(w, http.StatusBadRequest, "Invalid Movie ID")
+		tool.RespondWithError(w, http.StatusBadRequest, "Invalid Movie ID")
 		return
 	}
-	RespondWithJson(w, http.StatusOK, movie)
+	tool.RespondWithJson(w, http.StatusOK, movie)
 }
 
 // POST a new movie
 func CreateMovieEndPoint(w http.ResponseWriter, r *http.Request) {
 	defer r.Body.Close()
-	var movie Movie
+	var movie model.Movie
 	if err := json.NewDecoder(r.Body).Decode(&movie); err != nil {
-		RespondWithError(w, http.StatusBadRequest, "Invalid request payload")
+		tool.RespondWithError(w, http.StatusBadRequest, "Invalid request payload")
 		return
 	}
 	movie.ID = bson.NewObjectId()
-	if err := dao.Insert(movie); err != nil {
-		RespondWithError(w, http.StatusInternalServerError, err.Error())
+	if err := movieDao.Insert(movie); err != nil {
+		tool.RespondWithError(w, http.StatusInternalServerError, err.Error())
 		return
 	}
-	RespondWithJson(w, http.StatusCreated, movie)
+	tool.RespondWithJson(w, http.StatusCreated, movie)
 }
 
 // PUT update an existing movie
 func UpdateMovieEndPoint(w http.ResponseWriter, r *http.Request) {
 	defer r.Body.Close()
-	var movie Movie
+	var movie model.Movie
 	if err := json.NewDecoder(r.Body).Decode(&movie); err != nil {
-		RespondWithError(w, http.StatusBadRequest, "Invalid request payload")
+		tool.RespondWithError(w, http.StatusBadRequest, "Invalid request payload")
 		return
 	}
-	if err := dao.Update(movie); err != nil {
-		RespondWithError(w, http.StatusInternalServerError, err.Error())
+	if err := movieDao.Update(movie); err != nil {
+		tool.RespondWithError(w, http.StatusInternalServerError, err.Error())
 		return
 	}
-	RespondWithJson(w, http.StatusOK, map[string]string{"result": "success"})
+	tool.RespondWithJson(w, http.StatusOK, map[string]string{"result": "success"})
 }
 
 // DELETE an existing movie
 func DeleteMovieEndPoint(w http.ResponseWriter, r *http.Request) {
 	defer r.Body.Close()
-	var movie Movie
+	var movie model.Movie
 	if err := json.NewDecoder(r.Body).Decode(&movie); err != nil {
-		RespondWithError(w, http.StatusBadRequest, "Invalid request payload")
+		tool.RespondWithError(w, http.StatusBadRequest, "Invalid request payload")
 		return
 	}
-	if err := dao.Delete(movie); err != nil {
-		RespondWithError(w, http.StatusInternalServerError, err.Error())
+	if err := movieDao.Delete(movie); err != nil {
+		tool.RespondWithError(w, http.StatusInternalServerError, err.Error())
 		return
 	}
-	RespondWithJson(w, http.StatusOK, map[string]string{"result": "success"})
+	tool.RespondWithJson(w, http.StatusOK, map[string]string{"result": "success"})
 }
