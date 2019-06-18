@@ -4,14 +4,14 @@
 ## Resource
 
 ### Basic
-#### Clean Architecture - module(model,repository,use case,controller)
+#### Struktur Project - module(model,repository,use case,controller)
 #### Multi Stage Configuration - zhar
 #### Dependency Management - Glide
 #### Makefile
 #### Linter
-#### Mocking
 
 ### Testing
+#### Mocking
 #### Unit Testing - Testify
 #### Mocking - mockery
 
