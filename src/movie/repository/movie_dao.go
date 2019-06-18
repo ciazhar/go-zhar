@@ -1,10 +1,10 @@
-package dao
+package repository
 
 import (
-	"log"
-	"gopkg.in/mgo.v2/bson"
+	"github.com/ciazhar/go-mongo-example/model"
 	"gopkg.in/mgo.v2"
-	"ciazhar.com/go-mongo-example/model"
+	"gopkg.in/mgo.v2/bson"
+	"log"
 )
 
 type MovieDao struct {
@@ -30,7 +30,7 @@ func (m *MovieDao) Connect() {
 // Find list of movies
 func (m *MovieDao) FindAllMovieByQueryAndPaged(q interface{}, skip int, limit int) ([]model.Movie, error) {
 	var movie []model.Movie
-	err := db.C(COLLECTION).Find(q).Skip((skip-1)*10).Limit(limit).All(&movie)
+	err := db.C(COLLECTION).Find(q).Skip((skip - 1) * 10).Limit(limit).All(&movie)
 	return movie, err
 }
 

@@ -1,21 +1,21 @@
 package controller
 
 import (
-	"net/http"
-	"github.com/gorilla/mux"
 	"encoding/json"
+	"github.com/ciazhar/go-mongo-example/model"
+	"github.com/ciazhar/go-mongo-example/movie/repository"
+	"github.com/ciazhar/go-mongo-example/tool"
+	"github.com/gorilla/mux"
 	"gopkg.in/mgo.v2/bson"
-	"ciazhar.com/go-mongo-example/dao"
+	"net/http"
 	"strconv"
-	"ciazhar.com/go-mongo-example/tool"
-	"ciazhar.com/go-mongo-example/model"
 )
 
 var movieDao = dao.MovieDao{}
 
 // GET list of movies
 func AllMoviesByQueryAndPagedEndpoint(w http.ResponseWriter, r *http.Request) {
-	q :=map[string]interface{}{}
+	q := map[string]interface{}{}
 
 	name := r.URL.Query().Get("name")
 	coverImage := r.URL.Query().Get("coverImage")
@@ -23,29 +23,30 @@ func AllMoviesByQueryAndPagedEndpoint(w http.ResponseWriter, r *http.Request) {
 	skip, _ := strconv.Atoi(r.URL.Query().Get("skip"))
 	limit, _ := strconv.Atoi(r.URL.Query().Get("limit"))
 
-	if name!="" {
-		q["name"]=name
+	if name != "" {
+		q["name"] = name
 	}
-	if coverImage!="" {
-		q["cover_image"]=coverImage
+	if coverImage != "" {
+		q["cover_image"] = coverImage
 	}
-	if description!="" {
-		q["description"]=description
+	if description != "" {
+		q["description"] = description
 	}
-	if skip==0 {
-		skip=1
+	if skip == 0 {
+		skip = 1
 	}
-	if limit==0 {
-		limit=20
+	if limit == 0 {
+		limit = 20
 	}
 
-	movies, err := movieDao.FindAllMovieByQueryAndPaged(q,skip,limit)
+	movies, err := movieDao.FindAllMovieByQueryAndPaged(q, skip, limit)
 	if err != nil {
 		tool.RespondWithError(w, http.StatusInternalServerError, err.Error())
 		return
 	}
 	tool.RespondWithJson(w, http.StatusOK, movies)
 }
+
 // GET a movie by its ID
 func FindMovieEndpoint(w http.ResponseWriter, r *http.Request) {
 	params := mux.Vars(r)
