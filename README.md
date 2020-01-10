@@ -4,7 +4,7 @@
 ## Resource
 
 ### Basic
-- [Struktur Project - Clean Architecture](1.basic/clean-arch/README.md)
+- [Struktur Project - Clean Architecture](docs/1.basic/clean-arch/README.md)
 - Auto Generate
 - Multi Stage Configuration - Cobra
 - Dependency Management - Go Module
