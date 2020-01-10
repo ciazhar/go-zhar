@@ -4,53 +4,57 @@
 ## Resource
 
 ### Basic
-#### Struktur Project - module(model,repository,use case,controller)
-#### Multi Stage Configuration - zhar
-#### Dependency Management - Glide
-#### Makefile
-#### Linter
+- Struktur Project - Clean Architecture
+- Auto Generate
+- Multi Stage Configuration - Cobra
+- Dependency Management - Go Module
+- Makefile
+    - Linter
+- GO Validator go-playground/validator
 
 ### Testing
-#### Mocking
-#### Unit Testing - Testify
-#### Mocking - mockery
+- Unit Testing - Testify
+- Mocking - mockery
 
 ### Data Structure
-#### Object Merging - mergo
-#### Data Faker - faker
+- Struct Merging - mergo
+- Data Faker - faker
 
 ### Web
-#### Router - Chi
-#### Cors
-#### File Serve
-
-
-#### Image Upload - Download
-#### HTTP Client - Gorequest
-#### Dokumentasi API - Swagger
-#### Scrap - GoQuery
+- Router - Chi
+- Cors
+- File Serve
+- Image Upload - Download
+- HTTP Client - Gorequest
+- Service to Service Communication using gRPC 
+- Dokumentasi API - Swagger
+- Scrap - GoQuery
 
 ### Database
-#### MongoDB
+- MongoDB
 
 ### Security
-#### JWT
-#### Bcrypt
+- JWT
+- Bcrypt
 
 ### Real Time Communication
-#### SocketIO
-#### Push Notification - FCM
+- SocketIO
+- Push Notification - FCM
+- Pub / Sub
 
 ### Location & Map
-#### Google Map API
+- Google Map API
 
 ### Document
-#### Excel
+- Excel
 
 ### Bot
-#### Telegram Bot
-#### Line Bot
+- Telegram Bot
+- Line Bot
 
+### Logging
+- Log File using Zap
+- Logging using ELK
 
 Pengen Nyoba
 go.uber.org/zap
