@@ -2,7 +2,8 @@ package multi_channel_test
 
 import (
 	"fmt"
-	"github.com/ciazhar/zhar/pkg/rabbitmq"
+	"github.com/ciazhar/zhar/pkg/message_broker/rabbitmq/basic"
+	rabbitmq2 "github.com/ciazhar/zhar/pkg/message_broker/rabbitmq/multi_channel_test"
 	amqp "github.com/rabbitmq/amqp091-go"
 	"log"
 	"os"
@@ -10,7 +11,7 @@ import (
 )
 
 var (
-	pool      *rabbitmq.ChannelPool
+	pool      *rabbitmq2.ChannelPool
 	ch        *amqp.Channel
 	queueName = "test_queue"
 	err       error
@@ -18,7 +19,7 @@ var (
 
 func TestMain(m *testing.M) {
 	// Set up the shared connection and channel before running tests
-	pool = rabbitmq.NewChannelPool("guest", "guest", "localhost", "5672", 5)
+	pool = rabbitmq2.NewChannelPool("guest", "guest", "localhost", "5672", 5)
 	ch, err = pool.Get()
 	if err != nil {
 		log.Fatalf("Error getting connection from pool: %s", err)
@@ -26,7 +27,7 @@ func TestMain(m *testing.M) {
 	defer pool.Put(ch)
 
 	// Create the queue
-	rabbitmq.CreateQueue(ch, queueName)
+	basic.CreateQueue(ch, queueName)
 
 	// Run the tests
 	exitCode := m.Run()
@@ -38,7 +39,7 @@ func TestMain(m *testing.M) {
 func TestConsumeMessages(t *testing.T) {
 
 	// Consume messages
-	rabbitmq.ConsumeMessages(ch, queueName, HandleMessage)
+	basic.ConsumeMessages(ch, queueName, HandleMessage)
 
 	// Keep the application running
 	forever := make(chan bool)
@@ -50,5 +51,5 @@ func HandleMessage(string2 string) {
 }
 
 func TestPublishMessage(t *testing.T) {
-	rabbitmq.PublishMessage(ch, queueName, "Hello, RabbitMQ!")
+	basic.PublishMessage(ch, queueName, "Hello, RabbitMQ!")
 }

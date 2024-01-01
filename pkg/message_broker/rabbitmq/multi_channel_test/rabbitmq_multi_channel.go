@@ -1,4 +1,4 @@
-package rabbitmq
+package multi_channel
 
 import (
 	"fmt"
