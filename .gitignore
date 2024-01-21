@@ -1,1 +1,5 @@
 .idea
+/db/*
+/internal/*
+/config/*
+!.gitkeep
