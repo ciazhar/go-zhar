@@ -3,7 +3,7 @@ package rabbitmq
 import (
 	"context"
 	"fmt"
-	"github.com/ciazhar/zhar/pkg"
+	"github.com/ciazhar/go-zhar/pkg"
 	amqp "github.com/rabbitmq/amqp091-go"
 	"sync"
 )
