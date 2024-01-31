@@ -1,8 +1,8 @@
 package main
 
 import (
-	model2 "github.com/ciazhar/zhar/internal/model"
-	gen2 "github.com/ciazhar/zhar/pkg/gen"
+	model2 "github.com/ciazhar/go-zhar/internal/model"
+	gen2 "github.com/ciazhar/go-zhar/pkg/gen"
 )
 
 func main() {

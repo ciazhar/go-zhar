@@ -1,7 +1,7 @@
 package rabbitmq_test
 
 import (
-	"github.com/ciazhar/zhar/pkg/message_broker/rabbitmq"
+	"github.com/ciazhar/go-zhar/pkg/message_broker/rabbitmq"
 	"os"
 	"testing"
 )

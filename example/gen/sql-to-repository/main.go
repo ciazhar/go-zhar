@@ -1,7 +1,7 @@
 package main
 
 import (
-	gen2 "github.com/ciazhar/zhar/pkg/gen"
+	gen2 "github.com/ciazhar/go-zhar/pkg/gen"
 )
 
 func main() {
