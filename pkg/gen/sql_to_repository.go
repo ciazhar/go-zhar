@@ -5,6 +5,7 @@ import (
 	"io/ioutil"
 	"os"
 	"os/exec"
+	"path/filepath"
 )
 
 const sqlcYAMLContent = `version: 2
@@ -14,8 +15,8 @@ sql:
     schema: "../db/schemas/"
     gen:
       go:
-        package: "generated"
-        out: "../internal/generated"
+        package: "gen"
+        out: "../internal/gen/repository"
         sql_package: "pgx/v5"
         emit_empty_slices: true
         emit_json_tags: true
@@ -27,9 +28,22 @@ sql:
               type: "UUID"
 `
 
-const sqlcYAMLFilePath = "./config/sqlc.yaml"
+const sqlcYAMLFilePath = "./configs/sqlc.yaml"
 
 func generateSQLCFile() error {
+
+	// Extract directory from file path
+	sqlcDirectory := filepath.Dir(sqlcYAMLFilePath)
+
+	// Check if the directory exists, if not, create it
+	if _, err := os.Stat(sqlcDirectory); os.IsNotExist(err) {
+		err := os.MkdirAll(sqlcDirectory, os.ModePerm)
+		if err != nil {
+			return fmt.Errorf("error creating directory %s: %v", sqlcDirectory, err)
+		}
+		fmt.Printf("Directory %s created successfully.\n", sqlcDirectory)
+	}
+
 	// Check if the file already exists
 	if _, err := os.Stat(sqlcYAMLFilePath); os.IsNotExist(err) {
 		// File does not exist, create it with the specified content
@@ -51,7 +65,7 @@ func generateSQLCFile() error {
 
 func executeSQLCGenerate() error {
 	// Set the working directory to "configs"
-	if err := os.Chdir("config"); err != nil {
+	if err := os.Chdir("configs"); err != nil {
 		return err
 	}
 
