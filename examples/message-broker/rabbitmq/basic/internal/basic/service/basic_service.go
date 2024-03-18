@@ -2,7 +2,7 @@ package service
 
 import (
 	"context"
-	"github.com/ciazhar/go-zhar/examples/message-broker/rabbitmq/basic/model"
+	"github.com/ciazhar/go-zhar/examples/message-broker/rabbitmq/basic/internal/basic/model"
 	"github.com/ciazhar/go-zhar/pkg/message_broker/rabbitmq"
 	"github.com/gofiber/fiber/v2/log"
 )

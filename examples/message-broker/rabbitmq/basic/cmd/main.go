@@ -3,7 +3,7 @@ package main
 import (
 	"fmt"
 	"github.com/ciazhar/go-zhar/examples/message-broker/rabbitmq/basic/internal/basic"
-	"github.com/ciazhar/go-zhar/examples/message-broker/rabbitmq/basic/model"
+	"github.com/ciazhar/go-zhar/examples/message-broker/rabbitmq/basic/internal/basic/model"
 	"github.com/ciazhar/go-zhar/pkg/env"
 	"github.com/ciazhar/go-zhar/pkg/message_broker/rabbitmq"
 	"github.com/gofiber/fiber/v2"
