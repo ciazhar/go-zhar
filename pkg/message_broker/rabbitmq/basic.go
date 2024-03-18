@@ -5,47 +5,52 @@ import (
 	"fmt"
 	"github.com/ciazhar/go-zhar/pkg"
 	amqp "github.com/rabbitmq/amqp091-go"
+	"log"
+	"time"
 )
 
 type RabbitMQ struct {
-	Connection *amqp.Connection
-	Channel    *amqp.Channel
+	connection *amqp.Connection
+	channel    *amqp.Channel
 }
 
 func New(username, password, host, port string) *RabbitMQ {
-	// Connect to RabbitMQ server
-	conn, err := amqp.Dial(fmt.Sprintf(AmqpUrl, username, password, host, port))
-	pkg.FailOnError(err, ErrConnFailed)
-	fmt.Println(MsgConnSucceed)
 
-	// Create a channel
+	conn, err := amqp.Dial(fmt.Sprintf(AmqpUrl, username, password, host, port))
+	if err != nil {
+		log.Fatal(ErrConnFailed, err)
+	}
+	log.Println(MsgConnSucceed)
+
 	ch, err := conn.Channel()
-	pkg.FailOnError(err, ErrChanFailed)
-	fmt.Println(MsgChanCreated)
+	if err != nil {
+		log.Fatal(ErrChanFailed, err)
+	}
+	log.Println(MsgChanCreated)
 
 	return &RabbitMQ{
-		Connection: conn,
-		Channel:    ch,
+		connection: conn,
+		channel:    ch,
 	}
 }
 
 func (r *RabbitMQ) CreateQueue(queueName string) {
 	// Declare a queue
-	_, err := r.Channel.QueueDeclare(
+	if _, err := r.channel.QueueDeclare(
 		queueName, // name
 		false,     // durable
 		false,     // delete when unused
 		false,     // exclusive
 		false,     // no-wait
 		nil,       // arguments
-	)
-	pkg.FailOnError(err, ErrQueueFailed)
-	fmt.Printf(MsgQueueCreated, queueName)
+	); err != nil {
+		log.Fatal(ErrQueueFailed, err)
+	}
+	log.Printf(MsgQueueCreated, queueName)
 }
 
-func (r *RabbitMQ) ConsumeMessages(queueName string, out func(string2 string)) {
-	// Consume messages from the queue
-	msgs, err := r.Channel.Consume(
+func (r *RabbitMQ) ConsumeMessages(queueName string, out func(msg string), stop chan struct{}) {
+	msgs, err := r.channel.Consume(
 		queueName, // queue
 		"",        // consumer
 		true,      // auto-ack
@@ -54,56 +59,59 @@ func (r *RabbitMQ) ConsumeMessages(queueName string, out func(string2 string)) {
 		false,     // no-wait
 		nil,       // args
 	)
-	pkg.FailOnError(err, ErrConsumerFailed)
-	fmt.Printf(MsgConsumerSucceed, queueName)
+	if err != nil {
+		log.Fatal(ErrConsumerFailed, err)
+	}
+	log.Printf(MsgConsumerSucceed, queueName)
 
-	// Use a goroutine to process incoming messages
 	go func() {
-		for d := range msgs {
-			out(string(d.Body))
+		for msg := range msgs {
+			select {
+			case <-stop:
+				log.Println(MsgConsumerStopped)
+				// Perform any cleanup logic here
+				time.Sleep(2 * time.Second) // Simulate cleanup
+				close(stop)
+				return
+			default:
+				out(string(msg.Body))
+			}
 		}
 	}()
+	<-stop
 }
 
 func (r *RabbitMQ) PublishMessage(ctx context.Context, queueName string, message string) {
-	// Publish a message to the queue
-	err := r.Channel.PublishWithContext(
-		ctx,
-		"",        // exchange
-		queueName, // routing key
-		false,     // mandatory
-		false,     // immediate
-		amqp.Publishing{
-			ContentType: pkg.TextPlain,
-			Body:        []byte(message),
-		})
-	pkg.FailOnError(err, ErrProducerFailed)
-	fmt.Printf(MsgProducerSucceed, message, queueName)
+
+	publishing := amqp.Publishing{
+		ContentType: "text/plain",
+		Body:        []byte(message),
+	}
+
+	if err := r.channel.PublishWithContext(ctx, "", queueName, false, false, publishing); err != nil {
+		log.Fatal(ErrProducerFailed, err)
+	}
+
 }
 
 func (r *RabbitMQ) PublishMessageWithTTL(ctx context.Context, queueName string, message string, ttlMilliseconds int) {
-	// Publish a message to the queue
-	err := r.Channel.PublishWithContext(
-		ctx,
-		"",        // exchange
-		queueName, // routing key
-		false,     // mandatory
-		false,     // immediate
-		amqp.Publishing{
-			ContentType: pkg.TextPlain,
-			Body:        []byte(message),
-			Expiration:  fmt.Sprintf("%d", ttlMilliseconds),
-		})
-	pkg.FailOnError(err, ErrProducerFailed)
-	fmt.Printf(MsgProducerSucceed, message, queueName)
+	publishing := amqp.Publishing{
+		ContentType: "text/plain",
+		Body:        []byte(message),
+		Expiration:  fmt.Sprintf("%d", ttlMilliseconds),
+	}
+
+	if err := r.channel.PublishWithContext(ctx, "", queueName, false, false, publishing); err != nil {
+		log.Fatal(ErrProducerFailed, err)
+	}
 }
 
 func (r *RabbitMQ) Close() {
 	defer func() {
-		err := r.Channel.Close()
+		err := r.channel.Close()
 		pkg.FailOnError(err, ErrClosingChannel)
 
-		err = r.Connection.Close()
+		err = r.connection.Close()
 		pkg.FailOnError(err, ErrClosingConnection)
 	}()
 }

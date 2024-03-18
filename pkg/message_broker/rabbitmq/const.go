@@ -16,6 +16,7 @@ const (
 	MsgChanCreated         = "Channel created"
 	MsgQueueCreated        = "Queue '%s' created\n"
 	MsgConsumerSucceed     = "Waiting for messages on queue '%s'.\n"
+	MsgConsumerStopped     = "Received stop signal. Stopping consumer..."
 	MsgProducerSucceed     = "Message '%s' published to queue '%s'\n"
 	MsgConnectionPoolEmpty = "connection pool is empty"
 )
