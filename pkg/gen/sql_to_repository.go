@@ -2,7 +2,7 @@ package gen
 
 import (
 	"fmt"
-	"io/ioutil"
+	"log"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -30,75 +30,59 @@ sql:
 
 const sqlcYAMLFilePath = "./configs/sqlc.yaml"
 
+// generateSQLCFile generates an SQLC file.
+//
+// No parameters.
+// Returns an error.
 func generateSQLCFile() error {
-
-	// Extract directory from file path
-	sqlcDirectory := filepath.Dir(sqlcYAMLFilePath)
-
-	// Check if the directory exists, if not, create it
-	if _, err := os.Stat(sqlcDirectory); os.IsNotExist(err) {
-		err := os.MkdirAll(sqlcDirectory, os.ModePerm)
-		if err != nil {
-			return fmt.Errorf("error creating directory %s: %v", sqlcDirectory, err)
-		}
-		fmt.Printf("Directory %s created successfully.\n", sqlcDirectory)
+	// Create the directory if it doesn't exist
+	if err := os.MkdirAll(filepath.Dir(sqlcYAMLFilePath), os.ModePerm); err != nil {
+		return fmt.Errorf("error creating directory %s: %v", filepath.Dir(sqlcYAMLFilePath), err)
 	}
 
-	// Check if the file already exists
-	if _, err := os.Stat(sqlcYAMLFilePath); os.IsNotExist(err) {
-		// File does not exist, create it with the specified content
-		err := ioutil.WriteFile(sqlcYAMLFilePath, []byte(sqlcYAMLContent), 0644)
-		if err != nil {
-			return fmt.Errorf("error creating %s: %v", sqlcYAMLFilePath, err)
-		}
-		fmt.Printf("%s created successfully.\n", sqlcYAMLFilePath)
-	} else if err != nil {
-		// Some error occurred while checking file existence
-		return fmt.Errorf("error checking %s existence: %v", sqlcYAMLFilePath, err)
-	} else {
-		// File already exists
-		fmt.Printf("%s already exists.\n", sqlcYAMLFilePath)
+	// Create or overwrite the file with the specified content
+	if err := os.WriteFile(sqlcYAMLFilePath, []byte(sqlcYAMLContent), 0644); err != nil {
+		return fmt.Errorf("error creating %s: %v", sqlcYAMLFilePath, err)
 	}
 
 	return nil
 }
 
+// executeSQLCGenerate generates SQL code using sqlc tool.
+//
+// No parameters.
+// Returns an error.
 func executeSQLCGenerate() error {
-	// Set the working directory to "configs"
-	if err := os.Chdir("configs"); err != nil {
-		return err
-	}
-
-	// Set up the command
+	// Set the working directory to "configs" and run the command
 	cmd := exec.Command("sqlc", "generate")
-
-	// Redirect standard output and standard error to the console
+	cmd.Dir = "configs"
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
 
 	// Run the command
-	err := cmd.Run()
-	if err != nil {
+	if err := cmd.Run(); err != nil {
 		return fmt.Errorf("error running 'sqlc generate': %v", err)
 	}
 
-	fmt.Println("sqlc generate completed successfully.")
+	log.Println("sqlc generate completed successfully.")
 	return nil
 }
 
+// SQLToRepository generates SQL C file and executes SQL C generate.
+//
+// No parameters.
+// Returns an error.
 func SQLToRepository() error {
-	err := generateSQLCFile()
-	if err != nil {
+	if err := generateSQLCFile(); err != nil {
 		return err
 	}
 
 	// Create the directory if it doesn't exist
-	if err := os.MkdirAll(SCHEMA_FOLDER, os.ModePerm); err != nil {
+	if err := os.MkdirAll(SchemaFolder, os.ModePerm); err != nil {
 		return err
 	}
 
-	err = executeSQLCGenerate()
-	if err != nil {
+	if err := executeSQLCGenerate(); err != nil {
 		return err
 	}
 
