@@ -8,6 +8,7 @@ import (
 	"github.com/ciazhar/go-zhar/pkg/message_broker/rabbitmq"
 	"github.com/gofiber/fiber/v2"
 	"github.com/spf13/viper"
+	"log"
 	"os"
 	"os/signal"
 	"syscall"
@@ -39,7 +40,7 @@ func main() {
 	go func() {
 		err := app.Listen(":" + viper.GetString("application.port"))
 		if err != nil {
-			panic(err)
+			log.Fatal(err)
 		}
 	}()
 
@@ -51,7 +52,7 @@ func main() {
 	close(rabbitmqConsumerDone)
 	err := app.Shutdown()
 	if err != nil {
-		panic(err)
+		log.Fatal(err)
 	}
 
 	// Wait for consumers to finish

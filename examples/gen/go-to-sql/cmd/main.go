@@ -3,6 +3,7 @@ package main
 import (
 	"github.com/ciazhar/go-zhar/examples/gen/go-to-sql/model"
 	"github.com/ciazhar/go-zhar/pkg/gen"
+	"log"
 )
 
 func main() {
@@ -13,7 +14,7 @@ func main() {
 	}
 	err := gen.GoToSQL(structList)
 	if err != nil {
-		panic(err)
+		log.Fatal(err)
 	}
 
 }
