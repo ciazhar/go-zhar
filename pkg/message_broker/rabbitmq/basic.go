@@ -38,7 +38,7 @@ func (r *RabbitMQ) CreateQueue(queueName string) {
 	// Declare a queue
 	if _, err := r.channel.QueueDeclare(
 		queueName, // name
-		false,     // durable
+		true,      // durable
 		false,     // delete when unused
 		false,     // exclusive
 		false,     // no-wait
