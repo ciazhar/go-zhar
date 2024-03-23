@@ -145,7 +145,7 @@ func (c Consul) RegisterService(id, name, host string, port int) {
 ```
 ## Deregister service from Consul Discovery
 Jika service akan di shutdown, service harus dideregister dari consul agar service di delist dari consul discovery service
-```
+```go
 func (c Consul) DeregisterService(id string) {
 	err := c.client.Agent().ServiceDeregister(id)
 	if err != nil {
@@ -160,7 +160,7 @@ go run cmd/client.go
 ```
 ## Retrieve service URL by service ID
 Jika client service ingin menggunakan API dari server service, client service tidak perlu mengetahui di mana URL server service, tetapi hanya perlu mengambilnya dari Consul Discovery Service menggunakan fungsi berikut.
-```json
+```go
 func (c Consul) RetrieveServiceUrl(id string) (string, error) {
 	log.Printf("Retrieving service URL for id: %s", id)
 
