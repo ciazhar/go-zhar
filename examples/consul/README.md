@@ -1,6 +1,16 @@
 # Consul
 > Part ini akan menjelaskan bagaimana implementasi Consul sebeagai Centralized Configuration dan Service Discovery di Go.
 
+## Consul
+Consul adalah sebuah software open-source yang diciptakan oleh HashiCorp. Consul merupakan tool yang digunakan untuk menyediakan layanan Centralized Configuration dan Discovery Service di environment jaringan yang dinamis. 
+
+## Centralized Configuration
+Centralized Configuration merupakan mekanisme menyimpan konfigurasi aplikasi di lokasi tunggal atau terpusat. Ini memungkinkan manajemen konfigurasi yang lebih mudah dan konsisten, terutama dalam environment yang besar, terdistribusi dan berubah ubah. Dengan menyimpan konfigurasi di lokasi tunggal, perubahan dapat diterapkan secara konsisten ke seluruh sistem tanpa perlu memodifikasi konfigurasi di setiap node secara manual.
+
+## Service Discovery
+Service Discovery adalah proses otomatis menemukan dan mendaftarkan service yang tersedia di jaringan komputer. Dalam arsitektur berbasis service, di mana aplikasi terdiri dari sejumlah layanan independen yang berkomunikasi satu sama lain, service discovery menjadi kunci. Hal ini memungkinkan aplikasi untuk menemukan dan berkomunikasi dengan layanan lain tanpa perlu mengetahui detail implementasinya, seperti lokasi atau alamat IP, yang dapat berubah dinamis seiring waktu.
+Dengan menggunakan service discovery, aplikasi dapat dengan mudah menemukan dan berkomunikasi dengan layanan lain, scalable, fault tolerant, dan fleksibel dalam lingkungan yang terus berubah.
+
 ## Actor
 Dalam Part ini ada 3 actor yang bekerja yaitu:
 - **Consul Server**: akan bekerja sebagai Centralized Configuration dan Service Discovery.
@@ -9,7 +19,7 @@ Dalam Part ini ada 3 actor yang bekerja yaitu:
 
 ## Configuration
 Pada contoh ini, terdapat 3 konfigurasi:
-- **server.json**: konfigurasi ini akan digunakan sebagai konfigurasi default sebelum mengambil konfigurasi dari Consul. Jika sudah berhasil mengambil konfigurasi, maka konfigurasi ini akan ditimpa dengan konfigurasi dari Consul.
+- **server.json**: konfigurasi ini akan digunakan sebagai konfigurasi default sebelum mengambil konfigurasi dari Consul. Jika service sudah berhasil mengambil konfigurasi dari Consul, maka konfigurasi ini akan ditimpa.
 ```json
 {
   "application": {
@@ -144,7 +154,7 @@ func (c Consul) RegisterService(id, name, host string, port int) {
 }
 ```
 ## Deregister service from Consul Discovery
-Jika service akan di shutdown, service harus dideregister dari consul agar service di delist dari consul discovery service
+Jika service akan di shutdown, service harus dideregister dari consul agar service tidak lagi terdafar di  consul discovery service dan membuat misinformasi.
 ```go
 func (c Consul) DeregisterService(id string) {
 	err := c.client.Agent().ServiceDeregister(id)
