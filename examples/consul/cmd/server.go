@@ -47,6 +47,6 @@ func main() {
 
 	<-sigCh
 	fmt.Println("Deregistering service...")
-	//c.DeregisterService(viper.GetString("application.name"))
+	c.DeregisterService(viper.GetString("application.name"))
 	os.Exit(1)
 }
