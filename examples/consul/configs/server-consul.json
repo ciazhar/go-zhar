@@ -1,0 +1,8 @@
+{
+  "application": {
+    "name": "my-service",
+    "host": "localhost",
+    "port": 8080
+  },
+  "foo": "bar"
+}

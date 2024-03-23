@@ -4,6 +4,7 @@ go 1.21
 
 require (
 	github.com/IBM/sarama v1.42.1
+	github.com/getsentry/sentry-go v0.27.0
 	github.com/gofiber/contrib/jwt v1.0.8
 	github.com/gofiber/fiber/v2 v2.52.2
 	github.com/gofiber/jwt/v2 v2.2.7

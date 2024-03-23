@@ -1,0 +1,14 @@
+{
+  "application": {
+    "name": "my-service",
+    "host": "localhost",
+    "port": 8081
+  },
+  "consul": {
+    "host": "localhost",
+    "port": 8500,
+    "schema": "http",
+    "key": "example/my-service",
+    "configType": "json"
+  }
+}
