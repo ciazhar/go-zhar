@@ -1,0 +1,9 @@
+go test -bench=. -benchmem bench_test.go
+goos: darwin
+goarch: arm64
+BenchmarkDragonflySet-8             6924            173908 ns/op             271 B/op         10 allocs/op
+BenchmarkRedisSet-8                 8582            118572 ns/op             271 B/op         10 allocs/op
+BenchmarkDragonflyGet-8             7058            167142 ns/op             215 B/op          9 allocs/op
+BenchmarkRedisGet-8                10000            107495 ns/op             214 B/op          9 allocs/op
+PASS
+ok      command-line-arguments  5.595s
