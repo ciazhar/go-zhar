@@ -3,6 +3,7 @@
 > Tujuan dari benchmark ini adalah untuk mencari alternative dari package encoding/json. Benchmark ini hanya akan
 > menggunakan 2 usecase yaitu marshal dari struct ke json dan unmarshal dari json ke struct. Library yang tidak mengcover
 > salah satu dari use case itu tidak akan di benchmark.
+> Hasil bisa berbeda beda tergantung dari panjang JSON.
 
 ## Tools
 - MacbookPro M1 2020
