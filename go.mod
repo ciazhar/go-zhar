@@ -11,7 +11,6 @@ require (
 	github.com/bet365/jingo v1.2.1
 	github.com/bitly/go-simplejson v0.5.1
 	github.com/buger/jsonparser v0.0.0-20181115193947-bf1c66bbce23
-	github.com/dgrijalva/jwt-go v3.2.0+incompatible
 	github.com/francoispqt/gojay v1.2.13
 	github.com/getsentry/sentry-go v0.27.0
 	github.com/go-sql-driver/mysql v1.8.0
@@ -20,6 +19,7 @@ require (
 	github.com/gofiber/fiber/v3 v3.0.0-20240325194118-7ba02c14cf53
 	github.com/gofiber/jwt/v2 v2.2.7
 	github.com/golang-jwt/jwt/v4 v4.5.0
+	github.com/golang-jwt/jwt/v5 v5.2.1
 	github.com/google/uuid v1.6.0
 	github.com/googollee/go-socket.io v1.7.0
 	github.com/hashicorp/consul/api v1.27.0
