@@ -3,3 +3,4 @@
 /internal/*
 /config/*
 !.gitkeep
+logfile.log
