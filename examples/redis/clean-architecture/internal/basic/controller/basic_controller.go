@@ -1,7 +1,7 @@
 package controller
 
 import (
-	"github.com/ciazhar/go-zhar/examples/cache/redis/basic/internal/basic/service"
+	"github.com/ciazhar/go-zhar/examples/redis/clean-architecture/internal/basic/service"
 	"github.com/gofiber/fiber/v2"
 )
 

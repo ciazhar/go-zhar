@@ -1,10 +1,10 @@
 package basic
 
 import (
-	"github.com/ciazhar/go-zhar/examples/cache/redis/basic/internal/basic/controller"
-	"github.com/ciazhar/go-zhar/examples/cache/redis/basic/internal/basic/repository"
-	"github.com/ciazhar/go-zhar/examples/cache/redis/basic/internal/basic/service"
-	"github.com/ciazhar/go-zhar/pkg/cache/redis"
+	"github.com/ciazhar/go-zhar/examples/redis/clean-architecture/internal/basic/controller"
+	"github.com/ciazhar/go-zhar/examples/redis/clean-architecture/internal/basic/repository"
+	"github.com/ciazhar/go-zhar/examples/redis/clean-architecture/internal/basic/service"
+	"github.com/ciazhar/go-zhar/pkg/redis"
 	"github.com/gofiber/fiber/v2"
 )
 

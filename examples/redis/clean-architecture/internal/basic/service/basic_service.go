@@ -1,7 +1,7 @@
 package service
 
 import (
-	"github.com/ciazhar/go-zhar/examples/cache/redis/basic/internal/basic/repository"
+	"github.com/ciazhar/go-zhar/examples/redis/clean-architecture/internal/basic/repository"
 )
 
 type BasicService interface {

@@ -1,8 +1,8 @@
 package repository
 
 import (
-	"github.com/ciazhar/go-zhar/examples/cache/redis/basic/internal/basic/model"
-	"github.com/ciazhar/go-zhar/pkg/cache/redis"
+	"github.com/ciazhar/go-zhar/examples/redis/clean-architecture/internal/basic/model"
+	"github.com/ciazhar/go-zhar/pkg/redis"
 )
 
 type RedisRepository interface {
