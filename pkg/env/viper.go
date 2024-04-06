@@ -1,6 +1,7 @@
 package env
 
 import (
+	"github.com/ciazhar/go-zhar/pkg/logger"
 	"github.com/spf13/viper"
 	"log"
 	"strings"
@@ -16,12 +17,12 @@ const (
 // Init initializes the configuration with the given name.
 //
 // It takes basic name string as basic parameter and does not return anything.
-func Init(name string) {
+func Init(name string, logger logger.Logger) {
 	log.Printf("Initializing configuration with name: %s", name)
 
 	splitName := strings.Split(name, ".")
 	if len(splitName) != 2 {
-		log.Fatalln(ErrFailedToParseConfig)
+		logger.Fatal(ErrFailedToParseConfig)
 	}
 
 	configName := splitName[0]
@@ -33,6 +34,6 @@ func Init(name string) {
 
 	err := viper.ReadInConfig()
 	if err != nil {
-		log.Fatalf(ErrFailedToReadConfig, err)
+		logger.Fatalf(ErrFailedToReadConfig, err)
 	}
 }

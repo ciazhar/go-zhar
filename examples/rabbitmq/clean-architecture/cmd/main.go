@@ -2,13 +2,13 @@ package main
 
 import (
 	"fmt"
-	"github.com/ciazhar/go-zhar/examples/message-broker/rabbitmq/basic/internal/basic"
-	"github.com/ciazhar/go-zhar/examples/message-broker/rabbitmq/basic/internal/basic/model"
+	"github.com/ciazhar/go-zhar/examples/rabbitmq/clean-architecture/internal/basic"
+	"github.com/ciazhar/go-zhar/examples/rabbitmq/clean-architecture/internal/basic/model"
 	"github.com/ciazhar/go-zhar/pkg/env"
-	"github.com/ciazhar/go-zhar/pkg/message_broker/rabbitmq"
+	"github.com/ciazhar/go-zhar/pkg/logger"
+	"github.com/ciazhar/go-zhar/pkg/rabbitmq"
 	"github.com/gofiber/fiber/v2"
 	"github.com/spf13/viper"
-	"log"
 	"os"
 	"os/signal"
 	"syscall"
@@ -21,11 +21,21 @@ func main() {
 	sigCh := make(chan os.Signal, 1)
 	signal.Notify(sigCh, os.Interrupt, syscall.SIGTERM)
 
+	// Logger
+	log := logger.Init()
+
 	// Environment configuration
-	env.Init("config.json")
+	env.Init("config.json", log)
 
 	// RabbitMQ configuration
-	ra := rabbitmq.New(viper.GetString("rabbitmq.username"), viper.GetString("rabbitmq.password"), viper.GetString("rabbitmq.host"), viper.GetString("rabbitmq.port"))
+	ra := rabbitmq.New(
+		viper.GetString("application.name"),
+		viper.GetString("rabbitmq.username"),
+		viper.GetString("rabbitmq.password"),
+		viper.GetString("rabbitmq.host"),
+		viper.GetString("rabbitmq.port"),
+		log,
+	)
 	ra.CreateQueue(model.QueueBasic)
 	rabbitmqConsumerDone := make(chan struct{})
 	defer ra.Close()
@@ -40,7 +50,7 @@ func main() {
 	go func() {
 		err := app.Listen(":" + viper.GetString("application.port"))
 		if err != nil {
-			log.Fatal(err)
+			log.Fatalf("fiber failed to start : %v", err)
 		}
 	}()
 
@@ -52,7 +62,7 @@ func main() {
 	close(rabbitmqConsumerDone)
 	err := app.Shutdown()
 	if err != nil {
-		log.Fatal(err)
+		log.Fatalf("fiber failed to shutdown : %v", err)
 	}
 
 	// Wait for consumers to finish

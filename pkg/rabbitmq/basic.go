@@ -3,30 +3,33 @@ package rabbitmq
 import (
 	"context"
 	"fmt"
-	"github.com/ciazhar/go-zhar/pkg"
+	"github.com/ciazhar/go-zhar/pkg/logger"
 	amqp "github.com/rabbitmq/amqp091-go"
-	"log"
 	"time"
 )
 
 type RabbitMQ struct {
+	logger     logger.Logger
 	connection *amqp.Connection
 	channel    *amqp.Channel
 }
 
-func New(username, password, host, port string) *RabbitMQ {
+func New(connectionName, username, password, host, port string, logger logger.Logger) *RabbitMQ {
 
-	conn, err := amqp.Dial(fmt.Sprintf(AmqpUrl, username, password, host, port))
+	config := amqp.Config{Properties: amqp.NewConnectionProperties()}
+	config.Properties.SetClientConnectionName(connectionName)
+
+	conn, err := amqp.DialConfig(fmt.Sprintf(AmqpUrl, username, password, host, port), config)
 	if err != nil {
-		log.Fatal(ErrConnFailed, err)
+		logger.Fatalf(ErrConnFailed, err)
 	}
-	log.Println(MsgConnSucceed)
+	logger.Info(MsgConnSucceed)
 
 	ch, err := conn.Channel()
 	if err != nil {
-		log.Fatal(ErrChanFailed, err)
+		logger.Fatalf(ErrChanFailed, err)
 	}
-	log.Println(MsgChanCreated)
+	logger.Info(MsgChanCreated)
 
 	return &RabbitMQ{
 		connection: conn,
@@ -44,13 +47,13 @@ func (r *RabbitMQ) CreateQueue(queueName string) {
 		false,     // no-wait
 		nil,       // arguments
 	); err != nil {
-		log.Fatal(ErrQueueFailed, err)
+		r.logger.Fatalf(ErrQueueFailed, err)
 	}
-	log.Printf(MsgQueueCreated, queueName)
+	r.logger.Infof(MsgQueueCreated, queueName)
 }
 
 func (r *RabbitMQ) ConsumeMessages(queueName string, out func(msg string), stop chan struct{}) {
-	msgs, err := r.channel.Consume(
+	messages, err := r.channel.Consume(
 		queueName, // queue
 		"",        // consumer
 		true,      // auto-ack
@@ -60,15 +63,15 @@ func (r *RabbitMQ) ConsumeMessages(queueName string, out func(msg string), stop 
 		nil,       // args
 	)
 	if err != nil {
-		log.Fatal(ErrConsumerFailed, err)
+		r.logger.Fatalf(ErrConsumerFailed, err)
 	}
-	log.Printf(MsgConsumerSucceed, queueName)
+	r.logger.Infof(MsgConsumerSucceed, queueName)
 
 	go func() {
-		for msg := range msgs {
+		for msg := range messages {
 			select {
 			case <-stop:
-				log.Println(MsgConsumerStopped)
+				r.logger.Info(MsgConsumerStopped)
 				// Perform any cleanup logic here
 				time.Sleep(2 * time.Second) // Simulate cleanup
 				close(stop)
@@ -89,7 +92,7 @@ func (r *RabbitMQ) PublishMessage(ctx context.Context, queueName string, message
 	}
 
 	if err := r.channel.PublishWithContext(ctx, "", queueName, false, false, publishing); err != nil {
-		log.Fatal(ErrProducerFailed, err)
+		r.logger.Fatalf(ErrProducerFailed, err)
 	}
 
 }
@@ -102,16 +105,20 @@ func (r *RabbitMQ) PublishMessageWithTTL(ctx context.Context, queueName string, 
 	}
 
 	if err := r.channel.PublishWithContext(ctx, "", queueName, false, false, publishing); err != nil {
-		log.Fatal(ErrProducerFailed, err)
+		r.logger.Fatalf(ErrProducerFailed, err)
 	}
 }
 
 func (r *RabbitMQ) Close() {
 	defer func() {
 		err := r.channel.Close()
-		pkg.FailOnError(err, ErrClosingChannel)
+		if err != nil {
+			r.logger.Fatalf(ErrClosingChannel, err)
+		}
 
 		err = r.connection.Close()
-		pkg.FailOnError(err, ErrClosingConnection)
+		if err != nil {
+			r.logger.Fatalf(ErrClosingConnection, err)
+		}
 	}()
 }

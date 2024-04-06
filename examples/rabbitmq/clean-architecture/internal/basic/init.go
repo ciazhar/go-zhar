@@ -1,10 +1,10 @@
 package basic
 
 import (
-	"github.com/ciazhar/go-zhar/examples/message-broker/rabbitmq/basic/internal/basic/controller"
-	"github.com/ciazhar/go-zhar/examples/message-broker/rabbitmq/basic/internal/basic/model"
-	"github.com/ciazhar/go-zhar/examples/message-broker/rabbitmq/basic/internal/basic/service"
-	"github.com/ciazhar/go-zhar/pkg/message_broker/rabbitmq"
+	"github.com/ciazhar/go-zhar/examples/rabbitmq/clean-architecture/internal/basic/controller"
+	"github.com/ciazhar/go-zhar/examples/rabbitmq/clean-architecture/internal/basic/model"
+	"github.com/ciazhar/go-zhar/examples/rabbitmq/clean-architecture/internal/basic/service"
+	"github.com/ciazhar/go-zhar/pkg/rabbitmq"
 	"github.com/gofiber/fiber/v2"
 )
 

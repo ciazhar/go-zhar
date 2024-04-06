@@ -4,26 +4,37 @@ import (
 	"context"
 	"fmt"
 	"github.com/ciazhar/go-zhar/pkg"
+	"github.com/ciazhar/go-zhar/pkg/logger"
 	amqp "github.com/rabbitmq/amqp091-go"
 	"sync"
+	"time"
 )
 
 type ChannelPool struct {
+	logger     logger.Logger
 	mu         sync.Mutex
 	Connection *amqp.Connection
 	channels   []*amqp.Channel
 }
 
-func NewChannelPool(username, password, host, port string, size int) *ChannelPool {
+func NewChannelPool(connectionName, username, password, host, port string, size int, logger logger.Logger) *ChannelPool {
 	pool := &ChannelPool{}
-	conn, err := amqp.Dial(fmt.Sprintf(AmqpUrl, username, password, host, port))
-	pkg.FailOnError(err, ErrConnFailed)
+
+	config := amqp.Config{Properties: amqp.NewConnectionProperties()}
+	config.Properties.SetClientConnectionName(connectionName)
+
+	conn, err := amqp.DialConfig(fmt.Sprintf(AmqpUrl, username, password, host, port), config)
+	if err != nil {
+		logger.Fatalf(ErrConnFailed, err)
+	}
 	for i := 0; i < size; i++ {
 
 		// Create a channel
 		ch, err := conn.Channel()
-		pkg.FailOnError(err, ErrChanFailed)
-		fmt.Println(MsgChanCreated)
+		if err != nil {
+			logger.Fatalf(ErrChanFailed, err)
+		}
+		logger.Info(MsgChanCreated)
 
 		pool.channels = append(pool.channels, ch)
 	}
@@ -52,7 +63,9 @@ func (r *ChannelPool) Put(conn *amqp.Channel) {
 
 func (r *ChannelPool) CreateQueue(queueName string) {
 	ch, err := r.Get()
-	pkg.FailOnError(err, ErrGetChannelFromPool)
+	if err != nil {
+		r.logger.Fatalf(ErrGetChannelFromPool, err)
+	}
 	defer r.Put(ch)
 
 	// Declare a queue
@@ -64,17 +77,20 @@ func (r *ChannelPool) CreateQueue(queueName string) {
 		false,     // no-wait
 		nil,       // arguments
 	)
-	pkg.FailOnError(err, ErrQueueFailed)
-	fmt.Printf(MsgQueueCreated, queueName)
+	if err != nil {
+		r.logger.Fatalf(ErrQueueFailed, err)
+	}
+	r.logger.Infof(MsgQueueCreated, queueName)
 }
 
-func (r *ChannelPool) ConsumeMessages(queueName string, out func(string2 string)) {
+func (r *ChannelPool) ConsumeMessages(queueName string, out func(msg string), stop chan struct{}) {
 	ch, err := r.Get()
-	pkg.FailOnError(err, ErrGetChannelFromPool)
+	if err != nil {
+		r.logger.Fatalf(ErrGetChannelFromPool, err)
+	}
 	defer r.Put(ch)
 
-	// Consume messages from the queue
-	msgs, err := ch.Consume(
+	messages, err := ch.Consume(
 		queueName, // queue
 		"",        // consumer
 		true,      // auto-ack
@@ -83,20 +99,33 @@ func (r *ChannelPool) ConsumeMessages(queueName string, out func(string2 string)
 		false,     // no-wait
 		nil,       // args
 	)
-	pkg.FailOnError(err, ErrConsumerFailed)
-	fmt.Printf(MsgConsumerSucceed, queueName)
+	if err != nil {
+		r.logger.Fatalf(ErrConsumerFailed, err)
+	}
+	r.logger.Infof(MsgConsumerSucceed, queueName)
 
-	// Use a goroutine to process incoming messages
 	go func() {
-		for d := range msgs {
-			out(string(d.Body))
+		for msg := range messages {
+			select {
+			case <-stop:
+				r.logger.Info(MsgConsumerStopped)
+				// Perform any cleanup logic here
+				time.Sleep(2 * time.Second) // Simulate cleanup
+				close(stop)
+				return
+			default:
+				out(string(msg.Body))
+			}
 		}
 	}()
+	<-stop
 }
 
 func (r *ChannelPool) PublishMessage(ctx context.Context, queueName string, message string) {
 	ch, err := r.Get()
-	pkg.FailOnError(err, ErrGetChannelFromPool)
+	if err != nil {
+		r.logger.Fatalf(ErrGetChannelFromPool, err)
+	}
 	defer r.Put(ch)
 
 	// Publish a message to the queue
@@ -110,13 +139,17 @@ func (r *ChannelPool) PublishMessage(ctx context.Context, queueName string, mess
 			ContentType: pkg.TextPlain,
 			Body:        []byte(message),
 		})
-	pkg.FailOnError(err, ErrProducerFailed)
-	fmt.Printf(MsgProducerSucceed, message, queueName)
+	if err != nil {
+		r.logger.Fatalf(ErrProducerFailed, err)
+	}
+	r.logger.Infof(MsgProducerSucceed, message, queueName)
 }
 
 func (r *ChannelPool) PublishMessageWithTTL(ctx context.Context, queueName string, message string, ttlMilliseconds int) {
 	ch, err := r.Get()
-	pkg.FailOnError(err, ErrGetChannelFromPool)
+	if err != nil {
+		r.logger.Fatalf(ErrGetChannelFromPool, err)
+	}
 	defer r.Put(ch)
 
 	// Publish a message to the queue
@@ -131,18 +164,24 @@ func (r *ChannelPool) PublishMessageWithTTL(ctx context.Context, queueName strin
 			Body:        []byte(message),
 			Expiration:  fmt.Sprintf("%d", ttlMilliseconds),
 		})
-	pkg.FailOnError(err, ErrProducerFailed)
-	fmt.Printf(MsgProducerSucceed, message, queueName)
+	if err != nil {
+		r.logger.Fatalf(ErrProducerFailed, err)
+	}
+	r.logger.Infof(MsgProducerSucceed, message, queueName)
 }
 
 func (r *ChannelPool) Close() {
 	defer func() {
 		for i := range r.channels {
 			err := r.channels[i].Close()
-			pkg.FailOnError(err, ErrClosingChannel)
+			if err != nil {
+				r.logger.Fatalf(ErrClosingChannel, err)
+			}
 		}
 
 		err := r.Connection.Close()
-		pkg.FailOnError(err, ErrClosingConnection)
+		if err != nil {
+			r.logger.Fatalf(ErrClosingConnection, err)
+		}
 	}()
 }
