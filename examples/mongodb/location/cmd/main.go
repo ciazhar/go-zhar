@@ -19,8 +19,7 @@ func main() {
 
 	// Mongo configuration
 	mongoDatabase := mongo.Init(
-		viper.GetString("mongo.host"),
-		viper.GetInt("mongo.port"),
+		viper.GetString("mongo.hosts"),
 		viper.GetString("mongo.username"),
 		viper.GetString("mongo.password"),
 		viper.GetString("mongo.database"),
