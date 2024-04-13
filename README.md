@@ -1,63 +1,88 @@
-# Go Boilerplate
-> Dokumentasi Development Backend Menggunakan Bahasa Pemrograman Golang
+# ZHAR : Go Boilerplate
 
-## Resource
+[![Go Reference](https://pkg.go.dev/badge/github.com/ciazhar/go-zhar.svg)](https://pkg.go.dev/github.com/ciazhar/go-zhar)
+> Example and use case in go programming language
 
-### Basic
-- [Struktur Project - Clean Architecture](docs/1.basic/clean-arch/README.md)
-- Auto Generate
-- Multi Stage Configuration - Cobra
-- Dependency Management - Go Module
-- Makefile
-    - Linter
-- GO Validator go-playground/validator
+## Contents
 
-### Testing
-- Unit Testing - Testify
-- Mocking - mockery
+- [Framework](#framework)
+- [Database](#database)
+- [Message Broker](#message-broker)
+- [Benchmark](#benchmark)
 
-### Data Structure
-- Struct Merging - mergo
-- Data Faker - faker
+## Framework
 
-### Web
-- Router - Chi
-- Cors
-- File Serve
-- Image Upload - Download
-- HTTP Client - Gorequest
-- Service to Service Communication using gRPC 
-- Dokumentasi API - Swagger
-- Scrap - GoQuery
+- Fiber v2
+- GRPC - Protobuf
 
-### Database
-- MongoDB
+## Database
 
-### Security
+- Relational Database
+    - PostgreSQL
+    - MySQL
+- In Memory Database
+    - [Redis](https://github.com/ciazhar/go-zhar/tree/master/examples/redis)
+    - Dragonfly
+- Document Database
+    - [MongoDB](https://github.com/ciazhar/go-zhar/tree/master/examples/mongodb)
+- Columnar Database
+    - ClickHouse
+    - Apache Cassandra
+    - ScyllaDB
+
+## Message Broker
+
+- [RabbitMQ](https://github.com/ciazhar/go-zhar/tree/master/examples/rabbitmq)
+- Kafka
+
+## Benchmark
+
+- [In Memory Database](https://github.com/ciazhar/go-zhar/tree/master/benchmark/in-memory-database)
+- [JSON](https://github.com/ciazhar/go-zhar/tree/master/benchmark/json)
+
+## Websocket
+
+- SocketIO
+    - HTTP to SocketIO
+
+## Centralized Configuration
+
+- [Consul](https://github.com/ciazhar/go-zhar/tree/master/examples/consul)
+
+## Logging
+
+- Zerolog
+- Zap
+- Sentry
+- Prometheus
+- OpenTelemetry & Jaeger
+
+## Testing
+
+- Container Testing
+- Golden File
+- Mockery
+
+## Security
+
 - JWT
 - Bcrypt
+- Paseto
 
-### Real Time Communication
-- SocketIO
-- Push Notification - FCM
-- Pub / Sub
+## CLI Tool
 
-### Location & Map
-- Google Map API
+- SQL Migrate
+- sqlc
+- swag
 
-### Document
-- Excel
+## Others
 
-### Bot
-- Telegram Bot
-- Line Bot
-
-### Logging
-- Log File using Zap
-- Logging using ELK
-
-Pengen Nyoba
-go.uber.org/zap
-roylee0704/gron
-go-playground/validator
-tidwall/gjson
+- Export Excel & Xlsx
+- [Scrapping](https://github.com/ciazhar/scrap-goquery.git)
+- Validator
+- CLI
+- Dependency Injection
+- Bomberman
+- Mergo
+- Gmap
+- Firebase Push Notification
