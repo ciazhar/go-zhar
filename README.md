@@ -1,7 +1,9 @@
-# ZHAR : Go Boilerplate
+# go-zhar
+
+![](https://og-ciazhar.vercel.app//api?title=go-zhar&description=How+I+Craft+Golang+Code+Is+Documented+Here&information=%40ciazhar)
 
 [![Go Reference](https://pkg.go.dev/badge/github.com/ciazhar/go-zhar.svg)](https://pkg.go.dev/github.com/ciazhar/go-zhar)
-> Example and use case in go programming language
+> How I Craft Golang Code Is Documented Here
 
 ## Contents
 
@@ -33,7 +35,7 @@
 ## Message Broker
 
 - [RabbitMQ](https://github.com/ciazhar/go-zhar/tree/master/examples/rabbitmq)
-- Kafka
+- [Kafka](https://github.com/ciazhar/go-zhar/tree/master/examples/kafka)
 
 ## Benchmark
 
