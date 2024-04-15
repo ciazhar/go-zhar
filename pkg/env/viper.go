@@ -3,7 +3,6 @@ package env
 import (
 	"github.com/ciazhar/go-zhar/pkg/logger"
 	"github.com/spf13/viper"
-	"log"
 	"strings"
 )
 
@@ -18,7 +17,7 @@ const (
 //
 // It takes basic name string as basic parameter and does not return anything.
 func Init(name string, logger logger.Logger) {
-	log.Printf("Initializing configuration with name: %s", name)
+	logger.Infof("Initializing configuration with name: %s", name)
 
 	splitName := strings.Split(name, ".")
 	if len(splitName) != 2 {
