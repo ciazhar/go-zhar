@@ -1,7 +1,7 @@
 package main
 
 import (
-	"github.com/ciazhar/go-zhar/examples/kafka/consumer-producer/model"
+	"github.com/ciazhar/go-zhar/examples/kafka/simple-consumer-producer/model"
 	"github.com/ciazhar/go-zhar/pkg/env"
 	"github.com/ciazhar/go-zhar/pkg/kafka"
 	"github.com/ciazhar/go-zhar/pkg/logger"
