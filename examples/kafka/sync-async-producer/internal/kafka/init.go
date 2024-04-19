@@ -1,7 +1,7 @@
 package kafka
 
 import (
-	controller2 "github.com/ciazhar/go-zhar/examples/kafka/http-to-kafka-producer/internal/kafka/controller"
+	controller2 "github.com/ciazhar/go-zhar/examples/kafka/sync-async-producer/internal/kafka/controller"
 	"github.com/ciazhar/go-zhar/pkg/kafka"
 	"github.com/gofiber/fiber/v2"
 )

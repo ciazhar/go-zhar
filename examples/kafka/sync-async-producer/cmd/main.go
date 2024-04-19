@@ -1,8 +1,8 @@
 package main
 
 import (
-	kafka2 "github.com/ciazhar/go-zhar/examples/kafka/http-to-kafka-producer/internal/kafka"
-	"github.com/ciazhar/go-zhar/examples/kafka/http-to-kafka-producer/internal/kafka/model"
+	kafka2 "github.com/ciazhar/go-zhar/examples/kafka/sync-async-producer/internal/kafka"
+	"github.com/ciazhar/go-zhar/examples/kafka/sync-async-producer/internal/kafka/model"
 	"github.com/ciazhar/go-zhar/pkg/env"
 	"github.com/ciazhar/go-zhar/pkg/kafka"
 	"github.com/ciazhar/go-zhar/pkg/logger"
