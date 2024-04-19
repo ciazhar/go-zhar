@@ -1,21 +1,19 @@
 # go-zhar
 
-![](https://og-ciazhar.vercel.app//api?title=go-zhar&description=How+I+Craft+Golang+Code+Is+Documented+Here&information=%40ciazhar)
-
 [![Go Reference](https://pkg.go.dev/badge/github.com/ciazhar/go-zhar.svg)](https://pkg.go.dev/github.com/ciazhar/go-zhar)
-> How I Craft Golang Code Is Documented Here
+
+![](https://og-ciazhar.vercel.app//api?title=go-zhar&description=How+I+Craft+Golang+Code+Is+Documented+Here&information=%40ciazhar)
 
 ## Contents
 
-- [Framework](#framework)
 - [Database](#database)
+- [Framework](#framework)
 - [Message Broker](#message-broker)
 - [Benchmark](#benchmark)
-
-## Framework
-
-- Fiber v2
-- GRPC - Protobuf
+- [Logging](#logging)
+- [Testing](#testing)
+- [Security/Authentication](#securityauthentication)
+- [Miscellaneous](#miscellaneous)
 
 ## Database
 
@@ -32,6 +30,11 @@
     - Apache Cassandra
     - ScyllaDB
 
+## Framework
+
+- Fiber
+- gRPC-protobuf
+
 ## Message Broker
 
 - [RabbitMQ](https://github.com/ciazhar/go-zhar/tree/master/examples/rabbitmq)
@@ -41,15 +44,6 @@
 
 - [In Memory Database](https://github.com/ciazhar/go-zhar/tree/master/benchmark/in-memory-database)
 - [JSON](https://github.com/ciazhar/go-zhar/tree/master/benchmark/json)
-
-## Websocket
-
-- SocketIO
-    - HTTP to SocketIO
-
-## Centralized Configuration
-
-- [Consul](https://github.com/ciazhar/go-zhar/tree/master/examples/consul)
 
 ## Logging
 
@@ -65,22 +59,18 @@
 - Golden File
 - Mockery
 
-## Security
+## Security/Authentication
 
+- [Paseto](https://github.com/ciazhar/go-zhar/tree/master/examples/paseto)
 - JWT
 - Bcrypt
-- Paseto
 
-## CLI Tool
+## Miscellaneous
 
-- SQL Migrate
-- sqlc
-- swag
-
-## Others
-
+- [Consul](https://github.com/ciazhar/go-zhar/tree/master/examples/consul)
+- [QR](https://github.com/ciazhar/go-zhar/tree/master/examples/qr)
 - Export Excel & Xlsx
-- [Scrapping](https://github.com/ciazhar/scrap-goquery.git)
+- Scrapping
 - Validator
 - CLI
 - Dependency Injection
@@ -88,3 +78,4 @@
 - Mergo
 - Gmap
 - Firebase Push Notification
+- SocketIO
