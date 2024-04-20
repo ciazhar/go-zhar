@@ -11,6 +11,7 @@
 - [Simple Consumer Producer](https://github.com/ciazhar/go-zhar/tree/master/examples/kafka/simple-consumer-producer)
 - [HTTP to Kafka Producer (Sync & Async)](https://github.com/ciazhar/go-zhar/tree/master/examples/kafka/sync-async-producer)
 - [Consumer Group](https://github.com/ciazhar/go-zhar/tree/master/examples/kafka/consumer-group)
+- [Custom Consumer Group (Group By Key, Windowing, Kafka Producer)](https://github.com/ciazhar/go-zhar/tree/master/examples/kafka/custom-consumer-group)
 - SASL Scram Client
 - Transactional Producer
 - Open Telemetry
