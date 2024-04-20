@@ -1,0 +1,21 @@
+package event
+
+import (
+	"context"
+	"github.com/ciazhar/go-zhar/examples/kafka/consumer-group/internal/event/service"
+	"github.com/ciazhar/go-zhar/pkg/kafka"
+	"github.com/ciazhar/go-zhar/pkg/logger"
+	"github.com/spf13/viper"
+)
+
+func Init(log logger.Logger) {
+
+	s := service.NewEventService(log)
+
+	kafka.StartConsumers(context.Background(), viper.GetString("kafka.brokers"), map[string]kafka.ConsumerConfig{
+		"event-group": {
+			Topics:  []string{"event"},
+			Handler: kafka.NewBasicConsumerHandler(s.ProcessEvent),
+		},
+	}, log)
+}
