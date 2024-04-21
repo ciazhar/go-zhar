@@ -1,6 +1,6 @@
 # Paseto
 
-> PASETO (Platform-Agnostic SEcurity TOkens) is a specification and reference implementation for secure stateless
+> PASETO (Platform-Agnostic Security Tokens) is a specification and reference implementation for secure stateless
 > tokens.
 
 ## Key Differences between PASETO and JWT
