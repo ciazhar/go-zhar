@@ -13,6 +13,7 @@
 - [Logging](#logging)
 - [Testing](#testing)
 - [Security/Authentication](#securityauthentication)
+- [Bot](#bot)
 - [Miscellaneous](#miscellaneous)
 
 ## Database
@@ -62,8 +63,13 @@
 ## Security/Authentication
 
 - [Paseto](https://github.com/ciazhar/go-zhar/tree/master/examples/paseto)
-- JWT
+- [JWT](https://github.com/ciazhar/go-zhar/tree/master/examples/jwt)
 - Bcrypt
+
+## Bot
+- Line
+- Telegram
+- WhatsApp
 
 ## Miscellaneous
 
