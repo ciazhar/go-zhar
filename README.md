@@ -6,6 +6,7 @@
 
 ## Contents
 
+- [Go](#go)
 - [Database](#database)
 - [Framework](#framework)
 - [Message Broker](#message-broker)
@@ -15,6 +16,10 @@
 - [Security/Authentication](#securityauthentication)
 - [Bot](#bot)
 - [Miscellaneous](#miscellaneous)
+
+## Go
+
+- [Embed](https://github.com/ciazhar/go-zhar/tree/master/examples/go/embed)
 
 ## Database
 
@@ -67,6 +72,7 @@
 - Bcrypt
 
 ## Bot
+
 - Line
 - Telegram
 - WhatsApp
