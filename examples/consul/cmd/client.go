@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/ciazhar/go-zhar/pkg/consul"
 	"github.com/ciazhar/go-zhar/pkg/env"
+	"github.com/ciazhar/go-zhar/pkg/logger"
 	"github.com/spf13/viper"
 	"io"
 	"net/http"
@@ -12,8 +13,11 @@ import (
 
 func main() {
 
+	// Logger
+	log := logger.Init()
+
 	// Environment configuration
-	env.Init("client.json")
+	env.Init("client.json", log)
 	c := consul.Init(
 		viper.GetString("consul.host"),
 		viper.GetInt("consul.port"),

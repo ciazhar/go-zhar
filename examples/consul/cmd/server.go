@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"github.com/ciazhar/go-zhar/pkg/consul"
 	"github.com/ciazhar/go-zhar/pkg/env"
+	"github.com/ciazhar/go-zhar/pkg/logger"
 	"github.com/spf13/viper"
-	"log"
 	"net/http"
 	"os"
 	"os/signal"
@@ -14,8 +14,11 @@ import (
 
 func main() {
 
+	// Logger
+	log := logger.Init()
+
 	// Environment configuration
-	env.Init("server.json")
+	env.Init("server.json", log)
 	c := consul.Init(
 		viper.GetString("consul.host"),
 		viper.GetInt("consul.port"),
@@ -41,7 +44,7 @@ func main() {
 	go func() {
 		fmt.Printf("Starting server on :%s...\n", viper.GetString("application.port"))
 		if err := http.ListenAndServe(":"+viper.GetString("application.port"), nil); err != nil {
-			log.Fatal(err)
+			log.Fatalf("Failed to start server: %v", err)
 		}
 	}()
 
