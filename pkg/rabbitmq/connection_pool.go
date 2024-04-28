@@ -125,7 +125,8 @@ func (r *ConnectionPool) PublishMessage(ctx context.Context, queueName string, m
 
 	ch, err := conn.Channel()
 	if err != nil {
-		r.logger.Fatalf(ErrChanFailed, err)
+		r.logger.Infof(ErrChanFailed, err)
+		return
 	}
 	r.logger.Info(MsgChanCreated)
 
@@ -141,7 +142,8 @@ func (r *ConnectionPool) PublishMessage(ctx context.Context, queueName string, m
 			Body:        []byte(message),
 		})
 	if err != nil {
-		r.logger.Fatalf(ErrProducerFailed, err)
+		r.logger.Infof(ErrProducerFailed, err)
+		return
 	}
 	r.logger.Infof(MsgProducerSucceed, message, queueName)
 }
@@ -149,13 +151,15 @@ func (r *ConnectionPool) PublishMessage(ctx context.Context, queueName string, m
 func (r *ConnectionPool) PublishMessageWithTTL(ctx context.Context, queueName string, message string, ttlMilliseconds int) {
 	conn, err := r.Get()
 	if err != nil {
-		r.logger.Fatalf(ErrGetChannelFromPool, err)
+		r.logger.Infof(ErrGetChannelFromPool, err)
+		return
 	}
 	defer r.Put(conn)
 
 	ch, err := conn.Channel()
 	if err != nil {
-		r.logger.Fatalf(ErrChanFailed, err)
+		r.logger.Infof(ErrChanFailed, err)
+		return
 	}
 	r.logger.Info(MsgChanCreated)
 
@@ -172,7 +176,8 @@ func (r *ConnectionPool) PublishMessageWithTTL(ctx context.Context, queueName st
 			Expiration:  fmt.Sprintf("%d", ttlMilliseconds),
 		})
 	if err != nil {
-		r.logger.Fatalf(ErrProducerFailed, err)
+		r.logger.Infof(ErrProducerFailed, err)
+		return
 	}
 	r.logger.Infof(MsgProducerSucceed, message, queueName)
 }

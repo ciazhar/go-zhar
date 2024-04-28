@@ -124,7 +124,7 @@ func (r *ChannelPool) ConsumeMessages(queueName string, out func(msg string), st
 func (r *ChannelPool) PublishMessage(ctx context.Context, queueName string, message string) {
 	ch, err := r.Get()
 	if err != nil {
-		r.logger.Fatalf(ErrGetChannelFromPool, err)
+		r.logger.Infof(ErrGetChannelFromPool, err)
 	}
 	defer r.Put(ch)
 
@@ -140,7 +140,8 @@ func (r *ChannelPool) PublishMessage(ctx context.Context, queueName string, mess
 			Body:        []byte(message),
 		})
 	if err != nil {
-		r.logger.Fatalf(ErrProducerFailed, err)
+		r.logger.Infof(ErrProducerFailed, err)
+		return
 	}
 	r.logger.Infof(MsgProducerSucceed, message, queueName)
 }
@@ -165,7 +166,8 @@ func (r *ChannelPool) PublishMessageWithTTL(ctx context.Context, queueName strin
 			Expiration:  fmt.Sprintf("%d", ttlMilliseconds),
 		})
 	if err != nil {
-		r.logger.Fatalf(ErrProducerFailed, err)
+		r.logger.Infof(ErrProducerFailed, err)
+		return
 	}
 	r.logger.Infof(MsgProducerSucceed, message, queueName)
 }

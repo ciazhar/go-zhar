@@ -51,7 +51,7 @@ func (p *SyncProducer) PublishMessage(topic string, value string) {
 
 	_, _, err := p.producer.SendMessage(msg)
 	if err != nil {
-		p.logger.Fatalf("Failed to publish a message: %v", err)
+		p.logger.Infof("Failed to publish a message: %v", err)
 	}
 }
 

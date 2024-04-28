@@ -3,7 +3,6 @@ package kafka
 import (
 	"github.com/IBM/sarama"
 	"github.com/ciazhar/go-zhar/pkg/logger"
-	"log"
 	"os"
 	"os/signal"
 	"strings"
@@ -48,7 +47,7 @@ func (c *Consumer) ConsumeMessages(topicName string, out func(msg string)) {
 		for {
 			select {
 			case err := <-consumer.Errors():
-				log.Println(err)
+				c.logger.Infof("Error from consumer: %v", err)
 			case msg := <-consumer.Messages():
 				out(string(msg.Value))
 			case <-signals:

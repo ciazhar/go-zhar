@@ -92,7 +92,7 @@ func (r *RabbitMQ) PublishMessage(ctx context.Context, queueName string, message
 	}
 
 	if err := r.channel.PublishWithContext(ctx, "", queueName, false, false, publishing); err != nil {
-		r.logger.Fatalf(ErrProducerFailed, err)
+		r.logger.Infof(ErrProducerFailed, err)
 	}
 
 }
@@ -105,7 +105,7 @@ func (r *RabbitMQ) PublishMessageWithTTL(ctx context.Context, queueName string, 
 	}
 
 	if err := r.channel.PublishWithContext(ctx, "", queueName, false, false, publishing); err != nil {
-		r.logger.Fatalf(ErrProducerFailed, err)
+		r.logger.Infof(ErrProducerFailed, err)
 	}
 }
 
