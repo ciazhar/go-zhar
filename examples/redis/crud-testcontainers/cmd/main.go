@@ -1,7 +1,7 @@
 package main
 
 import (
-	"github.com/ciazhar/go-zhar/examples/redis/clean-architecture/internal/basic"
+	"github.com/ciazhar/go-zhar/examples/redis/crud-testcontainers/internal"
 	"github.com/ciazhar/go-zhar/pkg/env"
 	"github.com/ciazhar/go-zhar/pkg/logger"
 	"github.com/ciazhar/go-zhar/pkg/redis"
@@ -30,7 +30,7 @@ func main() {
 	app := fiber.New()
 
 	// Module initialization
-	basic.Init(app, r)
+	internal.Init(app, r)
 
 	// Start Fiber
 	err := app.Listen(":" + viper.GetString("application.port"))
