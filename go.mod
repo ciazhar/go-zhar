@@ -22,6 +22,7 @@ require (
 	github.com/go-gorp/gorp/v3 v3.1.0
 	github.com/go-pg/pg/v10 v10.12.0
 	github.com/go-playground/locales v0.14.0
+	github.com/go-playground/universal-translator v0.18.0
 	github.com/go-playground/validator/v10 v10.11.1
 	github.com/go-sql-driver/mysql v1.8.0
 	github.com/go-xorm/xorm v0.7.9
@@ -101,7 +102,6 @@ require (
 	github.com/go-openapi/spec v0.20.4 // indirect
 	github.com/go-openapi/swag v0.19.15 // indirect
 	github.com/go-pg/zerochecker v0.2.0 // indirect
-	github.com/go-playground/universal-translator v0.18.0 // indirect
 	github.com/go-rel/rel v0.8.0 // indirect
 	github.com/gobuffalo/envy v1.9.0 // indirect
 	github.com/gobuffalo/fizz v1.13.0 // indirect
@@ -134,6 +134,7 @@ require (
 	github.com/jackc/pgpassfile v1.0.0 // indirect
 	github.com/jackc/pgproto3/v2 v2.3.3 // indirect
 	github.com/jackc/pgservicefile v0.0.0-20221227161230-091c0ba34f0a // indirect
+	github.com/jackc/puddle v1.3.0 // indirect
 	github.com/jackc/puddle/v2 v2.2.1 // indirect
 	github.com/jcmturner/aescts/v2 v2.0.0 // indirect
 	github.com/jcmturner/dnsutils/v2 v2.0.0 // indirect
