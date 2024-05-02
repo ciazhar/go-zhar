@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"github.com/ciazhar/go-zhar/pkg/logger"
 	amqp "github.com/rabbitmq/amqp091-go"
+	"sync"
 	"time"
 )
 
@@ -19,21 +20,21 @@ func New(connectionName, username, password, host, port string, logger logger.Lo
 	config := amqp.Config{Properties: amqp.NewConnectionProperties()}
 	config.Properties.SetClientConnectionName(connectionName)
 
-	conn, err := amqp.DialConfig(fmt.Sprintf(AmqpUrl, username, password, host, port), config)
+	conn, err := amqp.DialConfig(fmt.Sprintf("amqp://%s:%s@%s:%s/", username, password, host, port), config)
 	if err != nil {
-		logger.Fatalf(ErrConnFailed, err)
+		logger.Fatalf("Failed to connect to RabbitMQ: %s", err)
 	}
-	logger.Info(MsgConnSucceed)
 
 	ch, err := conn.Channel()
 	if err != nil {
-		logger.Fatalf(ErrChanFailed, err)
+		logger.Fatalf("Failed to open a channel: %s", err)
 	}
-	logger.Info(MsgChanCreated)
+	logger.Info("Connected to RabbitMQ")
 
 	return &RabbitMQ{
 		connection: conn,
 		channel:    ch,
+		logger:     logger,
 	}
 }
 
@@ -47,12 +48,61 @@ func (r *RabbitMQ) CreateQueue(queueName string) {
 		false,     // no-wait
 		nil,       // arguments
 	); err != nil {
-		r.logger.Fatalf(ErrQueueFailed, err)
+		r.logger.Fatalf("Failed to declare a queue: %s", err)
 	}
-	r.logger.Infof(MsgQueueCreated, queueName)
+	r.logger.Infof("Queue %s created", queueName)
 }
 
-func (r *RabbitMQ) ConsumeMessages(queueName string, out func(msg string), stop chan struct{}) {
+func (r *RabbitMQ) CreateQueueDelay(exchange, queue, routingKey string) {
+	args := amqp.Table{
+		"x-delayed-type": "direct",
+	}
+	err := r.channel.ExchangeDeclare(
+		exchange,            // exchange name
+		"x-delayed-message", // exchange type
+		true,                // durable
+		false,               // auto-delete
+		false,               // internal
+		false,               // no-wait
+		args,                // arguments
+	)
+	if err != nil {
+		r.logger.Fatalf("Failed to declare an exchange: %s", err)
+	}
+
+	// Declare the delayed queue
+	_, err = r.channel.QueueDeclare(
+		queue, // queue name
+		true,  // durable
+		false, // delete when unused
+		false, // exclusive
+		false, // no-wait
+		nil,   // arguments
+	)
+	if err != nil {
+		r.logger.Fatalf("Failed to declare a queue: %s", err)
+	}
+
+	err = r.channel.QueueBind(
+		queue,      // queue name
+		routingKey, // routing key (converting integer to string)
+		exchange,   // exchange name
+		false,      // no-wait
+		nil,        // arguments
+	)
+	if err != nil {
+		r.logger.Fatalf("Failed to bind queue: %s", err)
+	}
+}
+
+func (r *RabbitMQ) CreateRoutingKey(queue, routingKey, exchange string) {
+	err := r.channel.QueueBind(queue, routingKey, exchange, false, nil)
+	if err != nil {
+		r.logger.Fatalf("Failed to bind queue: %s", err)
+	}
+}
+
+func (r *RabbitMQ) ConsumeMessages(ctx context.Context, queueName string, out func(msg string)) {
 	messages, err := r.channel.Consume(
 		queueName, // queue
 		"",        // consumer
@@ -63,25 +113,23 @@ func (r *RabbitMQ) ConsumeMessages(queueName string, out func(msg string), stop 
 		nil,       // args
 	)
 	if err != nil {
-		r.logger.Fatalf(ErrConsumerFailed, err)
+		r.logger.Fatalf("Failed to register a consumer: %s", err)
 	}
-	r.logger.Infof(MsgConsumerSucceed, queueName)
+	r.logger.Infof("Consumer registered on queue %s", queueName)
 
-	go func() {
-		for msg := range messages {
-			select {
-			case <-stop:
-				r.logger.Info(MsgConsumerStopped)
-				// Perform any cleanup logic here
-				time.Sleep(2 * time.Second) // Simulate cleanup
-				close(stop)
+	for {
+		select {
+		case msg, ok := <-messages:
+			if !ok {
+				r.logger.Infof("Consumer for queue %s closed", queueName)
 				return
-			default:
-				out(string(msg.Body))
 			}
+			out(string(msg.Body))
+		case <-ctx.Done():
+			r.logger.Infof("Stopping consumer for queue %s", queueName)
+			return
 		}
-	}()
-	<-stop
+	}
 }
 
 func (r *RabbitMQ) PublishMessage(ctx context.Context, queueName string, message string) {
@@ -92,9 +140,8 @@ func (r *RabbitMQ) PublishMessage(ctx context.Context, queueName string, message
 	}
 
 	if err := r.channel.PublishWithContext(ctx, "", queueName, false, false, publishing); err != nil {
-		r.logger.Infof(ErrProducerFailed, err)
+		r.logger.Infof("Failed to publish a message: %s", err)
 	}
-
 }
 
 func (r *RabbitMQ) PublishMessageWithTTL(ctx context.Context, queueName string, message string, ttlMilliseconds int) {
@@ -105,7 +152,30 @@ func (r *RabbitMQ) PublishMessageWithTTL(ctx context.Context, queueName string, 
 	}
 
 	if err := r.channel.PublishWithContext(ctx, "", queueName, false, false, publishing); err != nil {
-		r.logger.Infof(ErrProducerFailed, err)
+		r.logger.Infof("Failed to publish a message: %s", err)
+	}
+}
+
+func (r *RabbitMQ) PublishDelayedMessage(ctx context.Context, routingKey string, message string, exchange string, delay time.Duration) {
+
+	r.logger.Infof("Publishing delayed message: %s", message)
+
+	//Calculate the delay in milliseconds
+	delayMillis := int64(delay / time.Millisecond)
+
+	// Set the AMQP headers with x-delay
+	headers := amqp.Table{
+		"x-delay": delayMillis,
+	}
+
+	publishing := amqp.Publishing{
+		ContentType: "text/plain",
+		Body:        []byte(message),
+		Headers:     headers,
+	}
+
+	if err := r.channel.PublishWithContext(ctx, exchange, routingKey, false, false, publishing); err != nil {
+		r.logger.Infof("Failed to publish a message: %s", err)
 	}
 }
 
@@ -113,12 +183,37 @@ func (r *RabbitMQ) Close() {
 	defer func() {
 		err := r.channel.Close()
 		if err != nil {
-			r.logger.Fatalf(ErrClosingChannel, err)
+			r.logger.Fatalf("Failed to close channel: %s", err)
 		}
 
 		err = r.connection.Close()
 		if err != nil {
-			r.logger.Fatalf(ErrClosingConnection, err)
+			r.logger.Fatalf("Failed to close connection: %s", err)
 		}
 	}()
+}
+
+type ConsumerConfig struct {
+	Queue   string
+	Handler func(message string)
+}
+
+func (r *RabbitMQ) StartConsumers(
+	ctx context.Context,
+	consumers []ConsumerConfig,
+	wg *sync.WaitGroup,
+	logger logger.Logger,
+) {
+	// Iterate over the consumers map
+	for _, config := range consumers {
+
+		wg.Add(1)
+
+		go func(config ConsumerConfig) {
+			defer wg.Done()
+			r.ConsumeMessages(ctx, config.Queue, config.Handler)
+		}(config)
+
+		logger.Infof("Starting consumer queue %s", config.Queue)
+	}
 }

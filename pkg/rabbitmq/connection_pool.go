@@ -9,6 +9,7 @@ import (
 	"sync"
 )
 
+// TODO implement like basic
 type ConnectionPool struct {
 	logger      logger.Logger
 	mu          sync.Mutex

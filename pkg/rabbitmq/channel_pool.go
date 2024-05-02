@@ -10,6 +10,7 @@ import (
 	"time"
 )
 
+// TODO implement like basic
 type ChannelPool struct {
 	logger     logger.Logger
 	mu         sync.Mutex
