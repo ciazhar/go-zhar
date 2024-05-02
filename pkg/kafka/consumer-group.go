@@ -15,9 +15,13 @@ type ConsumerConfig struct {
 	Handler sarama.ConsumerGroupHandler
 }
 
-func StartConsumers(ctx context.Context, brokers string, consumers map[string]ConsumerConfig, logger logger.Logger) {
-	// Create a wait group to synchronize the consumer goroutines
-	var wg sync.WaitGroup
+func StartConsumers(
+	ctx context.Context,
+	brokers string,
+	consumers map[string]ConsumerConfig,
+	wg *sync.WaitGroup,
+	logger logger.Logger,
+) {
 
 	// Iterate over the consumers map
 	for groupID, config := range consumers {
@@ -26,13 +30,11 @@ func StartConsumers(ctx context.Context, brokers string, consumers map[string]Co
 
 		wg.Add(1)
 
-		go runConsumer(ctx, &wg, consumerGroup, config.Topics, config.Handler)
+		go runConsumer(ctx, wg, consumerGroup, config.Topics, config.Handler, logger)
 
 		logger.Infof("Starting consumer group %s topic %s", groupID, config.Topics)
 	}
 
-	// Wait for all the consumer goroutines to finish
-	wg.Wait()
 }
 
 func runConsumer(
@@ -41,18 +43,24 @@ func runConsumer(
 	consumerGroup ConsumerGroup,
 	topics []string,
 	handler sarama.ConsumerGroupHandler,
+	logger2 logger.Logger,
 ) {
 	defer wg.Done()
 	defer consumerGroup.Close()
 
 	for {
-		err := consumerGroup.GetInstance().Consume(ctx, topics, handler)
-		if err != nil {
-			log.Println("Error consuming messages:", err)
-		}
-
-		if errors.Is(err, sarama.ErrClosedConsumerGroup) {
-			break
+		select {
+		case <-ctx.Done():
+			logger2.Infof("Stopping Kafka consumer for topics %v", topics)
+			return
+		default:
+			err := consumerGroup.GetInstance().Consume(ctx, topics, handler)
+			if err != nil {
+				if errors.Is(err, sarama.ErrClosedConsumerGroup) {
+					return
+				}
+				consumerGroup.logger.Infof("Error consuming messages: %v", err)
+			}
 		}
 	}
 }

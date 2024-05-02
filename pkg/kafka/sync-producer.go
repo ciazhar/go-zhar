@@ -68,6 +68,10 @@ func (p *SyncProducer) PublishMessageWithKey(topic string, key string, message s
 	}
 }
 
+func (p *SyncProducer) GetProducerInstance() sarama.SyncProducer {
+	return p.producer
+}
+
 func (p *SyncProducer) Close() {
 	err := p.producer.Close()
 	if err != nil {
