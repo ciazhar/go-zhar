@@ -1,7 +1,7 @@
 package controller
 
 import (
-	"github.com/ciazhar/go-zhar/examples/rabbitmq/clean-architecture/internal/basic/service"
+	"github.com/ciazhar/go-zhar/examples/rabbitmq/publish-consume/internal/service"
 	"github.com/gofiber/fiber/v2"
 )
 

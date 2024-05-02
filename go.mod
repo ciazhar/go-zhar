@@ -60,6 +60,7 @@ require (
 	github.com/swaggo/swag v1.16.3
 	github.com/tealeg/xlsx v1.0.5
 	github.com/testcontainers/testcontainers-go v0.30.0
+	github.com/testcontainers/testcontainers-go/modules/rabbitmq v0.30.0
 	github.com/testcontainers/testcontainers-go/modules/redis v0.30.0
 	github.com/ugorji/go/codec v1.2.7
 	github.com/upper/db/v4 v4.7.0

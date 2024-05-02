@@ -2,19 +2,34 @@ package service
 
 import (
 	"context"
-	"github.com/ciazhar/go-zhar/examples/rabbitmq/clean-architecture/internal/basic/model"
+	"github.com/ciazhar/go-zhar/examples/rabbitmq/publish-consume/internal/model"
+	"github.com/ciazhar/go-zhar/pkg/logger"
 	"github.com/ciazhar/go-zhar/pkg/rabbitmq"
-	"github.com/gofiber/fiber/v2/log"
+	"sync"
 )
 
 type BasicService interface {
 	PublishRabbitmq(message string)
 	PublishTTLRabbitmq(message string)
 	ConsumeRabbitmq(message string)
+	StartRabbitConsumer()
 }
 
 type basicService struct {
+	ctx      context.Context
+	wg       *sync.WaitGroup
+	logger   logger.Logger
 	rabbitmq *rabbitmq.RabbitMQ
+}
+
+func (e basicService) StartRabbitConsumer() {
+	e.rabbitmq.StartConsumers(e.ctx, []rabbitmq.ConsumerConfig{
+		{
+			Queue:   model.QueueBasic,
+			Handler: e.ConsumeRabbitmq,
+		},
+	}, e.wg, e.logger)
+
 }
 
 func (e basicService) PublishRabbitmq(message string) {
@@ -26,11 +41,19 @@ func (e basicService) PublishTTLRabbitmq(message string) {
 }
 
 func (e basicService) ConsumeRabbitmq(message string) {
-	log.Info("Received Basic Message: ", message)
+	e.logger.Infof("Received Basic Message: %s", message)
 }
 
-func NewBasicService(rabbitmq *rabbitmq.RabbitMQ) BasicService {
+func NewBasicService(
+	ctx context.Context,
+	rabbitmq *rabbitmq.RabbitMQ,
+	wg *sync.WaitGroup,
+	logger logger.Logger,
+) BasicService {
 	return basicService{
+		ctx:      ctx,
+		wg:       wg,
+		logger:   logger,
 		rabbitmq: rabbitmq,
 	}
 }
