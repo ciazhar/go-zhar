@@ -2,8 +2,8 @@ package internal
 
 import (
 	"context"
-	"github.com/ciazhar/go-zhar/examples/rabbitmq/publish-consume/internal/controller"
-	"github.com/ciazhar/go-zhar/examples/rabbitmq/publish-consume/internal/service"
+	"github.com/ciazhar/go-zhar/examples/rabbitmq/publish-consume-testcontainers/internal/controller"
+	"github.com/ciazhar/go-zhar/examples/rabbitmq/publish-consume-testcontainers/internal/service"
 	"github.com/ciazhar/go-zhar/pkg/logger"
 	"github.com/ciazhar/go-zhar/pkg/rabbitmq"
 	"github.com/gofiber/fiber/v2"

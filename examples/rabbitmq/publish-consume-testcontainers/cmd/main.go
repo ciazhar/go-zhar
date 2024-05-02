@@ -1,8 +1,8 @@
 package main
 
 import (
-	"github.com/ciazhar/go-zhar/examples/rabbitmq/publish-consume/internal"
-	"github.com/ciazhar/go-zhar/examples/rabbitmq/publish-consume/internal/model"
+	"github.com/ciazhar/go-zhar/examples/rabbitmq/publish-consume-testcontainers/internal"
+	"github.com/ciazhar/go-zhar/examples/rabbitmq/publish-consume-testcontainers/internal/model"
 	"github.com/ciazhar/go-zhar/pkg/context_util"
 	"github.com/ciazhar/go-zhar/pkg/env"
 	"github.com/ciazhar/go-zhar/pkg/logger"

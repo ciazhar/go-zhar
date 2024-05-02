@@ -2,7 +2,7 @@ package service
 
 import (
 	"context"
-	"github.com/ciazhar/go-zhar/examples/rabbitmq/publish-consume/internal/model"
+	"github.com/ciazhar/go-zhar/examples/rabbitmq/publish-consume-testcontainers/internal/model"
 	"github.com/ciazhar/go-zhar/pkg/logger"
 	"github.com/ciazhar/go-zhar/pkg/rabbitmq"
 	"sync"
