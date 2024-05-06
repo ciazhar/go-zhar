@@ -69,6 +69,7 @@
 
 - [Paseto](https://github.com/ciazhar/go-zhar/tree/master/examples/paseto)
 - [JWT](https://github.com/ciazhar/go-zhar/tree/master/examples/jwt)
+- [Aes](https://github.com/ciazhar/go-zhar/tree/master/examples/aes)
 - Bcrypt
 
 ## Bot
