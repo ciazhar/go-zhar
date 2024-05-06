@@ -1,15 +1,13 @@
 package main
 
 import (
-	"fmt"
 	"github.com/ciazhar/go-zhar/pkg/consul"
+	"github.com/ciazhar/go-zhar/pkg/context_util"
 	"github.com/ciazhar/go-zhar/pkg/env"
 	"github.com/ciazhar/go-zhar/pkg/logger"
+	"github.com/gofiber/fiber/v2"
 	"github.com/spf13/viper"
-	"net/http"
-	"os"
-	"os/signal"
-	"syscall"
+	"sync"
 )
 
 func main() {
@@ -17,12 +15,17 @@ func main() {
 	// Logger
 	log := logger.Init()
 
+	// Concurrent configuration
+	ctx := context_util.SetupSignalHandler()
+	var wg sync.WaitGroup // Use a sync.WaitGroup to manage synchronization
+
 	// Environment configuration
 	env.Init("server.json", log)
 	c := consul.Init(
 		viper.GetString("consul.host"),
 		viper.GetInt("consul.port"),
 		viper.GetString("consul.scheme"),
+		log,
 	)
 	c.RetrieveConfiguration(viper.GetString("consul.key"), viper.GetString("consul.configType"))
 	c.RegisterService(
@@ -32,24 +35,36 @@ func main() {
 		viper.GetInt("application.port"),
 	)
 
-	// Handle termination signals to deregister the service
-	sigCh := make(chan os.Signal, 1)
-	signal.Notify(sigCh, syscall.SIGINT, syscall.SIGTERM)
-
 	// Start the HTTP server
-	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
-		fmt.Fprintf(w, "Hello from my-service!")
+	app := fiber.New()
+	app.Get("/", func(c *fiber.Ctx) error {
+		log.Infof("Hello from my-service!")
+		return c.SendStatus(fiber.StatusOK)
 	})
 
+	// Start the health check server
+	wg.Add(1)
 	go func() {
-		fmt.Printf("Starting server on :%s...\n", viper.GetString("application.port"))
-		if err := http.ListenAndServe(":"+viper.GetString("application.port"), nil); err != nil {
-			log.Fatalf("Failed to start server: %v", err)
+		defer wg.Done()
+		err := app.Listen(":" + viper.GetString("application.port"))
+		if err != nil {
+			log.Fatalf("%s: %s", "Error starting server", err)
 		}
+
+		log.Infof("Server started on port %s", viper.GetString("application.healthCheckPort"))
 	}()
 
-	<-sigCh
-	fmt.Println("Deregistering service...")
-	c.DeregisterService(viper.GetString("application.name"))
-	os.Exit(1)
+	select {
+	case <-ctx.Done():
+		// Once all goroutines have completed, initiate server shutdown
+		if err := app.ShutdownWithContext(ctx); err != nil {
+			log.Fatalf("Server shutdown failed: %v", err)
+		}
+
+		// Deregister the service
+		c.DeregisterService(viper.GetString("application.name"))
+	}
+
+	// Wait for all consumer goroutines to complete before exiting
+	wg.Wait()
 }

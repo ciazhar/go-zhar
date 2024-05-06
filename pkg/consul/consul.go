@@ -3,46 +3,50 @@ package consul
 import (
 	"bytes"
 	"fmt"
+	"github.com/ciazhar/go-zhar/pkg/logger"
 	consul "github.com/hashicorp/consul/api"
 	"github.com/spf13/viper"
-	"log"
 )
 
 type Consul struct {
 	client *consul.Client
+	logger logger.Logger
 }
 
-func Init(host string, port int, schema string) *Consul {
+func Init(host string, port int, schema string, logger logger.Logger) *Consul {
 	config := consul.Config{
 		Address: fmt.Sprintf("%s:%d", host, port),
 		Scheme:  schema,
 	}
 	client, err := consul.NewClient(&config)
 	if err != nil {
-		log.Fatalf("Error initializing Consul client: %v\n", err)
+		logger.Fatalf("Error initializing Consul client: %v\n", err)
 		return nil
 	}
 
-	log.Println("Consul client initialized successfully")
+	logger.Info("Consul client initialized successfully")
 	return &Consul{
 		client: client,
+		logger: logger,
 	}
 }
 
 func (c Consul) RetrieveConfiguration(key string, configType string) {
+	c.logger.Infof("key: %s, configType: %s", key, configType)
+
 	pair, _, err := c.client.KV().Get(key, nil)
 	if err != nil {
-		log.Fatalf("Error retrieving key %s: %s", key, err)
+		c.logger.Fatalf("Error retrieving key %s: %s", key, err)
 	}
 
 	if pair != nil {
 		envData := pair.Value
 		viper.SetConfigType(configType)
 		if err := viper.ReadConfig(bytes.NewBuffer(envData)); err != nil {
-			log.Fatalf("Error reading configuration for key %s: %s", key, err)
+			c.logger.Fatalf("Error reading configuration for key %s: %s", key, err)
 		}
 
-		log.Printf("Configuration registered for key: %s", key)
+		c.logger.Infof("Configuration registered for key: %s", key)
 	}
 }
 
@@ -59,32 +63,32 @@ func (c Consul) RegisterService(id, name, host string, port int) {
 		},
 	}
 
-	log.Printf("Registering service with ID: %s, Name: %s", id, name)
+	c.logger.Infof("Registering service with ID: %s, Name: %s", id, name)
 
 	err := c.client.Agent().ServiceRegister(reg)
 	if err != nil {
-		log.Fatalf("Failed to register service: %v", err)
+		c.logger.Fatalf("Failed to register service: %v", err)
 	}
 }
 
 func (c Consul) DeregisterService(id string) {
 	err := c.client.Agent().ServiceDeregister(id)
 	if err != nil {
-		log.Printf("Error deregistering service: %v", err)
+		c.logger.Infof("Error deregistering service: %v", err)
 	}
 }
 
 func (c Consul) RetrieveServiceUrl(id string) (string, error) {
-	log.Printf("Retrieving service URL for id: %s", id)
+	c.logger.Infof("Retrieving service URL for id: %s", id)
 
 	service, _, err := c.client.Agent().Service(id, nil)
 	if err != nil {
-		log.Printf("Error retrieving service: %v", err)
+		c.logger.Infof("Error retrieving service: %v", err)
 		return "", err
 	}
 
 	url := fmt.Sprintf("http://%s:%v", service.Address, service.Port)
-	log.Printf("Service URL: %s", url)
+	c.logger.Infof("Service URL: %s", url)
 
 	return url, nil
 }
