@@ -24,7 +24,7 @@
 ## Database
 
 - Relational Database
-    - PostgreSQL
+    - [PostgreSQL](https://github.com/ciazhar/go-zhar/tree/master/examples/postgres)
     - MySQL
 - In Memory Database
     - [Redis](https://github.com/ciazhar/go-zhar/tree/master/examples/redis)
@@ -81,9 +81,9 @@
 
 - [Consul](https://github.com/ciazhar/go-zhar/tree/master/examples/consul)
 - [QR](https://github.com/ciazhar/go-zhar/tree/master/examples/qr)
+- [Validator](https://github.com/ciazhar/go-zhar/tree/master/examples/govalidator)
 - Export Excel & Xlsx
 - Scrapping
-- Validator
 - CLI
 - Dependency Injection
 - Bomberman
