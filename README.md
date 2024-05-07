@@ -54,7 +54,6 @@
 ## Logging
 
 - Zerolog
-- Zap
 - Sentry
 - Prometheus
 - OpenTelemetry & Jaeger
@@ -62,15 +61,14 @@
 ## Testing
 
 - Container Testing
-- Golden File
-- Mockery
 
 ## Security/Authentication
 
 - [Paseto](https://github.com/ciazhar/go-zhar/tree/master/examples/paseto)
 - [JWT](https://github.com/ciazhar/go-zhar/tree/master/examples/jwt)
 - [Aes](https://github.com/ciazhar/go-zhar/tree/master/examples/aes)
-- Bcrypt
+- [Bcrypt](https://github.com/ciazhar/go-zhar/tree/master/examples/bcrypt)
+- OAuth
 
 ## Bot
 
@@ -87,8 +85,6 @@
 - Scrapping
 - CLI
 - Dependency Injection
-- Bomberman
-- Mergo
 - Gmap
 - Firebase Push Notification
 - SocketIO
