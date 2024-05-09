@@ -19,6 +19,7 @@ require (
 	github.com/eaigner/hood v0.0.0-20131009113532-ca2c4bd5f4dd
 	github.com/francoispqt/gojay v1.2.13
 	github.com/getsentry/sentry-go v0.27.0
+	github.com/go-faker/faker/v4 v4.4.1
 	github.com/go-gorp/gorp/v3 v3.1.0
 	github.com/go-pg/pg/v10 v10.12.0
 	github.com/go-playground/locales v0.14.0
@@ -60,6 +61,7 @@ require (
 	github.com/swaggo/swag v1.16.3
 	github.com/tealeg/xlsx v1.0.5
 	github.com/testcontainers/testcontainers-go v0.30.0
+	github.com/testcontainers/testcontainers-go/modules/clickhouse v0.30.0
 	github.com/testcontainers/testcontainers-go/modules/rabbitmq v0.30.0
 	github.com/testcontainers/testcontainers-go/modules/redis v0.30.0
 	github.com/ugorji/go/codec v1.2.7
@@ -69,6 +71,7 @@ require (
 	golang.org/x/crypto v0.22.0
 	golang.org/x/exp v0.0.0-20240416160154-fe59bbe5cc7f
 	golang.org/x/text v0.14.0
+	gopkg.in/natefinch/lumberjack.v2 v2.2.1
 	gorm.io/driver/postgres v1.5.7
 	gorm.io/gorm v1.25.9
 )
@@ -206,6 +209,7 @@ require (
 	github.com/spf13/afero v1.11.0 // indirect
 	github.com/spf13/cast v1.6.0 // indirect
 	github.com/spf13/pflag v1.0.5 // indirect
+	github.com/stretchr/objx v0.5.2 // indirect
 	github.com/subosito/gotenv v1.6.0 // indirect
 	github.com/swaggo/files/v2 v2.0.0 // indirect
 	github.com/tklauser/go-sysconf v0.3.12 // indirect
