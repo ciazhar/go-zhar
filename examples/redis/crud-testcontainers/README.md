@@ -12,9 +12,8 @@ sorted sets dengan query yang sangat kuat.
 
 ## Apa itu Testcontainers?
 
-Testcontainers adalah suatu framework yang memungkinkan untuk membuat kontainer Docker pada pengujian, yang berguna
-untuk mengisolasi pengujian Anda dari lingkungan lokal Anda, sehingga pengujian dapat diulang dengan konsisten pada
-berbagai lingkungan.
+Testcontainers adalah library Go yang memungkinkan Anda untuk dengan mudah membuat dan mengelola kontainer Docker dalam
+unit test. Ini memungkinkan testing yang konsisten dan dapat diulang, serta isolasi environment testing.
 
 ## Use Case
 

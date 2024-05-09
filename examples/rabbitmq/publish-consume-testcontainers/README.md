@@ -30,10 +30,8 @@ bermanfaat untuk:
 
 ### TestContainers
 
-Pengujian dijalankan dalam lingkungan terisolasi menggunakan TestContainers, yang memungkinkan kami untuk:
-
-- Menjalankan dan mengelola kontainer RabbitMQ selama pengujian.
-- Memastikan keandalan aplikasi dalam berinteraksi dengan RabbitMQ dalam berbagai kondisi lingkungan.
+Testcontainers adalah library Go yang memungkinkan Anda untuk dengan mudah membuat dan mengelola kontainer Docker dalam
+unit test. Ini memungkinkan testing yang konsisten dan dapat diulang, serta isolasi environment testing.
 
 ## Cara Menjalankan
 
