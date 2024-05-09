@@ -32,7 +32,7 @@
 - Document Database
     - [MongoDB](https://github.com/ciazhar/go-zhar/tree/master/examples/mongodb)
 - Columnar Database
-    - ClickHouse
+    - [ClickHouse](https://github.com/ciazhar/go-zhar/tree/master/examples/clickhouse)
     - Apache Cassandra
     - ScyllaDB
 
