@@ -18,7 +18,7 @@ type ClickhouseRepository struct {
 
 func NewClickhouseRepository(ctx context.Context, db *sql.DB, logger logger.Logger) *ClickhouseRepository {
 
-	_, err := db.ExecContext(ctx, `
+	if _, err := db.ExecContext(ctx, `
 		CREATE TABLE events
 		(
 			amp_enabled UInt8,
@@ -75,8 +75,7 @@ func NewClickhouseRepository(ctx context.Context, db *sql.DB, logger logger.Logg
 		ENGINE = ReplacingMergeTree
 		ORDER BY (injection_time, type, rcpt_to, event_id)
 		PRIMARY KEY (injection_time, type, rcpt_to, event_id);
-	`)
-	if err != nil {
+	`); err != nil {
 		logger.Fatalf("failed to create event table: %s", err)
 	}
 
@@ -109,19 +108,16 @@ func (r *ClickhouseRepository) CreateEvent(ctx context.Context, e model.Event) e
 		e.SmsSrc, e.SmsSrcNpi, e.SmsSrcTon, e.SubaccountID, e.Subject,
 		e.TemplateID, e.TemplateVersion, time.UnixMilli(e.Timestamp), e.Transactional,
 		e.TransmissionID, e.Type)
-	if err != nil {
-		return err
-	}
-	return nil
+
+	return err
 }
 
-func (r *ClickhouseRepository) GetEvent(ctx context.Context, eventId string, injectionTime time.Time) (model.Event, error) {
-	var e model.Event
+func (r *ClickhouseRepository) GetEvent(ctx context.Context, eventId string, injectionTime time.Time) (e model.Event, err error) {
 	var injectionTimeDate time.Time
 	var timestampDate time.Time
 	var scheduledTimeDate time.Time
 
-	err := r.db.QueryRowContext(ctx, `
+	err = r.db.QueryRowContext(ctx, `
 		SELECT * FROM events
 		WHERE event_id = ? AND injection_time = ?
 	`, eventId, injectionTime).Scan(
@@ -177,33 +173,52 @@ func (r *ClickhouseRepository) GetEvent(ctx context.Context, eventId string, inj
 		&e.Type,
 	)
 	if err != nil {
-		return model.Event{}, err
+		return
 	}
 
 	e.InjectionTime = injectionTimeDate.UnixMilli()
 	e.Timestamp = timestampDate.UnixMilli()
 	e.ScheduledTime = scheduledTimeDate.UnixMilli()
 
-	return e, nil
+	return
 }
 
 // ConvertToSingleQuotes converts a comma-separated string to a string with each element enclosed in single quotes
 func ConvertToSingleQuotes(s string) string {
-	// Split the string by comma
-	parts := strings.Split(s, ",")
+	// Count the number of parts
+	commaCount := strings.Count(s, ",") + 1
 
-	// Enclose each part in single quotes
-	for i, part := range parts {
-		parts[i] = fmt.Sprintf("'%s'", strings.TrimSpace(part))
+	// Pre-allocate memory for the parts slice
+	parts := make([]string, 0, commaCount)
+
+	// Use a buffer to build the string
+	var buf strings.Builder
+
+	// Iterate over the string
+	start := 0
+	for i := 0; i < len(s); i++ {
+		if s[i] == ',' {
+			parts = append(parts, fmt.Sprintf("'%s'", strings.TrimSpace(s[start:i])))
+			start = i + 1
+		}
 	}
 
+	// Add the last part
+	parts = append(parts, fmt.Sprintf("'%s'", strings.TrimSpace(s[start:])))
+
 	// Join the parts with commas
-	return strings.Join(parts, ",")
+	for i, part := range parts {
+		if i > 0 {
+			buf.WriteString(",")
+		}
+		buf.WriteString(part)
+	}
+
+	return buf.String()
 }
 
-func (r *ClickhouseRepository) GetEvents(ctx context.Context, types string, rcpTo string, page, size int) (db_util.Page, error) {
+func (r *ClickhouseRepository) GetEvents(ctx context.Context, types string, rcpTo string, page, size int) (res db_util.Page, err error) {
 	var events []model.Event
-	var totalData int
 
 	query := `
 		SELECT *
@@ -215,9 +230,8 @@ func (r *ClickhouseRepository) GetEvents(ctx context.Context, types string, rcpT
 	}
 	query += " ORDER BY injection_time DESC"
 
-	err := r.db.QueryRowContext(ctx, "SELECT count(*) FROM ("+query+") AS t").Scan(&totalData)
-	if err != nil {
-		return db_util.Page{}, err
+	if err = r.db.QueryRowContext(ctx, "SELECT count(*) FROM ("+query+") AS t").Scan(&res.TotalData); err != nil {
+		return
 	}
 
 	offset := (page - 1) * size
@@ -225,7 +239,7 @@ func (r *ClickhouseRepository) GetEvents(ctx context.Context, types string, rcpT
 
 	rows, err := r.db.QueryContext(ctx, query)
 	if err != nil {
-		return db_util.Page{}, err
+		return
 	}
 	defer rows.Close()
 
@@ -235,7 +249,7 @@ func (r *ClickhouseRepository) GetEvents(ctx context.Context, types string, rcpT
 		var timestampDate time.Time
 		var scheduledTimeDate time.Time
 
-		err = rows.Scan(
+		if err = rows.Scan(
 			&e.AmpEnabled,
 			&e.BounceClass,
 			&e.CampaignID,
@@ -286,9 +300,8 @@ func (r *ClickhouseRepository) GetEvents(ctx context.Context, types string, rcpT
 			&e.Transactional,
 			&e.TransmissionID,
 			&e.Type,
-		)
-		if err != nil {
-			return db_util.Page{}, err
+		); err != nil {
+			return
 		}
 
 		e.InjectionTime = injectionTimeDate.UnixMilli()
@@ -297,22 +310,17 @@ func (r *ClickhouseRepository) GetEvents(ctx context.Context, types string, rcpT
 
 		events = append(events, e)
 	}
-
-	totalPage := totalData / size
-	if totalData%size != 0 {
-		totalPage++
+	res.Data = events
+	res.TotalData = res.TotalPage / size
+	if res.TotalPage%size != 0 {
+		res.TotalPage++
 	}
 
-	return db_util.Page{
-		Data:      events,
-		TotalData: totalData,
-		TotalPage: totalPage,
-	}, nil
+	return
 }
 
-func (r *ClickhouseRepository) GetEventsCursor(ctx context.Context, types string, rcpTo string, cursor string, page, size int) (db_util.PageCursor, error) {
+func (r *ClickhouseRepository) GetEventsCursor(ctx context.Context, types string, rcpTo string, cursor string, page, size int) (res db_util.PageCursor, err error) {
 	var events []model.Event
-	var totalData int
 
 	query := `
 		SELECT *
@@ -328,9 +336,8 @@ func (r *ClickhouseRepository) GetEventsCursor(ctx context.Context, types string
 
 	query += " ORDER BY injection_time DESC"
 
-	err := r.db.QueryRowContext(ctx, "SELECT count(*) FROM ("+query+") AS t").Scan(&totalData)
-	if err != nil {
-		return db_util.PageCursor{}, err
+	if err = r.db.QueryRowContext(ctx, "SELECT count(*) FROM ("+query+") AS t").Scan(&res.TotalData); err != nil {
+		return
 	}
 
 	offset := (page - 1) * size
@@ -338,7 +345,7 @@ func (r *ClickhouseRepository) GetEventsCursor(ctx context.Context, types string
 
 	rows, err := r.db.QueryContext(ctx, query)
 	if err != nil {
-		return db_util.PageCursor{}, err
+		return
 	}
 	defer rows.Close()
 
@@ -348,7 +355,7 @@ func (r *ClickhouseRepository) GetEventsCursor(ctx context.Context, types string
 		var timestampDate time.Time
 		var scheduledTimeDate time.Time
 
-		err = rows.Scan(
+		if err = rows.Scan(
 			&e.AmpEnabled,
 			&e.BounceClass,
 			&e.CampaignID,
@@ -399,9 +406,8 @@ func (r *ClickhouseRepository) GetEventsCursor(ctx context.Context, types string
 			&e.Transactional,
 			&e.TransmissionID,
 			&e.Type,
-		)
-		if err != nil {
-			return db_util.PageCursor{}, err
+		); err != nil {
+			return
 		}
 
 		e.InjectionTime = injectionTimeDate.UnixMilli()
@@ -410,33 +416,25 @@ func (r *ClickhouseRepository) GetEventsCursor(ctx context.Context, types string
 
 		events = append(events, e)
 	}
+	res.Data = events
+	res.CurrentPage = page
 
-	totalPage := totalData / size
-	if totalData%size != 0 {
-		totalPage++
+	res.TotalPage = res.TotalData / size
+	if res.TotalData%size != 0 {
+		res.TotalPage++
 	}
 
-	var nextCursor, prevCursor string
 	if len(events) > 0 {
-		nextCursor = strconv.Itoa(int(events[len(events)-1].InjectionTime))
+		res.NextCursor = strconv.Itoa(int(events[len(events)-1].InjectionTime))
 		if page > 1 {
-			prevCursor = strconv.Itoa(int(events[0].InjectionTime))
+			res.PrevCursor = strconv.Itoa(int(events[0].InjectionTime))
 		}
 	}
 
-	return db_util.PageCursor{
-		Data:        events,
-		TotalData:   totalData,
-		CurrentPage: page,
-		TotalPage:   totalPage,
-		NextCursor:  nextCursor,
-		PrevCursor:  prevCursor,
-	}, nil
+	return
 }
 
-func (r *ClickhouseRepository) GetAggregateDaily(ctx context.Context, startDate time.Time, endDate time.Time) ([]model.AggregateData, error) {
-	var aggregates []model.AggregateData
-
+func (r *ClickhouseRepository) GetAggregateDaily(ctx context.Context, startDate time.Time, endDate time.Time) (res []model.AggregateData, err error) {
 	rows, err := r.db.QueryContext(ctx, `
 		SELECT date,
 			   countIf(e.type = 'bounce')    AS bounce,
@@ -454,7 +452,7 @@ func (r *ClickhouseRepository) GetAggregateDaily(ctx context.Context, startDate 
 		ORDER BY date;
 	`, endDate, int(endDate.Sub(startDate).Hours()/24))
 	if err != nil {
-		return nil, err
+		return
 	}
 	defer rows.Close()
 
@@ -462,7 +460,7 @@ func (r *ClickhouseRepository) GetAggregateDaily(ctx context.Context, startDate 
 		var a model.AggregateData
 		var injectionTimeDate time.Time
 
-		err = rows.Scan(
+		if err = rows.Scan(
 			&injectionTimeDate,
 			&a.Bounce,
 			&a.Open,
@@ -470,21 +468,18 @@ func (r *ClickhouseRepository) GetAggregateDaily(ctx context.Context, startDate 
 			&a.Injection,
 			&a.Delivery,
 			&a.Delay,
-		)
-		if err != nil {
-			return nil, err
+		); err != nil {
+			return
 		}
 		a.Time = injectionTimeDate.UnixMilli()
 
-		aggregates = append(aggregates, a)
+		res = append(res, a)
 	}
 
-	return aggregates, nil
+	return
 }
 
-func (r *ClickhouseRepository) GetAggregateHourly(ctx context.Context, startDate time.Time, endDate time.Time) ([]model.AggregateData, error) {
-	var aggregates []model.AggregateData
-
+func (r *ClickhouseRepository) GetAggregateHourly(ctx context.Context, startDate time.Time, endDate time.Time) (res []model.AggregateData, err error) {
 	rows, err := r.db.QueryContext(ctx, `
 		SELECT toStartOfHour(dt),
 			   countIf(e.type = 'bounce')    AS bounce,
@@ -502,7 +497,7 @@ func (r *ClickhouseRepository) GetAggregateHourly(ctx context.Context, startDate
 		ORDER BY dt;
 	`, endDate, int(endDate.Sub(startDate).Hours()))
 	if err != nil {
-		return nil, err
+		return
 	}
 	defer rows.Close()
 
@@ -510,7 +505,7 @@ func (r *ClickhouseRepository) GetAggregateHourly(ctx context.Context, startDate
 		var a model.AggregateData
 		var injectionTimeDate time.Time
 
-		err = rows.Scan(
+		if err = rows.Scan(
 			&injectionTimeDate,
 			&a.Bounce,
 			&a.Open,
@@ -518,14 +513,13 @@ func (r *ClickhouseRepository) GetAggregateHourly(ctx context.Context, startDate
 			&a.Injection,
 			&a.Delivery,
 			&a.Delay,
-		)
-		if err != nil {
-			return nil, err
+		); err != nil {
+			return
 		}
 		a.Time = injectionTimeDate.UnixMilli()
 
-		aggregates = append(aggregates, a)
+		res = append(res, a)
 	}
 
-	return aggregates, nil
+	return
 }

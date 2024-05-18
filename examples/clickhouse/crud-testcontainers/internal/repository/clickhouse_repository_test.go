@@ -7,6 +7,7 @@ import (
 	"fmt"
 	_ "github.com/ClickHouse/clickhouse-go/v2"
 	"github.com/ciazhar/go-zhar/examples/clickhouse/crud-testcontainers/internal/model"
+	"github.com/ciazhar/go-zhar/pkg/benchmark_util"
 	logger2 "github.com/ciazhar/go-zhar/pkg/logger"
 	"github.com/go-faker/faker/v4"
 	"github.com/testcontainers/testcontainers-go"
@@ -43,6 +44,12 @@ func randomGivenString(data []string) string {
 
 	// Pick one string randomly
 	return data[rand.Intn(len(data))]
+}
+
+func TestConvertToSingleQuotes(t *testing.T) {
+	benchmark_util.GetDuration(func() {
+		ConvertToSingleQuotes("delivery,injection")
+	})
 }
 
 // TestClickHouseRepository runs tests for ClickHouse repository.
@@ -182,7 +189,7 @@ func TestClickHouseRepository(t *testing.T) {
 	}
 
 	// Get the events from ClickHouse
-	events, err := repo.GetEvents(ctx, "injection", "", 1, 100)
+	events, err := repo.GetEvents(ctx, "injection,delivery", "", 1, 100)
 	if err != nil {
 		t.Errorf("Failed to get events: %v", err)
 	}
