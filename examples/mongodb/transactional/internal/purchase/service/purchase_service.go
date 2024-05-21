@@ -6,22 +6,18 @@ import (
 	"github.com/ciazhar/go-zhar/examples/mongodb/transactional/internal/transaction/model"
 )
 
-type PurchaseService interface {
-	Purchase(context context.Context, transaction *model.Transaction) error
+type PurchaseService struct {
+	purchaseRepository *repository.PurchaseRepository
 }
 
-type purchaseService struct {
-	purchaseRepository repository.PurchaseRepository
-}
-
-func (p purchaseService) Purchase(context context.Context, transaction *model.Transaction) error {
+func (p PurchaseService) Purchase(context context.Context, transaction *model.Transaction) error {
 	return p.purchaseRepository.PurchaseWithAutomaticTransaction(context, transaction)
 }
 
 func NewPurchaseService(
-	purchaseRepository repository.PurchaseRepository,
-) PurchaseService {
-	return &purchaseService{
+	purchaseRepository *repository.PurchaseRepository,
+) *PurchaseService {
+	return &PurchaseService{
 		purchaseRepository: purchaseRepository,
 	}
 }

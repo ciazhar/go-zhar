@@ -18,7 +18,7 @@ type Validator struct {
 	translator ut.Translator
 }
 
-func New(language string, logger logger.Logger) Validator {
+func New(language string, logger *logger.Logger) Validator {
 
 	validate := validator.New()
 	translator, err := getTranslator(validate, language)

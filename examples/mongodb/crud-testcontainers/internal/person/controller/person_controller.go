@@ -1,6 +1,7 @@
 package controller
 
 import (
+	"context"
 	"github.com/ciazhar/go-zhar/examples/mongodb/crud-testcontainers/internal/person/model"
 	"github.com/ciazhar/go-zhar/examples/mongodb/crud-testcontainers/internal/person/service"
 	"github.com/gofiber/fiber/v2"
@@ -8,24 +9,11 @@ import (
 	"strings"
 )
 
-type PersonController interface {
-	Insert(ctx *fiber.Ctx) error
-	InsertBatch(ctx *fiber.Ctx) error
-	FindOne(ctx *fiber.Ctx) error
-	FindAll(ctx *fiber.Ctx) error
-	FindCountry(ctx *fiber.Ctx) error
-	FindAgeRange(ctx *fiber.Ctx) error
-	FindHobby(ctx *fiber.Ctx) error
-	FindMinified(ctx *fiber.Ctx) error
-	Update(ctx *fiber.Ctx) error
-	Delete(ctx *fiber.Ctx) error
+type PersonController struct {
+	p *service.PersonService
 }
 
-type personController struct {
-	p service.PersonService
-}
-
-func (p personController) Insert(ctx *fiber.Ctx) error {
+func (p *PersonController) Insert(ctx *fiber.Ctx) error {
 	var person model.Person
 	err := ctx.BodyParser(&person)
 	if err != nil {
@@ -38,7 +26,7 @@ func (p personController) Insert(ctx *fiber.Ctx) error {
 		)
 	}
 
-	err = p.p.Insert(&person)
+	err = p.p.Insert(context.Background(), &person)
 	if err != nil {
 		return ctx.Status(500).JSON(
 			fiber.Map{
@@ -58,7 +46,7 @@ func (p personController) Insert(ctx *fiber.Ctx) error {
 	)
 }
 
-func (p personController) InsertBatch(ctx *fiber.Ctx) error {
+func (p *PersonController) InsertBatch(ctx *fiber.Ctx) error {
 	var persons []model.Person
 	err := ctx.BodyParser(&persons)
 	if err != nil {
@@ -71,7 +59,7 @@ func (p personController) InsertBatch(ctx *fiber.Ctx) error {
 		)
 	}
 
-	err = p.p.InsertBatch(&persons)
+	err = p.p.InsertBatch(context.Background(), &persons)
 	if err != nil {
 		return ctx.Status(500).JSON(
 			fiber.Map{
@@ -92,10 +80,10 @@ func (p personController) InsertBatch(ctx *fiber.Ctx) error {
 
 }
 
-func (p personController) FindOne(ctx *fiber.Ctx) error {
+func (p *PersonController) FindOne(ctx *fiber.Ctx) error {
 	id := ctx.Params("id")
 
-	one, err := p.p.FindOne(id)
+	one, err := p.p.FindOne(context.Background(), id)
 	if err != nil {
 		return ctx.Status(500).JSON(
 			fiber.Map{
@@ -115,10 +103,34 @@ func (p personController) FindOne(ctx *fiber.Ctx) error {
 	)
 }
 
-func (p personController) FindAll(ctx *fiber.Ctx) error {
+func (p *PersonController) FindAllPageSize(ctx *fiber.Ctx) error {
+	page := ctx.Query("page")
+	size := ctx.Query("size")
+	sort := ctx.Query("sort")
+	pageI, err := strconv.Atoi(page)
+	if err != nil {
+		return ctx.Status(500).JSON(
+			fiber.Map{
+				"status":  "error",
+				"message": "Review your input",
+				"data":    err,
+			},
+		)
+	}
+	sizeI, err := strconv.Atoi(size)
+	if err != nil {
+		return ctx.Status(500).JSON(
+			fiber.Map{
+				"status":  "error",
+				"message": "Review your input",
+				"data":    err,
+			},
+		)
+	}
 	name := ctx.Query("name")
 	email := ctx.Query("email")
 	ageS := ctx.Query("age")
+
 	age := 0
 	if ageS != "" {
 		ageI, err := strconv.Atoi(ageS)
@@ -134,7 +146,7 @@ func (p personController) FindAll(ctx *fiber.Ctx) error {
 		age = ageI
 	}
 
-	all, err := p.p.FindAll(name, email, age)
+	all, err := p.p.FindAllPageSize(context.Background(), pageI, sizeI, sort, name, email, age)
 	if err != nil {
 		return ctx.Status(500).JSON(
 			fiber.Map{
@@ -154,10 +166,10 @@ func (p personController) FindAll(ctx *fiber.Ctx) error {
 	)
 }
 
-func (p personController) FindCountry(ctx *fiber.Ctx) error {
+func (p *PersonController) FindCountry(ctx *fiber.Ctx) error {
 	country := ctx.Query("country")
 
-	all, err := p.p.FindCountry(country)
+	all, err := p.p.FindCountry(context.Background(), country)
 	if err != nil {
 		return ctx.Status(500).JSON(
 			fiber.Map{
@@ -177,7 +189,7 @@ func (p personController) FindCountry(ctx *fiber.Ctx) error {
 	)
 }
 
-func (p personController) FindAgeRange(ctx *fiber.Ctx) error {
+func (p *PersonController) FindAgeRange(ctx *fiber.Ctx) error {
 	startAge := ctx.Query("startAge")
 	endAge := ctx.Query("endAge")
 
@@ -203,7 +215,7 @@ func (p personController) FindAgeRange(ctx *fiber.Ctx) error {
 		)
 	}
 
-	all, err := p.p.FindAgeRange(start, end)
+	all, err := p.p.FindAgeRange(context.Background(), start, end)
 	if err != nil {
 		return ctx.Status(500).JSON(
 			fiber.Map{
@@ -223,11 +235,11 @@ func (p personController) FindAgeRange(ctx *fiber.Ctx) error {
 	)
 }
 
-func (p personController) FindHobby(ctx *fiber.Ctx) error {
+func (p *PersonController) FindHobby(ctx *fiber.Ctx) error {
 	hobby := ctx.Query("hobby")
 	hobbys := strings.Split(hobby, ",")
 
-	findHobby, err := p.p.FindHobby(hobbys)
+	findHobby, err := p.p.FindHobby(context.Background(), hobbys)
 	if err != nil {
 		return ctx.Status(500).JSON(
 			fiber.Map{
@@ -247,9 +259,9 @@ func (p personController) FindHobby(ctx *fiber.Ctx) error {
 	)
 }
 
-func (p personController) FindMinified(ctx *fiber.Ctx) error {
+func (p *PersonController) FindMinified(ctx *fiber.Ctx) error {
 
-	all, err := p.p.FindMinified()
+	all, err := p.p.FindMinified(context.Background())
 	if err != nil {
 		return ctx.Status(500).JSON(
 			fiber.Map{
@@ -270,7 +282,7 @@ func (p personController) FindMinified(ctx *fiber.Ctx) error {
 
 }
 
-func (p personController) Update(ctx *fiber.Ctx) error {
+func (p *PersonController) Update(ctx *fiber.Ctx) error {
 
 	id := ctx.Params("id")
 
@@ -286,7 +298,7 @@ func (p personController) Update(ctx *fiber.Ctx) error {
 		)
 	}
 
-	err = p.p.Update(id, person)
+	err = p.p.Update(context.Background(), id, person)
 	if err != nil {
 		return ctx.Status(500).JSON(
 			fiber.Map{
@@ -306,10 +318,10 @@ func (p personController) Update(ctx *fiber.Ctx) error {
 	)
 }
 
-func (p personController) Delete(ctx *fiber.Ctx) error {
+func (p *PersonController) Delete(ctx *fiber.Ctx) error {
 	id := ctx.Params("id")
 
-	err := p.p.Delete(id)
+	err := p.p.Delete(context.Background(), id)
 	if err != nil {
 		return ctx.Status(500).JSON(
 			fiber.Map{
@@ -328,6 +340,6 @@ func (p personController) Delete(ctx *fiber.Ctx) error {
 	)
 }
 
-func NewPersonController(p service.PersonService) PersonController {
-	return &personController{p}
+func NewPersonController(p *service.PersonService) *PersonController {
+	return &PersonController{p}
 }

@@ -15,7 +15,7 @@ func Init(router fiber.Router, conn *mongo.Database) {
 
 	router.Post("/person", c.Insert)
 	router.Post("/person/batch", c.InsertBatch)
-	router.Get("/person", c.FindAll)
+	router.Get("/person", c.FindAllPageSize)
 	router.Get("/person/country", c.FindCountry)
 	router.Get("/person/age-range", c.FindAgeRange)
 	router.Get("/person/hobby", c.FindHobby)

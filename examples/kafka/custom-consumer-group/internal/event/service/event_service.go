@@ -1,150 +1,148 @@
 package service
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"github.com/IBM/sarama"
 	"github.com/ciazhar/go-zhar/examples/kafka/custom-consumer-group/internal/event/model"
 	"github.com/ciazhar/go-zhar/pkg/kafka"
 	"github.com/ciazhar/go-zhar/pkg/logger"
-	"log"
+	"github.com/jackc/pgx/v4/pgxpool"
 	"sync"
 	"time"
 )
 
 const (
 	ChunkSize  = 300
-	WindowTime = 10
+	WindowTime = 5
 )
 
-type EventService struct {
-	logger logger.Logger
+type WebhookEventConsumer struct {
+	ctx context.Context
 
-	ready  chan bool
-	stopCh chan struct{}
+	mux sync.Mutex
 
-	windowEnd time.Time
-	mux       sync.Mutex
-
+	db       *pgxpool.Pool
 	producer *kafka.SyncProducer
 	buffers  map[string][]string
+	logger   *logger.Logger
 }
 
-func (e *EventService) Setup(session sarama.ConsumerGroupSession) error {
-	close(e.ready)
-	e.windowEnd = time.Now().Add(WindowTime * time.Second)
-	return nil
+func NewWebhookEventConsumer(
+	ctx context.Context,
+	producer *kafka.SyncProducer,
+	logger *logger.Logger,
+) *WebhookEventConsumer {
+	return &WebhookEventConsumer{
+		ctx:      ctx,
+		producer: producer,
+		buffers:  make(map[string][]string),
+		logger:   logger,
+	}
 }
 
-func (e *EventService) Cleanup(session sarama.ConsumerGroupSession) error {
+func (w *WebhookEventConsumer) Setup(_ sarama.ConsumerGroupSession) (err error) {
+	return
+}
+
+func (w *WebhookEventConsumer) Cleanup(_ sarama.ConsumerGroupSession) (err error) {
 	// Flush any remaining data in the buffers
-	e.mux.Lock()
-	defer e.mux.Unlock()
+	w.mux.Lock()
+	defer w.mux.Unlock()
 
-	for key, buffer := range e.buffers {
+	for key, buffer := range w.buffers {
 		if len(buffer) > 0 {
-			err := e.flushBuffer(key, buffer)
+			err := w.flushBuffer(key, buffer)
 			if err != nil {
-				e.logger.Infof("Failed to flush buffer for key %s: %v\n", key, err)
+				w.logger.Infof("Failed to flush buffer for key %s: %v\n", key, err)
 			}
 		}
 	}
-	return nil
+	return
 }
 
-func (e *EventService) ConsumeClaim(session sarama.ConsumerGroupSession, claim sarama.ConsumerGroupClaim) error {
-	for message := range claim.Messages() {
-		key := string(message.Key)
+func (w *WebhookEventConsumer) ConsumeClaim(session sarama.ConsumerGroupSession, claim sarama.ConsumerGroupClaim) (err error) {
+	ticker := time.NewTicker(WindowTime * time.Second)
+	defer ticker.Stop()
 
-		e.mux.Lock()
-
-		// Initialize the buffer for the key if it doesn't exist
-		if _, ok := e.buffers[key]; !ok {
-			e.buffers[key] = make([]string, 0)
-		}
-
-		// Append the single row to the buffer for the corresponding key
-		e.buffers[key] = append(e.buffers[key], string(message.Value))
-
-		// Check if the buffer size reaches the chunk size
-		if len(e.buffers[key]) == ChunkSize {
-			err := e.flushBuffer(key, e.buffers[key])
-			if err != nil {
-				log.Printf("Failed to flush buffer for key %s: %v\n", key, err)
-				continue
-			}
-
-			// Commit offsets for the processed messages
-			session.MarkMessage(message, "")
-
-			// Reset the buffer for the key
-			e.buffers[key] = make([]string, 0)
-
-			// Update the window end time
-			e.windowEnd = time.Now().Add(WindowTime * time.Second)
-
-			session.Commit()
-		} else {
-
-			awake := true
-
-			go func() {
-				for awake {
-					e.mux.Lock()
-					for key, buffer := range e.buffers {
-						if len(buffer) > 0 && time.Since(e.windowEnd) > WindowTime {
-							err := e.flushBuffer(key, buffer)
-							if err != nil {
-								log.Printf("Failed to flush buffer for key %s: %v\n", key, err)
-								continue
-							}
-							// Commit offsets for the processed messages
-							session.MarkMessage(message, "")
-							// Reset the buffer for the key
-							e.buffers[key] = make([]string, 0)
-							// Update the window end time
-							e.windowEnd = time.Now().Add(WindowTime * time.Second)
-
-							awake = false
-
-							session.Commit()
-						}
-					}
-					e.mux.Unlock()
-				}
-			}()
-		}
-
-		e.mux.Unlock()
-
+	for {
 		select {
-		case <-e.stopCh:
-			return nil
-		default:
+		case message, ok := <-claim.Messages():
+			if !ok {
+				return
+			}
+
+			key := string(message.Key)
+
+			w.mux.Lock()
+			buffer := w.buffers[key]
+			buffer = append(buffer, string(message.Value))
+			w.buffers[key] = buffer
+			w.mux.Unlock()
+
+			if len(buffer) == ChunkSize {
+				w.flushAndCommit(key, buffer, message, session)
+			} else {
+				select {
+				case <-ticker.C:
+					w.mux.Lock()
+					if len(w.buffers[key]) > 0 {
+						w.flushAndCommit(key, w.buffers[key], message, session)
+					}
+					w.mux.Unlock()
+				default:
+				}
+			}
+
+		case <-w.ctx.Done():
+			return
 		}
 	}
-
-	return nil
 }
 
-type GroupedEvents struct {
-	Key  string             `json:"key"`
-	Data []model.EmailEvent `json:"data"`
+func (w *WebhookEventConsumer) flushAndCommit(key string, buffer []string, message *sarama.ConsumerMessage, session sarama.ConsumerGroupSession) {
+
+	w.logger.Infof("Flushing buffer for key %s\n", key)
+
+	err := w.flushBuffer(key, buffer)
+	if err != nil {
+		w.logger.Infof("Failed to flush buffer for key %s: %v\n", key, err)
+		return
+	}
+
+	if message != nil {
+		session.MarkMessage(message, "")
+	}
+	w.buffers[key] = nil
+	session.Commit()
 }
 
-func (w *EventService) flushBuffer(key string, buffer []string) error {
-
-	events := make([]model.EmailEvent, 0)
-	for i := range buffer {
-
+func (w *WebhookEventConsumer) flushBuffer(key string, buffer []string) (err error) {
+	events := make([]model.EmailEvent, 0, len(buffer))
+	for _, data := range buffer {
 		var event model.EmailEvent
-		err := json.Unmarshal([]byte(buffer[i]), &event)
-		if err != nil {
-			return fmt.Errorf("failed to unmarshal buffer: %v", err)
+		if err := json.Unmarshal([]byte(data), &event); err != nil {
+			w.logger.Infof("Failed to unmarshal buffer for key %s: %v\n", key, err)
+			return
 		}
-
 		events = append(events, event)
 	}
+
+	if len(events) == 0 {
+		return
+	}
+
+	if err := w.sendWebhook(events, key); err != nil {
+		w.logger.Infof("Failed to send webhook for key %s: %v\n", key, err)
+		return
+	}
+
+	return
+}
+
+func (w *WebhookEventConsumer) sendWebhook(events []model.EmailEvent, key string) (err error) {
+
 	webhookEvent := GroupedEvents{
 		Key:  key,
 		Data: events,
@@ -157,18 +155,10 @@ func (w *EventService) flushBuffer(key string, buffer []string) error {
 
 	w.producer.PublishMessageWithKey("grouped-events", key, string(jsonBytes))
 
-	return nil
+	return
 }
 
-func NewEventService(logger logger.Logger, producer *kafka.SyncProducer) *EventService {
-	return &EventService{
-		logger:    logger,
-		ready:     make(chan bool),
-		stopCh:    make(chan struct{}),
-		windowEnd: time.Time{},
-		mux:       sync.Mutex{},
-		producer:  producer,
-		buffers:   make(map[string][]string),
-	}
-
+type GroupedEvents struct {
+	Key  string             `json:"key"`
+	Data []model.EmailEvent `json:"data"`
 }

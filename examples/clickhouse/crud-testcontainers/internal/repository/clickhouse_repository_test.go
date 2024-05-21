@@ -8,7 +8,7 @@ import (
 	_ "github.com/ClickHouse/clickhouse-go/v2"
 	"github.com/ciazhar/go-zhar/examples/clickhouse/crud-testcontainers/internal/model"
 	"github.com/ciazhar/go-zhar/pkg/benchmark_util"
-	logger2 "github.com/ciazhar/go-zhar/pkg/logger"
+	"github.com/ciazhar/go-zhar/pkg/logger"
 	"github.com/go-faker/faker/v4"
 	"github.com/testcontainers/testcontainers-go"
 	"github.com/testcontainers/testcontainers-go/modules/clickhouse"
@@ -96,7 +96,9 @@ func TestClickHouseRepository(t *testing.T) {
 	defer db.Close()
 
 	//Logger
-	log := logger2.Init()
+	log := logger.Init(logger.Config{
+		ConsoleLoggingEnabled: true,
+	})
 
 	// Create repository
 	repo := NewClickhouseRepository(ctx, db, log)

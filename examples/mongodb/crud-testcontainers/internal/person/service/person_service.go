@@ -1,81 +1,63 @@
 package service
 
 import (
+	"context"
 	"github.com/ciazhar/go-zhar/examples/mongodb/crud-testcontainers/internal/person/model"
 	"github.com/ciazhar/go-zhar/examples/mongodb/crud-testcontainers/internal/person/repository"
 )
 
-type PersonService interface {
-	Insert(person *model.Person) error
-	InsertBatch(persons *[]model.Person) error
-	FindOne(id string) (model.Person, error)
-	FindAll(
-		name string,
-		email string,
-		age int,
-	) ([]model.Person, error)
-
-	FindCountry(country string) ([]model.Person, error)
-	FindAgeRange(min int, max int) ([]model.Person, error)
-	FindHobby(hobby []string) ([]model.Person, error)
-	FindMinified() ([]model.PersonMinified, error)
-	Update(id string, person model.UpdatePersonForm) error
-	Delete(id string) error
+type PersonService struct {
+	p *repository.PersonRepository
 }
 
-type personService struct {
-	p repository.PersonRepository
+func (p *PersonService) Insert(ctx context.Context, person *model.Person) error {
+	return p.p.Insert(ctx, person)
 }
 
-func (p personService) Insert(person *model.Person) error {
-	return p.p.Insert(person)
+func (p *PersonService) InsertBatch(ctx context.Context, persons *[]model.Person) error {
+	return p.p.InsertBatch(ctx, persons)
 }
 
-func (p personService) InsertBatch(persons *[]model.Person) error {
-	return p.p.InsertBatch(persons)
+func (p *PersonService) FindOne(ctx context.Context, id string) (model.Person, error) {
+	return p.p.FindOne(ctx, id)
 }
 
-func (p personService) FindOne(id string) (model.Person, error) {
-	return p.p.FindOne(id)
+func (p *PersonService) FindAllPageSize(ctx context.Context,
+	page, size int,
+	sort string,
+	name string,
+	email string,
+	age int,
+) ([]model.Person, error) {
+	return p.p.FindAllPageSize(ctx, page, size, sort, name, email, age)
 }
 
-func (p personService) FindAll(name string, email string, age int) ([]model.Person, error) {
-
-	return p.p.FindAll(name, email, age)
+func (p *PersonService) FindCountry(ctx context.Context, country string) ([]model.Person, error) {
+	return p.p.FindCountry(ctx, country)
 }
 
-func (p personService) FindCountry(country string) ([]model.Person, error) {
-
-	return p.p.FindCountry(country)
+func (p *PersonService) FindAgeRange(ctx context.Context, min int, max int) ([]model.Person, error) {
+	return p.p.FindAgeRange(ctx, min, max)
 }
 
-func (p personService) FindAgeRange(min int, max int) ([]model.Person, error) {
-
-	return p.p.FindAgeRange(min, max)
+func (p *PersonService) FindHobby(ctx context.Context, hobby []string) ([]model.Person, error) {
+	return p.p.FindHobby(ctx, hobby)
 }
 
-func (p personService) FindHobby(hobby []string) ([]model.Person, error) {
-
-	return p.p.FindHobby(hobby)
+func (p *PersonService) FindMinified(ctx context.Context) ([]model.PersonMinified, error) {
+	return p.p.FindMinified(ctx)
 }
 
-func (p personService) FindMinified() ([]model.PersonMinified, error) {
-
-	return p.p.FindMinified()
+func (p *PersonService) Update(ctx context.Context, id string, person model.UpdatePersonForm) error {
+	return p.p.Update(ctx, id, person)
 }
 
-func (p personService) Update(id string, person model.UpdatePersonForm) error {
-
-	return p.p.Update(id, person)
+func (p *PersonService) Delete(ctx context.Context, id string) error {
+	return p.p.Delete(ctx, id)
 }
 
-func (p personService) Delete(id string) error {
-
-	return p.p.Delete(id)
-}
-
-func NewPersonService(p repository.PersonRepository) PersonService {
-	return personService{
+func NewPersonService(p *repository.PersonRepository) *PersonService {
+	return &PersonService{
 		p: p,
 	}
 }

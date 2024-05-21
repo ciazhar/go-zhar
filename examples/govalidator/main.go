@@ -30,7 +30,9 @@ func main() {
 	}
 
 	//logger
-	log := logger.Init()
+	log := logger.Init(logger.Config{
+		ConsoleLoggingEnabled: true,
+	})
 
 	//validate english
 	validate := validator.New("en", log)

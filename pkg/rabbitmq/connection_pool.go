@@ -11,12 +11,12 @@ import (
 
 // TODO implement like basic
 type ConnectionPool struct {
-	logger      logger.Logger
+	logger      *logger.Logger
 	mu          sync.Mutex
 	connections []*amqp.Connection
 }
 
-func NewConnectionPool(connectionName, username, password, host, port string, size int, logger logger.Logger) *ConnectionPool {
+func NewConnectionPool(connectionName, username, password, host, port string, size int, logger *logger.Logger) *ConnectionPool {
 
 	pool := &ConnectionPool{}
 	for i := 0; i < size; i++ {

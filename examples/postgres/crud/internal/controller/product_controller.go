@@ -10,10 +10,10 @@ import (
 
 type ProductController struct {
 	ctx            context.Context
-	productService service.ProductService
+	productService *service.ProductService
 }
 
-func NewProductController(ctx context.Context, productService service.ProductService) *ProductController {
+func NewProductController(ctx context.Context, productService *service.ProductService) *ProductController {
 	return &ProductController{ctx: ctx, productService: productService}
 }
 

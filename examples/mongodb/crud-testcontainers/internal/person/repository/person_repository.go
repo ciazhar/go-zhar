@@ -3,57 +3,40 @@ package repository
 import (
 	"context"
 	"github.com/ciazhar/go-zhar/examples/mongodb/crud-testcontainers/internal/person/model"
+	mongo2 "github.com/ciazhar/go-zhar/pkg/mongo"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
-type PersonRepository interface {
-	Insert(person *model.Person) error
-	InsertBatch(persons *[]model.Person) error
-	FindOne(id string) (model.Person, error)
-	FindAll(
-		name string,
-		email string,
-		age int,
-	) ([]model.Person, error)
-
-	FindCountry(country string) ([]model.Person, error)
-	FindAgeRange(min int, max int) ([]model.Person, error)
-	FindHobby(hobby []string) ([]model.Person, error)
-	FindMinified() ([]model.PersonMinified, error)
-	Update(id string, person model.UpdatePersonForm) error
-	Delete(id string) error
-}
-
-type personRepository struct {
+type PersonRepository struct {
 	c *mongo.Collection
 }
 
-func (p personRepository) Delete(id string) error {
+func (p *PersonRepository) Delete(ctx context.Context, id string) (err error) {
 
 	hex, err := primitive.ObjectIDFromHex(id)
 	if err != nil {
-		return err
+		return
 	}
 
-	_, err = p.c.DeleteOne(context.Background(), bson.D{{"_id", hex}})
-	return err
+	_, err = p.c.DeleteOne(ctx, bson.D{{"_id", hex}})
+	return
 }
 
-func (p personRepository) Update(id string, person model.UpdatePersonForm) error {
+func (p *PersonRepository) Update(ctx context.Context, id string, person model.UpdatePersonForm) (err error) {
 
 	hex, err := primitive.ObjectIDFromHex(id)
 	if err != nil {
-		return err
+		return
 	}
 
-	_, err = p.c.UpdateOne(context.Background(), bson.D{{"_id", hex}}, bson.D{{"$set", person}})
-	return err
+	_, err = p.c.UpdateOne(ctx, bson.D{{"_id", hex}}, bson.D{{"$set", person}})
+	return
 }
 
-func (p personRepository) FindMinified() ([]model.PersonMinified, error) {
+func (p *PersonRepository) FindMinified(ctx context.Context) (res []model.PersonMinified, err error) {
 
 	projection := bson.M{
 		"_id":     1,
@@ -61,36 +44,34 @@ func (p personRepository) FindMinified() ([]model.PersonMinified, error) {
 		"country": "$address.country",
 	}
 
-	cursor, err := p.c.Find(context.Background(), bson.D{}, options.Find().SetProjection(projection))
+	cursor, err := p.c.Find(ctx, bson.D{}, options.Find().SetProjection(projection))
 	if err != nil {
-		return nil, err
+		return
 	}
-	var results []model.PersonMinified
-	if err := cursor.All(context.Background(), &results); err != nil {
-		return nil, err
+	if err := cursor.All(ctx, &res); err != nil {
+		return
 	}
 
-	return results, nil
+	return
 }
 
-func (p personRepository) FindHobby(hobby []string) ([]model.Person, error) {
+func (p *PersonRepository) FindHobby(ctx context.Context, hobby []string) (res []model.Person, err error) {
 
 	filter := bson.D{}
 	if len(hobby) != 0 {
 		filter = append(filter, bson.E{Key: "hobbies", Value: bson.D{{"$in", hobby}}})
 	}
-	cursor, err := p.c.Find(context.Background(), filter)
+	cursor, err := p.c.Find(ctx, filter)
 	if err != nil {
-		return nil, err
+		return
 	}
-	var results []model.Person
-	if err := cursor.All(context.Background(), &results); err != nil {
-		return nil, err
+	if err := cursor.All(ctx, &res); err != nil {
+		return
 	}
-	return results, nil
+	return
 }
 
-func (p personRepository) FindAgeRange(min int, max int) ([]model.Person, error) {
+func (p *PersonRepository) FindAgeRange(ctx context.Context, min int, max int) (res []model.Person, err error) {
 
 	filter := bson.D{}
 	if min != 0 {
@@ -99,39 +80,45 @@ func (p personRepository) FindAgeRange(min int, max int) ([]model.Person, error)
 	if max != 0 {
 		filter = append(filter, bson.E{Key: "age", Value: bson.D{{"$lte", max}}})
 	}
-	cursor, err := p.c.Find(context.Background(), filter)
+	cursor, err := p.c.Find(ctx, filter)
 	if err != nil {
-		return nil, err
+		return
 	}
-	var results []model.Person
-	if err := cursor.All(context.Background(), &results); err != nil {
-		return nil, err
+	if err := cursor.All(ctx, &res); err != nil {
+		return
 	}
-	return results, nil
+	return
 }
 
-func (p personRepository) FindCountry(country string) ([]model.Person, error) {
+func (p *PersonRepository) FindCountry(ctx context.Context, country string) (res []model.Person, err error) {
 
 	filter := bson.D{}
 	if country != "" {
 		filter = append(filter, bson.E{Key: "address.country", Value: country})
 	}
-	cursor, err := p.c.Find(context.Background(), filter)
+	cursor, err := p.c.Find(ctx, filter)
 	if err != nil {
-		return nil, err
+		return
 	}
-	var results []model.Person
-	if err := cursor.All(context.Background(), &results); err != nil {
-		return nil, err
+	if err := cursor.All(ctx, &res); err != nil {
+		return
 	}
-	return results, nil
+	return
 }
 
-func (p personRepository) FindAll(
+func (p *PersonRepository) FindAllPageSize(
+	ctx context.Context,
+	page, size int,
+	sort string, // format "param1,asc;param2,desc"
 	name string,
 	email string,
 	age int,
-) ([]model.Person, error) {
+) (res []model.Person, err error) {
+
+	findOptions, err := mongo2.CreatePagingAndSortingOptions(page, size, sort)
+	if err != nil {
+		return
+	}
 
 	filter := bson.D{}
 	if name != "" {
@@ -143,51 +130,50 @@ func (p personRepository) FindAll(
 	if age != 0 {
 		filter = append(filter, bson.E{Key: "age", Value: age})
 	}
-	cursor, err := p.c.Find(context.Background(), filter)
+
+	c, err := p.c.Find(ctx, filter, findOptions)
 	if err != nil {
-		return nil, err
+		return
 	}
-	var results []model.Person
-	if err := cursor.All(context.Background(), &results); err != nil {
-		return nil, err
+	if err := c.All(ctx, &res); err != nil {
+		return
 	}
-	return results, nil
+	return
 }
 
-func (p personRepository) FindOne(id string) (person model.Person, err error) {
+func (p *PersonRepository) FindOne(ctx context.Context, id string) (res model.Person, err error) {
 	hex, err := primitive.ObjectIDFromHex(id)
 	if err != nil {
-		return model.Person{}, err
+		return
 	}
-	err = p.c.FindOne(context.Background(), bson.M{"_id": hex}).Decode(&person)
-	return person, err
+	err = p.c.FindOne(ctx, bson.M{"_id": hex}).Decode(&res)
+	return
 }
 
-func (p personRepository) Insert(person *model.Person) error {
-	res, err := p.c.InsertOne(context.Background(), person)
+func (p *PersonRepository) Insert(ctx context.Context, person *model.Person) (err error) {
+	res, err := p.c.InsertOne(ctx, person)
 	if err != nil {
-		return err
+		return
 	}
 	person.Id = res.InsertedID.(primitive.ObjectID)
-	return nil
+	return
 }
 
-func (p personRepository) InsertBatch(persons *[]model.Person) error {
+func (p *PersonRepository) InsertBatch(ctx context.Context, persons *[]model.Person) (err error) {
 	var interfaceUsers []interface{}
 
 	for i := range *persons {
 		interfaceUsers = append(interfaceUsers, (*persons)[i])
 	}
-	res, err := p.c.InsertMany(context.Background(), interfaceUsers)
+	res, err := p.c.InsertMany(ctx, interfaceUsers)
 	if res != nil {
 		for i := range *persons {
 			(*persons)[i].Id = res.InsertedIDs[i].(primitive.ObjectID)
 		}
 	}
-	return err
+	return
 }
 
-func NewPersonRepository(c *mongo.Database) PersonRepository {
-	return &personRepository{c: c.Collection("persons")}
-
+func NewPersonRepository(c *mongo.Database) *PersonRepository {
+	return &PersonRepository{c: c.Collection("persons")}
 }

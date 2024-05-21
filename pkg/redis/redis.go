@@ -12,10 +12,10 @@ import (
 
 type Redis struct {
 	rdb    *redis.Client
-	logger logger.Logger
+	logger *logger.Logger
 }
 
-func Init(host string, port int, password string, logger logger.Logger) Redis {
+func Init(host string, port int, password string, logger *logger.Logger) *Redis {
 	rdb := redis.NewClient(&redis.Options{
 		Addr:     fmt.Sprintf("%s:%d", host, port),
 		Password: password,
@@ -29,12 +29,13 @@ func Init(host string, port int, password string, logger logger.Logger) Redis {
 
 	logger.Info("Redis client initialized successfully.")
 
-	return Redis{
-		rdb: rdb,
+	return &Redis{
+		rdb:    rdb,
+		logger: logger,
 	}
 }
 
-func (r Redis) Get(key string) (string, error) {
+func (r *Redis) Get(key string) (string, error) {
 	val, err := r.rdb.Get(context.Background(), key).Result()
 	if err != nil {
 		if errors.Is(err, redis.Nil) {
@@ -45,7 +46,7 @@ func (r Redis) Get(key string) (string, error) {
 	return val, nil
 }
 
-func (r Redis) Set(key string, value string, expiration time.Duration) error {
+func (r *Redis) Set(key string, value string, expiration time.Duration) error {
 	_, err := r.rdb.Set(context.Background(), key, value, expiration).Result()
 	if err != nil {
 		return fmt.Errorf("%s: %s", "Error setting value in redis", err)
@@ -53,7 +54,7 @@ func (r Redis) Set(key string, value string, expiration time.Duration) error {
 	return nil
 }
 
-func (r Redis) GetHash(key string, field string) (string, error) {
+func (r *Redis) GetHash(key string, field string) (string, error) {
 	val, err := r.rdb.HGet(context.Background(), key, field).Result()
 	if err != nil {
 		if errors.Is(err, redis.Nil) {
@@ -64,7 +65,7 @@ func (r Redis) GetHash(key string, field string) (string, error) {
 	return val, nil
 }
 
-func (r Redis) SetHash(key string, field string, value string) error {
+func (r *Redis) SetHash(key string, field string, value string) error {
 	_, err := r.rdb.HSet(context.Background(), key, field, value).Result()
 	if err != nil {
 		return fmt.Errorf("%s: %s", "Error setting value in redis", err)
@@ -72,7 +73,7 @@ func (r Redis) SetHash(key string, field string, value string) error {
 	return nil
 }
 
-func (r Redis) SetHashTTL(key string, field string, value string, ttl time.Duration) error {
+func (r *Redis) SetHashTTL(key string, field string, value string, ttl time.Duration) error {
 	_, err := r.rdb.HSet(context.Background(), key, field, value).Result()
 	if err != nil {
 		return fmt.Errorf("%s: %s", "Error setting value in redis", err)
@@ -80,13 +81,13 @@ func (r Redis) SetHashTTL(key string, field string, value string, ttl time.Durat
 
 	err = r.rdb.Expire(context.Background(), key, ttl).Err()
 	if err != nil {
-		log.Fatalf("Error setting TTL on hash: %v", err)
+		return fmt.Errorf("%s: %s", "Error setting TTL on hash", err)
 	}
 
 	return nil
 }
 
-func (r Redis) DeleteHash(key string, field string) error {
+func (r *Redis) DeleteHash(key string, field string) error {
 	_, err := r.rdb.HDel(context.Background(), key, field).Result()
 	if err != nil {
 		return fmt.Errorf("%s: %s", "Error deleting value from redis", err)
@@ -94,7 +95,7 @@ func (r Redis) DeleteHash(key string, field string) error {
 	return nil
 }
 
-func (r Redis) Close() {
+func (r *Redis) Close() {
 	defer func() {
 		err := r.rdb.Close()
 		if err != nil {

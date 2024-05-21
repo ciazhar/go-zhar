@@ -9,11 +9,11 @@ import (
 )
 
 type Consumer struct {
-	logger   logger.Logger
+	logger   *logger.Logger
 	consumer sarama.Consumer
 }
 
-func NewConsumer(brokers string, logger logger.Logger) Consumer {
+func NewConsumer(brokers string, logger *logger.Logger) Consumer {
 	config := sarama.NewConfig()
 	config.Consumer.Return.Errors = true
 

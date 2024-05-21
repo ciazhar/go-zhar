@@ -42,7 +42,9 @@ func TestRedisRepository(t *testing.T) {
 	}
 
 	// Logger configuration
-	log := logger.Init()
+	log := logger.Init(logger.Config{
+		ConsoleLoggingEnabled: true,
+	})
 
 	// Initialize Redis client
 	r := redis2.Init(

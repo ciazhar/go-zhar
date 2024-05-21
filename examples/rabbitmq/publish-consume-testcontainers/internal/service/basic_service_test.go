@@ -3,7 +3,7 @@ package service
 import (
 	"context"
 	"github.com/ciazhar/go-zhar/examples/rabbitmq/publish-consume-testcontainers/internal/model"
-	logger2 "github.com/ciazhar/go-zhar/pkg/logger"
+	"github.com/ciazhar/go-zhar/pkg/logger"
 	rabbitmq2 "github.com/ciazhar/go-zhar/pkg/rabbitmq"
 	"github.com/testcontainers/testcontainers-go"
 	"github.com/testcontainers/testcontainers-go/modules/rabbitmq"
@@ -40,7 +40,9 @@ func TestBasicService(t *testing.T) {
 	}
 
 	// Set up logger
-	log := logger2.Init()
+	log := logger.Init(logger.Config{
+		ConsoleLoggingEnabled: true,
+	})
 
 	// Initialize RabbitMQ client
 	rabbitMQClient := rabbitmq2.New("test-connection", "guest", "guest", host, port.Port(), log)

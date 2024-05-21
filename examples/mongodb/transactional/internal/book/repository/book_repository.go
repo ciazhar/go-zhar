@@ -8,43 +8,38 @@ import (
 	"go.mongodb.org/mongo-driver/mongo"
 )
 
-type BookRepository interface {
-	Insert(context context.Context, book *model.Book) error
-	UpdateQuantity(context context.Context, id string, amount int) error
-}
-
-type bookRepository struct {
+type BookRepository struct {
 	conn *mongo.Collection
 }
 
-func (b bookRepository) Insert(context context.Context, book *model.Book) error {
+func (b *BookRepository) Insert(context context.Context, book *model.Book) (err error) {
 	one, err := b.conn.InsertOne(context, book)
 	if err != nil {
-		return err
+		return
 	}
 	book.ID = one.InsertedID.(primitive.ObjectID)
-	return nil
+	return
 }
 
-func (b bookRepository) UpdateQuantity(context context.Context, id string, amount int) error {
+func (b *BookRepository) UpdateQuantity(context context.Context, id string, amount int) (err error) {
 
 	bookID, err := primitive.ObjectIDFromHex(id)
 	if err != nil {
-		return err
+		return
 	}
 
 	_, err = b.conn.UpdateOne(context,
 		bson.M{"_id": bookID, "quantity": bson.M{"$gte": amount}},
 		bson.M{"$inc": bson.M{"quantity": -amount}},
 	)
-	return err
+	return
 }
 
-func NewBookRepository(conn *mongo.Database) BookRepository {
+func NewBookRepository(conn *mongo.Database) *BookRepository {
 
 	collection := conn.Collection("book")
 
-	return &bookRepository{
+	return &BookRepository{
 		conn: collection,
 	}
 

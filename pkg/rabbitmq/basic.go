@@ -10,12 +10,12 @@ import (
 )
 
 type RabbitMQ struct {
-	logger     logger.Logger
+	logger     *logger.Logger
 	connection *amqp.Connection
 	channel    *amqp.Channel
 }
 
-func New(connectionName, username, password, host, port string, logger logger.Logger) *RabbitMQ {
+func New(connectionName, username, password, host, port string, logger *logger.Logger) *RabbitMQ {
 
 	config := amqp.Config{Properties: amqp.NewConnectionProperties()}
 	config.Properties.SetClientConnectionName(connectionName)
@@ -202,7 +202,7 @@ func (r *RabbitMQ) StartConsumers(
 	ctx context.Context,
 	consumers []ConsumerConfig,
 	wg *sync.WaitGroup,
-	logger logger.Logger,
+	logger *logger.Logger,
 ) {
 	// Iterate over the consumers map
 	for _, config := range consumers {

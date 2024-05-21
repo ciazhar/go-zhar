@@ -14,13 +14,9 @@ import (
 	"os"
 )
 
-type QrService interface {
-	GenerateQrCode(url string, dimension int, base64Image string) (string, error)
-}
+type QrService struct{}
 
-type qrService struct{}
-
-func (q qrService) GenerateQrCode(url string, dimension int, base64Image string) (string, error) {
+func (q *QrService) GenerateQrCode(url string, dimension int, base64Image string) (string, error) {
 	// Generate QR code
 	qrCode, _ := qr.Encode(url, qr.M, qr.Auto)
 	qrCode, _ = barcode.Scale(qrCode, dimension, dimension)
@@ -67,7 +63,7 @@ func (q qrService) GenerateQrCode(url string, dimension int, base64Image string)
 	return fileName, nil
 }
 
-func NewQrService() QrService {
-	return &qrService{}
+func NewQrService() *QrService {
+	return &QrService{}
 
 }

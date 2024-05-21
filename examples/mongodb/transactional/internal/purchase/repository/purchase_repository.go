@@ -13,32 +13,25 @@ import (
 	"go.mongodb.org/mongo-driver/mongo/writeconcern"
 )
 
-type PurchaseRepository interface {
-	PurchaseWithAutomaticTransaction(context context.Context, transaction *model.Transaction) error
-	PurchaseWithManualTransaction(context context.Context, transaction *model.Transaction) error
-}
-
-type purchaseRepository struct {
+type PurchaseRepository struct {
 	client                *mongo.Client
-	bookRepository        repository.BookRepository
-	transactionRepository repository2.TransactionRepository
+	bookRepository        *repository.BookRepository
+	transactionRepository *repository2.TransactionRepository
 }
 
 // PurchaseWithAutomaticTransaction handles purchasing with automatic transaction.
 //
 // context - context.Context, transaction *model.Transaction
 // error
-func (p purchaseRepository) PurchaseWithAutomaticTransaction(context context.Context, transaction *model.Transaction) error {
+func (p *PurchaseRepository) PurchaseWithAutomaticTransaction(context context.Context, transaction *model.Transaction) (err error) {
 
-	callback := func(sessionCtx mongo.SessionContext) (interface{}, error) {
-		err := p.bookRepository.UpdateQuantity(sessionCtx, transaction.BookID.Hex(), transaction.Amount)
-		if err != nil {
-			return nil, err
+	callback := func(sessionCtx mongo.SessionContext) (res interface{}, err error) {
+		if err = p.bookRepository.UpdateQuantity(sessionCtx, transaction.BookID.Hex(), transaction.Amount); err != nil {
+			return
 		}
 
-		err = p.transactionRepository.Insert(sessionCtx, transaction)
-		if err != nil {
-			return nil, err
+		if err = p.transactionRepository.Insert(sessionCtx, transaction); err != nil {
+			return
 		}
 
 		//TO DEBUG TRX UNCOMMENT THIS LINE AND COMMENT ABOVE
@@ -46,47 +39,51 @@ func (p purchaseRepository) PurchaseWithAutomaticTransaction(context context.Con
 		//	return nil, errors.New("UnknownTransactionCommitResult")
 		//}
 
-		return nil, nil
+		return
 	}
 
 	session, err := p.client.StartSession()
 	if err != nil {
-		return err
+		return
 	}
 	defer session.EndSession(context)
 
-	_, err = session.WithTransaction(context, callback)
-	if err != nil {
-		return err
+	if _, err = session.WithTransaction(context, callback); err != nil {
+		return
 	}
 
-	return nil
+	return
 }
 
 // PurchaseWithManualTransaction performs a manual transaction for a purchase.
 //
 // It takes a context and a transaction model as parameters and returns an error.
-func (p purchaseRepository) PurchaseWithManualTransaction(context context.Context, transaction *model.Transaction) error {
+func (p *PurchaseRepository) PurchaseWithManualTransaction(context context.Context, transaction *model.Transaction) (err error) {
 
-	callback := func(sessionCtx mongo.SessionContext) error {
-		err := sessionCtx.StartTransaction(options.Transaction().
+	callback := func(sessionCtx mongo.SessionContext) (err error) {
+		if err := sessionCtx.StartTransaction(options.Transaction().
 			SetReadConcern(readconcern.Snapshot()).
 			SetWriteConcern(writeconcern.New(writeconcern.WMajority())),
-		)
-		if err != nil {
-			return err
+		); err != nil {
+			return
 		}
 
 		err = p.bookRepository.UpdateQuantity(sessionCtx, transaction.BookID.Hex(), transaction.Amount)
 		if err != nil {
-			sessionCtx.AbortTransaction(sessionCtx)
-			return err
+			err = sessionCtx.AbortTransaction(sessionCtx)
+			if err != nil {
+				return
+			}
+			return
 		}
 
 		err = p.transactionRepository.Insert(sessionCtx, transaction)
 		if err != nil {
-			sessionCtx.AbortTransaction(sessionCtx)
-			return err
+			err = sessionCtx.AbortTransaction(sessionCtx)
+			if err != nil {
+				return
+			}
+			return
 		}
 
 		//TO DEBUG TRX UNCOMMENT THIS LINE AND COMMENT ABOVE
@@ -108,10 +105,10 @@ func (p purchaseRepository) PurchaseWithManualTransaction(context context.Contex
 
 func NewPurchaseRepository(
 	client *mongo.Client,
-	bookRepository repository.BookRepository,
-	transactionRepository repository2.TransactionRepository,
-) PurchaseRepository {
-	return &purchaseRepository{
+	bookRepository *repository.BookRepository,
+	transactionRepository *repository2.TransactionRepository,
+) *PurchaseRepository {
+	return &PurchaseRepository{
 		client:                client,
 		bookRepository:        bookRepository,
 		transactionRepository: transactionRepository,

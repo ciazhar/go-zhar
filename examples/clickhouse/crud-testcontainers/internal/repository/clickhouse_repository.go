@@ -16,7 +16,7 @@ type ClickhouseRepository struct {
 	db *sql.DB
 }
 
-func NewClickhouseRepository(ctx context.Context, db *sql.DB, logger logger.Logger) *ClickhouseRepository {
+func NewClickhouseRepository(ctx context.Context, db *sql.DB, logger *logger.Logger) *ClickhouseRepository {
 
 	if _, err := db.ExecContext(ctx, `
 		CREATE TABLE events

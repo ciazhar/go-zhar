@@ -13,7 +13,9 @@ import (
 func main() {
 
 	// Logger
-	log := logger.Init()
+	log := logger.Init(logger.Config{
+		ConsoleLoggingEnabled: true,
+	})
 
 	// Environment configuration
 	env.Init("client.json", log)
@@ -36,7 +38,7 @@ func main() {
 	callServerEvery(10*time.Second, client, myServiceUrl, log)
 }
 
-func hello(t time.Time, client *http.Client, url string, log logger.Logger) {
+func hello(t time.Time, client *http.Client, url string, log *logger.Logger) {
 	response, err := client.Get(url)
 	if err != nil {
 		log.Infof("Error: %v", err)
@@ -46,7 +48,7 @@ func hello(t time.Time, client *http.Client, url string, log logger.Logger) {
 	log.Infof("%s. Time is %v", body, t)
 }
 
-func callServerEvery(d time.Duration, client *http.Client, url string, log logger.Logger) {
+func callServerEvery(d time.Duration, client *http.Client, url string, log *logger.Logger) {
 	for x := range time.Tick(d) {
 		hello(x, client, url, log)
 	}

@@ -6,22 +6,16 @@ import (
 	"github.com/gofiber/fiber/v2"
 )
 
-type LocationController interface {
-	Insert(ctx *fiber.Ctx) error
-	Nearest(ctx *fiber.Ctx) error
-	Top5Nearest(ctx *fiber.Ctx) error
+type LocationController struct {
+	l *service.LocationService
 }
 
-type locationController struct {
-	l service.LocationService
-}
-
-func (l locationController) Top5Nearest(ctx *fiber.Ctx) error {
+func (l *LocationController) Top5Nearest(ctx *fiber.Ctx) error {
 	//TODO implement me
 	panic("implement me")
 }
 
-func (l locationController) Insert(ctx *fiber.Ctx) error {
+func (l *LocationController) Insert(ctx *fiber.Ctx) error {
 	var location model.InsertLocationForm
 	if err := ctx.BodyParser(&location); err != nil {
 		return ctx.Status(fiber.StatusBadRequest).JSON(
@@ -52,7 +46,7 @@ func (l locationController) Insert(ctx *fiber.Ctx) error {
 	)
 }
 
-func (l locationController) Nearest(ctx *fiber.Ctx) error {
+func (l *LocationController) Nearest(ctx *fiber.Ctx) error {
 
 	var form model.NearestLocationForm
 	err := ctx.QueryParser(&form)
@@ -86,6 +80,6 @@ func (l locationController) Nearest(ctx *fiber.Ctx) error {
 	)
 }
 
-func NewLocationController(l service.LocationService) LocationController {
-	return &locationController{l}
+func NewLocationController(l *service.LocationService) *LocationController {
+	return &LocationController{l}
 }

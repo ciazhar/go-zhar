@@ -6,21 +6,17 @@ import (
 	"go.mongodb.org/mongo-driver/mongo"
 )
 
-type TransactionRepository interface {
-	Insert(context context.Context, transaction *model.Transaction) error
-}
-
-type transactionRepository struct {
+type TransactionRepository struct {
 	conn *mongo.Collection
 }
 
-func (t transactionRepository) Insert(context context.Context, transaction *model.Transaction) error {
-	_, err := t.conn.InsertOne(context, transaction)
-	return err
+func (t TransactionRepository) Insert(context context.Context, transaction *model.Transaction) (err error) {
+	_, err = t.conn.InsertOne(context, transaction)
+	return
 }
 
-func NewTransactionRepository(conn *mongo.Database) TransactionRepository {
-	return transactionRepository{
+func NewTransactionRepository(conn *mongo.Database) *TransactionRepository {
+	return &TransactionRepository{
 		conn: conn.Collection("transaction"),
 	}
 }

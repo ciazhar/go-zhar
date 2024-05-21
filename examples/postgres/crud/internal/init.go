@@ -10,7 +10,7 @@ import (
 	"github.com/jackc/pgx/v4/pgxpool"
 )
 
-func Init(ctx context.Context, app *fiber.App, queries *db.Queries, db *pgxpool.Pool, logger logger.Logger) {
+func Init(ctx context.Context, app *fiber.App, queries *db.Queries, db *pgxpool.Pool, logger *logger.Logger) {
 
 	s := service.NewProductService(queries, db, logger)
 	c := controller.NewProductController(ctx, s)

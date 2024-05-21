@@ -25,7 +25,9 @@ import (
 // @host 127.0.0.1:3000
 // @BasePath /
 func main() {
-	log := logger.Init()
+	log := logger.Init(logger.Config{
+		ConsoleLoggingEnabled: true,
+	})
 	env.Init("config.json", log)
 
 	app := fiber.New()

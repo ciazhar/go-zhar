@@ -6,15 +6,11 @@ import (
 	"os"
 )
 
-type QrController interface {
-	GenerateQrCode(ctx *fiber.Ctx) error
+type QrController struct {
+	qrService *service.QrService
 }
 
-type qrController struct {
-	qrService service.QrService
-}
-
-func (q qrController) GenerateQrCode(ctx *fiber.Ctx) error {
+func (q *QrController) GenerateQrCode(ctx *fiber.Ctx) error {
 
 	url := ctx.Query("url")
 	dimension := ctx.QueryInt("dimension", 255)
@@ -40,8 +36,8 @@ func (q qrController) GenerateQrCode(ctx *fiber.Ctx) error {
 	return nil
 }
 
-func NewQrController(qrService service.QrService) QrController {
-	return &qrController{
+func NewQrController(qrService *service.QrService) *QrController {
+	return &QrController{
 		qrService: qrService,
 	}
 }

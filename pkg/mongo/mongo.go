@@ -12,7 +12,7 @@ import (
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
-func Init(host string, username string, password string, database string, logger logger.Logger) *mongo.Database {
+func Init(host string, username string, password string, database string, logger *logger.Logger) *mongo.Database {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 

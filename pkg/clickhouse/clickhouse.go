@@ -5,7 +5,7 @@ import (
 	"github.com/ciazhar/go-zhar/pkg/logger"
 )
 
-func Init(hosts string, database string, username string, password string, debug bool, logger logger.Logger) clickhouse.Conn {
+func Init(hosts string, database string, username string, password string, debug bool, logger *logger.Logger) clickhouse.Conn {
 	conn, err := clickhouse.Open(&clickhouse.Options{
 		Addr: []string{hosts},
 		Auth: clickhouse.Auth{

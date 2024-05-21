@@ -2,16 +2,20 @@ package main
 
 import (
 	"fmt"
+	"github.com/ciazhar/go-zhar/pkg/logger"
 	"github.com/ciazhar/go-zhar/pkg/redis"
 	"testing"
 )
 
-var d redis.Redis
-var r redis.Redis
+var d *redis.Redis
+var r *redis.Redis
 
 func init() {
-	d = redis.Init("127.0.0.1", 6379, "")
-	r = redis.Init("127.0.0.1", 6377, "")
+
+	l := logger.Init(
+		logger.Config{ConsoleLoggingEnabled: true})
+	d = redis.Init("127.0.0.1", 6379, "", l)
+	r = redis.Init("127.0.0.1", 6377, "", l)
 }
 
 func BenchmarkDragonflySet(b *testing.B) {

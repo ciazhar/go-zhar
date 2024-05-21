@@ -21,7 +21,9 @@ type User struct {
 
 func main() {
 	// Inisialisasi logger
-	log := logger.Init()
+	log := logger.Init(logger.Config{
+		ConsoleLoggingEnabled: true,
+	})
 
 	// Inisialisasi validator untuk Bahasa Inggris
 	validate := validator.New("en", log)

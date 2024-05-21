@@ -6,15 +6,11 @@ import (
 	"github.com/gofiber/fiber/v2"
 )
 
-type PurchaseController interface {
-	Purchase(ctx *fiber.Ctx) error
+type PurchaseController struct {
+	p *service.PurchaseService
 }
 
-type purchaseController struct {
-	p service.PurchaseService
-}
-
-func (p purchaseController) Purchase(ctx *fiber.Ctx) error {
+func (p *PurchaseController) Purchase(ctx *fiber.Ctx) error {
 
 	var transaction model.Transaction
 	err := ctx.BodyParser(&transaction)
@@ -48,6 +44,6 @@ func (p purchaseController) Purchase(ctx *fiber.Ctx) error {
 	)
 }
 
-func NewPurchaseController(p service.PurchaseService) PurchaseController {
-	return &purchaseController{p: p}
+func NewPurchaseController(p *service.PurchaseService) *PurchaseController {
+	return &PurchaseController{p: p}
 }

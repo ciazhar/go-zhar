@@ -8,7 +8,7 @@ import (
 )
 
 type AsyncProducer struct {
-	logger   logger.Logger
+	logger   *logger.Logger
 	producer sarama.AsyncProducer
 }
 
@@ -17,7 +17,7 @@ type AsyncProducerConfig struct {
 	Retry   int
 }
 
-func NewAsyncProducer(brokers string, logger logger.Logger, producerConfig ...AsyncProducerConfig) *AsyncProducer {
+func NewAsyncProducer(brokers string, logger *logger.Logger, producerConfig ...AsyncProducerConfig) *AsyncProducer {
 	config := sarama.NewConfig()
 	config.Producer.RequiredAcks = sarama.WaitForLocal       // Only wait for the leader to ack
 	config.Producer.Compression = sarama.CompressionSnappy   // Compress messages

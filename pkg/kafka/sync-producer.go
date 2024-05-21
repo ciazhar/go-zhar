@@ -8,7 +8,7 @@ import (
 
 type SyncProducer struct {
 	producer sarama.SyncProducer
-	logger   logger.Logger
+	logger   *logger.Logger
 }
 
 type SyncProducerConfig struct {
@@ -16,7 +16,7 @@ type SyncProducerConfig struct {
 	Retry   int
 }
 
-func NewSyncProducer(brokers string, logger logger.Logger, producerConfig ...SyncProducerConfig) *SyncProducer {
+func NewSyncProducer(brokers string, logger *logger.Logger, producerConfig ...SyncProducerConfig) *SyncProducer {
 	config := sarama.NewConfig()
 	config.Producer.RequiredAcks = sarama.WaitForAll // Wait for all in-sync replicas to ack the message
 	config.Producer.Retry.Max = 10                   // Retry up to 10 times to produce the message

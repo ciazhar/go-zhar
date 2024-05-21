@@ -10,10 +10,10 @@ import (
 
 type Consul struct {
 	client *consul.Client
-	logger logger.Logger
+	logger *logger.Logger
 }
 
-func Init(host string, port int, schema string, logger logger.Logger) *Consul {
+func Init(host string, port int, schema string, logger *logger.Logger) *Consul {
 	config := consul.Config{
 		Address: fmt.Sprintf("%s:%d", host, port),
 		Scheme:  schema,
@@ -31,7 +31,7 @@ func Init(host string, port int, schema string, logger logger.Logger) *Consul {
 	}
 }
 
-func (c Consul) RetrieveConfiguration(key string, configType string) {
+func (c *Consul) RetrieveConfiguration(key string, configType string) {
 	c.logger.Infof("key: %s, configType: %s", key, configType)
 
 	pair, _, err := c.client.KV().Get(key, nil)
@@ -50,7 +50,7 @@ func (c Consul) RetrieveConfiguration(key string, configType string) {
 	}
 }
 
-func (c Consul) RegisterService(id, name, host string, port int) {
+func (c *Consul) RegisterService(id, name, host string, port int) {
 
 	reg := &consul.AgentServiceRegistration{
 		ID:   id,
@@ -71,14 +71,14 @@ func (c Consul) RegisterService(id, name, host string, port int) {
 	}
 }
 
-func (c Consul) DeregisterService(id string) {
+func (c *Consul) DeregisterService(id string) {
 	err := c.client.Agent().ServiceDeregister(id)
 	if err != nil {
 		c.logger.Infof("Error deregistering service: %v", err)
 	}
 }
 
-func (c Consul) RetrieveServiceUrl(id string) (string, error) {
+func (c *Consul) RetrieveServiceUrl(id string) (string, error) {
 	c.logger.Infof("Retrieving service URL for id: %s", id)
 
 	service, _, err := c.client.Agent().Service(id, nil)

@@ -6,22 +6,14 @@ import (
 	"github.com/gofiber/fiber/v2"
 )
 
-type UserController interface {
-	AddUser(c *fiber.Ctx) error
-	GetUserByUsername(c *fiber.Ctx) error
-	GetAllUsers(c *fiber.Ctx) error
-	DeleteUser(c *fiber.Ctx) error
-	UpdateUser(c *fiber.Ctx) error
-}
-
 // UserController handles user-related requests
-type userController struct {
-	UserService service.UserService
+type UserController struct {
+	UserService *service.UserService
 }
 
 // NewUserController creates a new UserController
-func NewUserController(userService service.UserService) UserController {
-	return &userController{
+func NewUserController(userService *service.UserService) *UserController {
+	return &UserController{
 		UserService: userService,
 	}
 }
@@ -34,7 +26,7 @@ func NewUserController(userService service.UserService) UserController {
 // @Param user body model.User true "User"
 // @Success 201
 // @Router /users [post]
-func (uc *userController) AddUser(c *fiber.Ctx) error {
+func (uc *UserController) AddUser(c *fiber.Ctx) error {
 	var user model.User
 	if err := c.BodyParser(&user); err != nil {
 		return c.Status(400).SendString("Invalid request")
@@ -52,7 +44,7 @@ func (uc *userController) AddUser(c *fiber.Ctx) error {
 // @Success 200 {object} model.User
 // @Failure 404
 // @Router /users/{username} [get]
-func (uc *userController) GetUserByUsername(c *fiber.Ctx) error {
+func (uc *UserController) GetUserByUsername(c *fiber.Ctx) error {
 	username := c.Params("username")
 	user, err := uc.UserService.GetUserByUsername(username)
 	if err != nil {
@@ -68,7 +60,7 @@ func (uc *userController) GetUserByUsername(c *fiber.Ctx) error {
 // @Produce json
 // @Success 200 {object} map[string]model.User
 // @Router /users [get]
-func (uc *userController) GetAllUsers(c *fiber.Ctx) error {
+func (uc *UserController) GetAllUsers(c *fiber.Ctx) error {
 	users := uc.UserService.GetAllUsers()
 	return c.JSON(users)
 }
@@ -81,7 +73,7 @@ func (uc *userController) GetAllUsers(c *fiber.Ctx) error {
 // @Success 200
 // @Failure 404
 // @Router /users/{username} [delete]
-func (uc *userController) DeleteUser(c *fiber.Ctx) error {
+func (uc *UserController) DeleteUser(c *fiber.Ctx) error {
 	username := c.Params("username")
 	err := uc.UserService.DeleteUser(username)
 	if err != nil {
@@ -98,7 +90,7 @@ func (uc *userController) DeleteUser(c *fiber.Ctx) error {
 // @Success 200
 // @Failure 404
 // @Router /users [put]
-func (uc *userController) UpdateUser(c *fiber.Ctx) error {
+func (uc *UserController) UpdateUser(c *fiber.Ctx) error {
 	var user model.User
 	if err := c.BodyParser(&user); err != nil {
 		return c.Status(400).SendString("Invalid request")

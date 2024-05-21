@@ -6,20 +6,11 @@ import (
 	"time"
 )
 
-type BasicController interface {
-	Get(ctx *fiber.Ctx) error
-	Set(ctx *fiber.Ctx) error
-	GetHash(ctx *fiber.Ctx) error
-	SetHash(ctx *fiber.Ctx) error
-	SetHashTTL(ctx *fiber.Ctx) error
-	DeleteHash(ctx *fiber.Ctx) error
+type BasicController struct {
+	aService *service.BasicService
 }
 
-type basicController struct {
-	aService service.BasicService
-}
-
-func (b basicController) Get(ctx *fiber.Ctx) error {
+func (b *BasicController) Get(ctx *fiber.Ctx) error {
 	val, err := b.aService.Get()
 	if err != nil {
 		return err
@@ -27,7 +18,7 @@ func (b basicController) Get(ctx *fiber.Ctx) error {
 	return ctx.JSON(val)
 }
 
-func (b basicController) Set(ctx *fiber.Ctx) error {
+func (b *BasicController) Set(ctx *fiber.Ctx) error {
 	value := ctx.FormValue("value")
 	expirationStr := ctx.FormValue("expiration")
 	expiration, err := time.ParseDuration(expirationStr)
@@ -41,7 +32,7 @@ func (b basicController) Set(ctx *fiber.Ctx) error {
 	return ctx.SendStatus(fiber.StatusOK)
 }
 
-func (b basicController) GetHash(ctx *fiber.Ctx) error {
+func (b *BasicController) GetHash(ctx *fiber.Ctx) error {
 	field := ctx.Params("field")
 	val, err := b.aService.GetHash(field)
 	if err != nil {
@@ -50,7 +41,7 @@ func (b basicController) GetHash(ctx *fiber.Ctx) error {
 	return ctx.JSON(val)
 }
 
-func (b basicController) SetHash(ctx *fiber.Ctx) error {
+func (b *BasicController) SetHash(ctx *fiber.Ctx) error {
 	field := ctx.FormValue("field")
 	value := ctx.FormValue("value")
 	if err := b.aService.SetHash(field, value); err != nil {
@@ -59,7 +50,7 @@ func (b basicController) SetHash(ctx *fiber.Ctx) error {
 	return ctx.SendStatus(fiber.StatusOK)
 }
 
-func (b basicController) SetHashTTL(ctx *fiber.Ctx) error {
+func (b *BasicController) SetHashTTL(ctx *fiber.Ctx) error {
 	field := ctx.FormValue("field")
 	value := ctx.FormValue("value")
 	ttlStr := ctx.FormValue("ttl")
@@ -74,7 +65,7 @@ func (b basicController) SetHashTTL(ctx *fiber.Ctx) error {
 	return ctx.SendStatus(fiber.StatusOK)
 }
 
-func (b basicController) DeleteHash(ctx *fiber.Ctx) error {
+func (b *BasicController) DeleteHash(ctx *fiber.Ctx) error {
 	field := ctx.FormValue("field")
 	if err := b.aService.DeleteHash(field); err != nil {
 		return err
@@ -82,8 +73,8 @@ func (b basicController) DeleteHash(ctx *fiber.Ctx) error {
 	return ctx.SendStatus(fiber.StatusOK)
 }
 
-func NewBasicController(aService service.BasicService) BasicController {
-	return basicController{
+func NewBasicController(aService *service.BasicService) *BasicController {
+	return &BasicController{
 		aService: aService,
 	}
 }

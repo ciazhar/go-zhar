@@ -6,15 +6,11 @@ import (
 	"github.com/gofiber/fiber/v2"
 )
 
-type BookController interface {
-	Insert(ctx *fiber.Ctx) error
+type BookController struct {
+	b *service.BookService
 }
 
-type bookController struct {
-	b service.BookService
-}
-
-func (b bookController) Insert(ctx *fiber.Ctx) error {
+func (b *BookController) Insert(ctx *fiber.Ctx) error {
 
 	var book model.Book
 	err := ctx.BodyParser(&book)
@@ -48,8 +44,8 @@ func (b bookController) Insert(ctx *fiber.Ctx) error {
 	)
 }
 
-func NewBookController(b service.BookService) BookController {
-	return &bookController{
+func NewBookController(b *service.BookService) *BookController {
+	return &BookController{
 		b: b,
 	}
 }

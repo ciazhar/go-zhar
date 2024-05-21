@@ -8,11 +8,11 @@ import (
 )
 
 type Admin struct {
-	logger logger.Logger
+	logger *logger.Logger
 	admin  sarama.ClusterAdmin
 }
 
-func NewAdmin(brokers string, logger logger.Logger) Admin {
+func NewAdmin(brokers string, logger *logger.Logger) Admin {
 	config := sarama.NewConfig()
 
 	admin, err := sarama.NewClusterAdmin(strings.Split(brokers, ","), config)

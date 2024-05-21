@@ -8,21 +8,14 @@ import (
 	"sync"
 )
 
-type BasicService interface {
-	PublishRabbitmq(message string)
-	PublishTTLRabbitmq(message string)
-	ConsumeRabbitmq(message string)
-	StartRabbitConsumer()
-}
-
-type basicService struct {
+type BasicService struct {
 	ctx      context.Context
 	wg       *sync.WaitGroup
-	logger   logger.Logger
+	logger   *logger.Logger
 	rabbitmq *rabbitmq.RabbitMQ
 }
 
-func (e basicService) StartRabbitConsumer() {
+func (e BasicService) StartRabbitConsumer() {
 	e.rabbitmq.StartConsumers(e.ctx, []rabbitmq.ConsumerConfig{
 		{
 			Queue:   model.QueueBasic,
@@ -32,15 +25,15 @@ func (e basicService) StartRabbitConsumer() {
 
 }
 
-func (e basicService) PublishRabbitmq(message string) {
+func (e BasicService) PublishRabbitmq(message string) {
 	e.rabbitmq.PublishMessage(context.Background(), model.QueueBasic, message)
 }
 
-func (e basicService) PublishTTLRabbitmq(message string) {
+func (e BasicService) PublishTTLRabbitmq(message string) {
 	e.rabbitmq.PublishMessageWithTTL(context.Background(), model.QueueBasic, message, 1000)
 }
 
-func (e basicService) ConsumeRabbitmq(message string) {
+func (e BasicService) ConsumeRabbitmq(message string) {
 	e.logger.Infof("Received Basic Message: %s", message)
 }
 
@@ -48,9 +41,9 @@ func NewBasicService(
 	ctx context.Context,
 	rabbitmq *rabbitmq.RabbitMQ,
 	wg *sync.WaitGroup,
-	logger logger.Logger,
-) BasicService {
-	return basicService{
+	logger *logger.Logger,
+) *BasicService {
+	return &BasicService{
 		ctx:      ctx,
 		wg:       wg,
 		logger:   logger,

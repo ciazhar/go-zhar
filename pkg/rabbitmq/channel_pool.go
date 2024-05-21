@@ -12,13 +12,13 @@ import (
 
 // TODO implement like basic
 type ChannelPool struct {
-	logger     logger.Logger
+	logger     *logger.Logger
 	mu         sync.Mutex
 	Connection *amqp.Connection
 	channels   []*amqp.Channel
 }
 
-func NewChannelPool(connectionName, username, password, host, port string, size int, logger logger.Logger) *ChannelPool {
+func NewChannelPool(connectionName, username, password, host, port string, size int, logger *logger.Logger) *ChannelPool {
 	pool := &ChannelPool{}
 
 	config := amqp.Config{Properties: amqp.NewConnectionProperties()}

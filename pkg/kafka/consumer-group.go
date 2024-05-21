@@ -20,7 +20,7 @@ func StartConsumers(
 	brokers string,
 	consumers map[string]ConsumerConfig,
 	wg *sync.WaitGroup,
-	logger logger.Logger,
+	logger *logger.Logger,
 ) {
 
 	// Iterate over the consumers map
@@ -43,7 +43,7 @@ func runConsumer(
 	consumerGroup ConsumerGroup,
 	topics []string,
 	handler sarama.ConsumerGroupHandler,
-	logger2 logger.Logger,
+	logger2 *logger.Logger,
 ) {
 	defer wg.Done()
 	defer consumerGroup.Close()
@@ -68,7 +68,6 @@ func runConsumer(
 type ConsumerGroup struct {
 	logger        logger.Logger
 	consumerGroup sarama.ConsumerGroup
-	ready         chan bool
 	out           func(key, value string)
 }
 
@@ -78,7 +77,7 @@ type ConsumerGroupConfig struct {
 	Assignor      string
 }
 
-func NewConsumerGroup(brokers string, groupId string, logger logger.Logger, conf ...ConsumerGroupConfig) ConsumerGroup {
+func NewConsumerGroup(brokers string, groupId string, logger *logger.Logger, conf ...ConsumerGroupConfig) ConsumerGroup {
 	config := sarama.NewConfig()
 	config.Consumer.Offsets.AutoCommit.Enable = false // disable auto-commit
 	config.Consumer.Return.Errors = true
@@ -131,14 +130,11 @@ func (c *ConsumerGroup) Close() {
 }
 
 type BasicConsumerHandler struct {
-	Ready chan bool
-	Out   func(key, value string)
+	Out func(key, value string)
 }
 
 // Setup is run at the beginning of a new session, before ConsumeClaim
 func (c *BasicConsumerHandler) Setup(sarama.ConsumerGroupSession) error {
-	// Mark the consumer as ready
-	close(c.Ready)
 	return nil
 }
 
@@ -180,7 +176,6 @@ func (c *BasicConsumerHandler) ConsumeClaim(session sarama.ConsumerGroupSession,
 
 func NewBasicConsumerHandler(out func(key, value string)) *BasicConsumerHandler {
 	return &BasicConsumerHandler{
-		Ready: make(chan bool),
-		Out:   out,
+		Out: out,
 	}
 }

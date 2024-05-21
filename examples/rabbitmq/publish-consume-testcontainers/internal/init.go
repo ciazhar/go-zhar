@@ -10,7 +10,7 @@ import (
 	"sync"
 )
 
-func Init(ctx context.Context, router fiber.Router, mq *rabbitmq.RabbitMQ, wg *sync.WaitGroup, logger logger.Logger) {
+func Init(ctx context.Context, router fiber.Router, mq *rabbitmq.RabbitMQ, wg *sync.WaitGroup, logger *logger.Logger) {
 	s := service.NewBasicService(ctx, mq, wg, logger)
 	c := controller.NewBasicController(s)
 

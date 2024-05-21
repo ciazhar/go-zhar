@@ -8,7 +8,7 @@ import (
 	"github.com/gofiber/fiber/v2"
 )
 
-func Init(router fiber.Router, redis redis.Redis) {
+func Init(router fiber.Router, redis *redis.Redis) {
 	r := repository.NewRedisRepository(redis)
 	s := service.NewBasicService(r)
 	basicController := controller.NewBasicController(s)

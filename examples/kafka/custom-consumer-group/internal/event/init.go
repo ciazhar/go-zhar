@@ -6,16 +6,17 @@ import (
 	"github.com/ciazhar/go-zhar/pkg/kafka"
 	"github.com/ciazhar/go-zhar/pkg/logger"
 	"github.com/spf13/viper"
+	"sync"
 )
 
-func Init(log logger.Logger, producer *kafka.SyncProducer) {
+func Init(ctx context.Context, wg *sync.WaitGroup, log *logger.Logger, producer *kafka.SyncProducer) {
 
-	s := service.NewEventService(log, producer)
+	s := service.NewWebhookEventConsumer(ctx, producer, log)
 
-	kafka.StartConsumers(context.Background(), viper.GetString("kafka.brokers"), map[string]kafka.ConsumerConfig{
+	kafka.StartConsumers(ctx, viper.GetString("kafka.brokers"), map[string]kafka.ConsumerConfig{
 		"event-group": {
 			Topics:  []string{"event"},
 			Handler: s,
 		},
-	}, log)
+	}, wg, log)
 }

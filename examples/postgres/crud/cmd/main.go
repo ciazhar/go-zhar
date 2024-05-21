@@ -15,10 +15,11 @@ func main() {
 
 	ctx := context.Background()
 
-	log := logger.Init()
+	log := logger.Init(logger.Config{
+		ConsoleLoggingEnabled: true,
+	})
 	env.Init("config.json", log)
 	pool := postgres.Init(
-		ctx,
 		viper.GetString("postgres.username"),
 		viper.GetString("postgres.password"),
 		viper.GetString("postgres.host"),

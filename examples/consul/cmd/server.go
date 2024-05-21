@@ -13,7 +13,9 @@ import (
 func main() {
 
 	// Logger
-	log := logger.Init()
+	log := logger.Init(logger.Config{
+		ConsoleLoggingEnabled: true,
+	})
 
 	// Concurrent configuration
 	ctx := context_util.SetupSignalHandler()

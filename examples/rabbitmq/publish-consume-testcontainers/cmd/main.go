@@ -18,7 +18,9 @@ func main() {
 	var wg sync.WaitGroup
 
 	// Logger
-	log := logger.Init()
+	log := logger.Init(logger.Config{
+		ConsoleLoggingEnabled: true,
+	})
 
 	// Environment configuration
 	env.Init("config.json", log)

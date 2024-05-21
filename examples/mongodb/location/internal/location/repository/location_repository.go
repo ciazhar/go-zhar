@@ -11,21 +11,16 @@ import (
 	"time"
 )
 
-type LocationRepository interface {
-	Insert(location model.InsertLocationForm) error
-	Nearest(long, lat float64, maxDistance int, limit int) ([]model.Location, error)
-}
-
-type locationRepository struct {
+type LocationRepository struct {
 	c *mongo.Collection
 }
 
-func (l locationRepository) Insert(location model.InsertLocationForm) error {
-	_, err := l.c.InsertOne(context.Background(), location)
-	return err
+func (l *LocationRepository) Insert(location model.InsertLocationForm) (err error) {
+	_, err = l.c.InsertOne(context.Background(), location)
+	return
 }
 
-func (l locationRepository) Nearest(long, lat float64, maxDistance int, limit int) ([]model.Location, error) {
+func (l *LocationRepository) Nearest(long, lat float64, maxDistance int, limit int) (res []model.Location, err error) {
 
 	// Define a point for which we want to find the nearest location
 	targetPoint := []float64{long, lat}
@@ -50,19 +45,18 @@ func (l locationRepository) Nearest(long, lat float64, maxDistance int, limit in
 	// Execute the aggregation pipeline
 	cursor, err := l.c.Aggregate(context.Background(), pipeline)
 	if err != nil {
-		return nil, err
+		return
 	}
 
 	// Iterate over the cursor to get the results
-	var results []model.Location
-	if err := cursor.All(context.Background(), &results); err != nil {
-		log.Fatal(err)
+	if err := cursor.All(context.Background(), &res); err != nil {
+		return
 	}
 
-	return results, nil
+	return
 }
 
-func NewLocationRepository(conn *mongo.Database) LocationRepository {
+func NewLocationRepository(conn *mongo.Database) *LocationRepository {
 
 	// Get Collection
 	coll := conn.Collection("locations")
@@ -74,12 +68,11 @@ func NewLocationRepository(conn *mongo.Database) LocationRepository {
 	}
 
 	// Create the index if not exists
-	_, err := coll.Indexes().CreateOne(
+	if _, err := coll.Indexes().CreateOne(
 		context.Background(),
 		indexModel,
 		options.CreateIndexes().SetMaxTime(10*time.Second), // Optional: Set a timeout for the index creation
-	)
-	if err != nil {
+	); err != nil {
 		// Check if the error is due to the index already existing
 		if !strings.Contains(err.Error(), "index already exists") {
 			log.Fatal(err)
@@ -89,7 +82,7 @@ func NewLocationRepository(conn *mongo.Database) LocationRepository {
 		log.Println("2dsphere index on 'coordinate' field created successfully.")
 	}
 
-	return &locationRepository{
+	return &LocationRepository{
 		c: coll,
 	}
 }

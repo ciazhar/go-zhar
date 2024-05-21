@@ -8,7 +8,7 @@ import (
 	"github.com/jackc/pgx/v4/pgxpool"
 )
 
-func Init(ctx context.Context, username string, password string, host string, port int, database string, schema string, debug bool, logger logger.Logger) *pgxpool.Pool {
+func Init(username string, password string, host string, port int, database string, schema string, debug bool, logger *logger.Logger) *pgxpool.Pool {
 	url := fmt.Sprintf("postgres://%s:%s@%s:%d/%s?search_path=%s", username, password, host, port, database, schema)
 
 	c, err := pgxpool.ParseConfig(url)
@@ -17,10 +17,10 @@ func Init(ctx context.Context, username string, password string, host string, po
 	}
 
 	if debug {
-		c.ConnConfig.Logger = zerologadapter.NewLogger(logger.GetServiceLogger())
+		c.ConnConfig.Logger = zerologadapter.NewLogger(*logger.GetServiceLogger())
 	}
 
-	conn, err := pgxpool.ConnectConfig(ctx, c)
+	conn, err := pgxpool.ConnectConfig(context.Background(), c)
 	if err != nil {
 		logger.Fatalf("Failed to connect to postgres: %v", err)
 	}
