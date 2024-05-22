@@ -1,6 +1,6 @@
 package model
 
 type AccidentReport struct {
-	ID     string
-	Report string
+	ID     string `json:"id"`
+	Report string `json:"report"`
 }
