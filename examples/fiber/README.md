@@ -5,5 +5,7 @@
 > di [TechEmpower Web Framework Benchmark Round 22](https://www.techempower.com/benchmarks/#hw=ph&test=composite&section=data-r22).
 
 ## Use Case
-- [Clean Architecture & Swagger](https://github.com/ciazhar/go-zhar/tree/master/examples/fiber/clean-architecture-swagger)
+- [Clean Architecture](https://github.com/ciazhar/go-zhar/tree/master/examples/fiber/clean-architecture)
+- [Swagger](https://github.com/ciazhar/go-zhar/tree/master/examples/fiber/swagger)
+- [Unit Test](https://github.com/ciazhar/go-zhar/tree/master/examples/testify-mockery)
 - File Server
