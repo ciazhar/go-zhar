@@ -59,6 +59,7 @@
 
 ## Testing
 
+- [Testify - Mockery](https://github.com/ciazhar/go-zhar/tree/master/examples/testify-mockery)
 - [Testcontainers](https://github.com/ciazhar/go-zhar/tree/master/examples/testcontainer)
 - [Golden File](https://github.com/ciazhar/go-zhar/tree/master/examples/golden_file)
 
