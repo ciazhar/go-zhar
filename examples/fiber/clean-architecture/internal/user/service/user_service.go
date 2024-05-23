@@ -1,8 +1,8 @@
 package service
 
 import (
-	"github.com/ciazhar/go-zhar/examples/fiber/clean-architecture-swagger/internal/user/model"
-	"github.com/ciazhar/go-zhar/examples/fiber/clean-architecture-swagger/internal/user/repository"
+	"github.com/ciazhar/go-zhar/examples/fiber/clean-architecture/internal/user/model"
+	"github.com/ciazhar/go-zhar/examples/fiber/clean-architecture/internal/user/repository"
 )
 
 type UserService struct {

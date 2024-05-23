@@ -2,7 +2,7 @@ package repository
 
 import (
 	"fmt"
-	"github.com/ciazhar/go-zhar/examples/fiber/clean-architecture-swagger/internal/user/model"
+	"github.com/ciazhar/go-zhar/examples/fiber/clean-architecture/internal/user/model"
 )
 
 // UserRepository represents a repository for managing users

@@ -1,9 +1,9 @@
 package user
 
 import (
-	"github.com/ciazhar/go-zhar/examples/fiber/clean-architecture-swagger/internal/user/controller"
-	"github.com/ciazhar/go-zhar/examples/fiber/clean-architecture-swagger/internal/user/repository"
-	"github.com/ciazhar/go-zhar/examples/fiber/clean-architecture-swagger/internal/user/service"
+	"github.com/ciazhar/go-zhar/examples/fiber/clean-architecture/internal/user/controller"
+	"github.com/ciazhar/go-zhar/examples/fiber/clean-architecture/internal/user/repository"
+	"github.com/ciazhar/go-zhar/examples/fiber/clean-architecture/internal/user/service"
 	"github.com/gofiber/fiber/v2"
 )
 

@@ -1,8 +1,8 @@
 package controller
 
 import (
-	"github.com/ciazhar/go-zhar/examples/fiber/clean-architecture-swagger/internal/user/model"
-	"github.com/ciazhar/go-zhar/examples/fiber/clean-architecture-swagger/internal/user/service"
+	"github.com/ciazhar/go-zhar/examples/fiber/clean-architecture/internal/user/model"
+	"github.com/ciazhar/go-zhar/examples/fiber/clean-architecture/internal/user/service"
 	"github.com/gofiber/fiber/v2"
 )
 
