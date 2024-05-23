@@ -18,14 +18,6 @@ func NewUserController(userService *service.UserService) *UserController {
 	}
 }
 
-// AddUser @Summary Add a new user
-// @Description Add a new user to the system
-// @Tags User
-// @Accept json
-// @Produce json
-// @Param user body model.User true "User"
-// @Success 201
-// @Router /users [post]
 func (uc *UserController) AddUser(c *fiber.Ctx) error {
 	var user model.User
 	if err := c.BodyParser(&user); err != nil {
@@ -35,15 +27,6 @@ func (uc *UserController) AddUser(c *fiber.Ctx) error {
 	return c.SendStatus(201)
 }
 
-// GetUserByUsername is the handler for getting a user by their username
-// @Summary Get a user by username
-// @Description Get a user by their username
-// @Tags User
-// @Produce json
-// @Param username path string true "Username"
-// @Success 200 {object} model.User
-// @Failure 404
-// @Router /users/{username} [get]
 func (uc *UserController) GetUserByUsername(c *fiber.Ctx) error {
 	username := c.Params("username")
 	user, err := uc.UserService.GetUserByUsername(username)
@@ -53,26 +36,11 @@ func (uc *UserController) GetUserByUsername(c *fiber.Ctx) error {
 	return c.JSON(user)
 }
 
-// GetAllUsers is the handler for getting all users
-// @Summary Get all users
-// @Description Retrieve all users
-// @Tags User
-// @Produce json
-// @Success 200 {object} map[string]model.User
-// @Router /users [get]
 func (uc *UserController) GetAllUsers(c *fiber.Ctx) error {
 	users := uc.UserService.GetAllUsers()
 	return c.JSON(users)
 }
 
-// DeleteUser is the handler for deleting a user
-// @Summary Delete a user
-// @Description Delete a user by their username
-// @Tags User
-// @Param username path string true "Username"
-// @Success 200
-// @Failure 404
-// @Router /users/{username} [delete]
 func (uc *UserController) DeleteUser(c *fiber.Ctx) error {
 	username := c.Params("username")
 	err := uc.UserService.DeleteUser(username)
@@ -82,14 +50,6 @@ func (uc *UserController) DeleteUser(c *fiber.Ctx) error {
 	return c.SendStatus(200)
 }
 
-// UpdateUser is the handler for updating a user's information
-// @Summary Update a user
-// @Description Update a user's details
-// @Tags User
-// @Param user body model.User true "User"
-// @Success 200
-// @Failure 404
-// @Router /users [put]
 func (uc *UserController) UpdateUser(c *fiber.Ctx) error {
 	var user model.User
 	if err := c.BodyParser(&user); err != nil {
