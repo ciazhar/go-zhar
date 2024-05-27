@@ -8,4 +8,5 @@
 - [Clean Architecture](https://github.com/ciazhar/go-zhar/tree/master/examples/fiber/clean-architecture)
 - [Swagger](https://github.com/ciazhar/go-zhar/tree/master/examples/fiber/swagger)
 - [Unit Test](https://github.com/ciazhar/go-zhar/tree/master/examples/testify-mockery)
+- [Open Telemetry + Jaeger](https://github.com/ciazhar/go-zhar/tree/master/examples/fiber/opentelemetry-jaeger)
 - File Server
