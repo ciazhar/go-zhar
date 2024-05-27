@@ -1,7 +1,7 @@
 {
   "application": {
     "port": 3000,
-    "name": "fiber-server"
+    "name": "user-service"
   },
   "opentelemetry": {
       "url": "http://localhost:14268/api/traces"

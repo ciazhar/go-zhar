@@ -15,7 +15,7 @@ func main() {
 		ConsoleLoggingEnabled: true,
 	})
 
-	env.Init("config.json", log)
+	env.Init("config-user.json", log)
 
 	tp, tracer := opentelemetryjaeger.InitTracer(
 		viper.GetString("application.name"),

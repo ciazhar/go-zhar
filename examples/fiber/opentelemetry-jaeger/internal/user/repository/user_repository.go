@@ -15,19 +15,27 @@ type UserRepository struct {
 }
 
 // AddUser adds a new user to the repository
-func (r *UserRepository) AddUser(ctx context.Context, user model.User) {
-	_, span := r.tracer.Start(ctx, "AddUser", trace.WithAttributes(
-		attribute.String("username", user.Username),
-		attribute.String("email", user.Email),
-		attribute.Int("age", user.Age),
-	))
+func (r *UserRepository) AddUser(ctx context.Context, user model.User, parentSpan trace.Span) {
+	_, span := r.tracer.Start(
+		trace.ContextWithSpanContext(ctx, parentSpan.SpanContext()),
+		"UserRepository_AddUser", trace.WithAttributes(
+			attribute.String("username", user.Username),
+			attribute.String("email", user.Email),
+			attribute.Int("age", user.Age),
+		))
 	defer span.End()
 	r.users[user.Username] = user
 }
 
 // GetUserByUsername retrieves a user by their username
-func (r *UserRepository) GetUserByUsername(ctx context.Context, username string) (*model.User, error) {
-	_, span := r.tracer.Start(ctx, "GetUserByUsername", trace.WithAttributes(attribute.String("username", username)))
+func (r *UserRepository) GetUserByUsername(ctx context.Context, username string, parentSpan trace.Span) (*model.User, error) {
+	_, span := r.tracer.Start(
+		trace.ContextWithSpanContext(ctx, parentSpan.SpanContext()),
+		"UserRepository_GetUserByUsername",
+		trace.WithAttributes(
+			attribute.String("username", username),
+		),
+	)
 	defer span.End()
 	for _, user := range r.users {
 		if user.Username == username {
@@ -38,15 +46,22 @@ func (r *UserRepository) GetUserByUsername(ctx context.Context, username string)
 }
 
 // GetAllUsers retrieves all users from the repository
-func (r *UserRepository) GetAllUsers(ctx context.Context, tracer trace.Span) map[string]model.User {
-	_, span := r.tracer.Start(trace.ContextWithSpanContext(ctx, tracer.SpanContext()), "GetAllUsersRepository")
+func (r *UserRepository) GetAllUsers(ctx context.Context, parentSpan trace.Span) map[string]model.User {
+	_, span := r.tracer.Start(
+		trace.ContextWithSpanContext(ctx, parentSpan.SpanContext()),
+		"UserRepository_GetAllUsers",
+	)
 	defer span.End()
 	return r.users
 }
 
 // DeleteUser deletes a user from the repository
-func (r *UserRepository) DeleteUser(ctx context.Context, username string) error {
-	_, span := r.tracer.Start(ctx, "DeleteUser", trace.WithAttributes(attribute.String("username", username)))
+func (r *UserRepository) DeleteUser(ctx context.Context, username string, parentSpan trace.Span) error {
+	_, span := r.tracer.Start(
+		trace.ContextWithSpanContext(ctx, parentSpan.SpanContext()),
+		"UserRepository_DeleteUser",
+		trace.WithAttributes(attribute.String("username", username)),
+	)
 	defer span.End()
 	_, ok := r.users[username]
 	if !ok {
@@ -57,12 +72,16 @@ func (r *UserRepository) DeleteUser(ctx context.Context, username string) error 
 	return nil
 }
 
-func (r *UserRepository) UpdateUser(ctx context.Context, user model.User) error {
-	_, span := r.tracer.Start(ctx, "UpdateUser", trace.WithAttributes(
-		attribute.String("username", user.Username),
-		attribute.String("email", user.Email),
-		attribute.Int("age", user.Age),
-	))
+func (r *UserRepository) UpdateUser(ctx context.Context, user model.User, parentSpan trace.Span) error {
+	_, span := r.tracer.Start(
+		trace.ContextWithSpanContext(ctx, parentSpan.SpanContext()),
+		"UserRepository_UpdateUser",
+		trace.WithAttributes(
+			attribute.String("username", user.Username),
+			attribute.String("email", user.Email),
+			attribute.Int("age", user.Age),
+		),
+	)
 	defer span.End()
 	_, ok := r.users[user.Username]
 	if !ok {
