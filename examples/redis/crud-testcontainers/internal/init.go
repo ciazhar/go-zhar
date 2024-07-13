@@ -14,10 +14,16 @@ func Init(router fiber.Router, redis *redis.Redis) {
 	basicController := controller.NewBasicController(s)
 
 	app := router.Group("/")
-	app.Get("/get", basicController.Get)
-	app.Post("/set", basicController.Set)
-	app.Get("/gethash/:field", basicController.GetHash)
-	app.Post("/sethash", basicController.SetHash)
-	app.Post("/sethashttl", basicController.SetHashTTL)
-	app.Delete("/deletehash", basicController.DeleteHash)
+	app.Get("/string", basicController.Get)
+	app.Post("/string", basicController.Set)
+	app.Delete("/string", basicController.Delete)
+
+	app.Get("/hash/:field", basicController.GetHash)
+	app.Post("/hash", basicController.SetHash)
+	app.Post("/hash-ttl", basicController.SetHashTTL)
+	app.Delete("/hash", basicController.DeleteHash)
+
+	app.Get("/list", basicController.GetList)
+	app.Post("/list", basicController.SetList)
+	app.Delete("/list", basicController.DeleteList)
 }

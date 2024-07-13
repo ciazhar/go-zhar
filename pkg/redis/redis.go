@@ -46,10 +46,26 @@ func (r *Redis) Get(key string) (string, error) {
 	return val, nil
 }
 
+// Set sets a key-value pair in Redis with an expiration time.
+//
+// Parameters:
+//   - key: the key to set in Redis.
+//   - value: the value corresponding to the key.
+//   - expiration: the duration for which the key-value pair should be stored. Set 0 if the value should not expire.
+//
+// Returns an error if there was an issue setting the value.
 func (r *Redis) Set(key string, value string, expiration time.Duration) error {
 	_, err := r.rdb.Set(context.Background(), key, value, expiration).Result()
 	if err != nil {
 		return fmt.Errorf("%s: %s", "Error setting value in redis", err)
+	}
+	return nil
+}
+
+func (r *Redis) Delete(key string) error {
+	_, err := r.rdb.Del(context.Background(), key).Result()
+	if err != nil {
+		return fmt.Errorf("%s: %s", "Error deleting value from redis", err)
 	}
 	return nil
 }
@@ -89,6 +105,33 @@ func (r *Redis) SetHashTTL(key string, field string, value string, ttl time.Dura
 
 func (r *Redis) DeleteHash(key string, field string) error {
 	_, err := r.rdb.HDel(context.Background(), key, field).Result()
+	if err != nil {
+		return fmt.Errorf("%s: %s", "Error deleting value from redis", err)
+	}
+	return nil
+}
+
+func (r *Redis) GetList(key string) ([]string, error) {
+	val, err := r.rdb.LRange(context.Background(), key, 0, -1).Result()
+	if err != nil {
+		if errors.Is(err, redis.Nil) {
+			return nil, nil
+		}
+		return nil, fmt.Errorf("%s: %s", "Error getting value from redis", err)
+	}
+	return val, nil
+}
+
+func (r *Redis) SetList(key string, list []string) error {
+	err := r.rdb.LPush(context.Background(), key, list).Err()
+	if err != nil {
+		return fmt.Errorf("%s: %s", "Error setting value in redis", err)
+	}
+	return nil
+}
+
+func (r *Redis) DeleteList(key string, value string) error {
+	_, err := r.rdb.LRem(context.Background(), key, 1, value).Result()
 	if err != nil {
 		return fmt.Errorf("%s: %s", "Error deleting value from redis", err)
 	}

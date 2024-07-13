@@ -3,17 +3,21 @@ package repository
 import (
 	"context"
 	"database/sql"
+	"encoding/csv"
 	"fmt"
 	"github.com/ciazhar/go-zhar/examples/clickhouse/crud-testcontainers/internal/model"
 	"github.com/ciazhar/go-zhar/pkg/db_util"
 	"github.com/ciazhar/go-zhar/pkg/logger"
+	"os"
 	"strconv"
 	"strings"
+	"sync"
 	"time"
 )
 
 type ClickhouseRepository struct {
-	db *sql.DB
+	db     *sql.DB
+	logger *logger.Logger
 }
 
 func NewClickhouseRepository(ctx context.Context, db *sql.DB, logger *logger.Logger) *ClickhouseRepository {
@@ -319,6 +323,188 @@ func (r *ClickhouseRepository) GetEvents(ctx context.Context, types string, rcpT
 	return
 }
 
+func (r *ClickhouseRepository) ExportEvents(ctx context.Context, types string, rcpTo string, page, size int) (res db_util.Page, err error) {
+
+	file, err := os.Create("data.csv")
+	if err != nil {
+		r.logger.Printf("failed to create file: %s", err)
+		return res, err
+	}
+	defer file.Close()
+
+	writer := csv.NewWriter(file)
+	defer writer.Flush()
+
+	query := buildQuery(types, rcpTo, page, size)
+	rows, err := r.db.QueryContext(ctx, query)
+	if err != nil {
+		r.logger.Printf("failed to execute query: %s", err)
+		return res, err
+	}
+	defer rows.Close()
+
+	var wg sync.WaitGroup
+	recordChan := make(chan []string, 100) // Buffered channel to hold CSV records
+
+	go func() {
+		for record := range recordChan {
+			if err := writer.Write(record); err != nil {
+				r.logger.Printf("failed to write record: %s", err)
+			}
+		}
+	}()
+
+	for rows.Next() {
+		wg.Add(1)
+		go func() {
+			defer wg.Done()
+			var e Event
+			var injectionTimeDate, timestampDate, scheduledTimeDate time.Time
+
+			if err = rows.Scan(
+				&e.AmpEnabled,
+				&e.BounceClass,
+				&e.CampaignID,
+				&e.ClickTracking,
+				&e.CustomerID,
+				&e.DelvMethod,
+				&e.DeviceToken,
+				&e.ErrorCode,
+				&e.EventID,
+				&e.FriendlyFrom,
+				&e.InitialPixel,
+				&injectionTimeDate,
+				&e.IPAddress,
+				&e.IPpool,
+				&e.MailboxProvider,
+				&e.MailboxProviderRegion,
+				&e.MessageID,
+				&e.MsgFrom,
+				&e.MsgSize,
+				&e.NumRetries,
+				&e.OpenTracking,
+				&e.RcptMeta,
+				&e.RcptTags,
+				&e.RcptTo,
+				&e.RcptHash,
+				&e.RawRcptTo,
+				&e.RcptType,
+				&e.RawReason,
+				&e.Reason,
+				&e.RecipientDomain,
+				&e.RecvMethod,
+				&e.RoutingDomain,
+				&scheduledTimeDate,
+				&e.SendingDomain,
+				&e.SendingIP,
+				&e.SmsCoding,
+				&e.SmsDst,
+				&e.SmsDstNpi,
+				&e.SmsDstTon,
+				&e.SmsSrc,
+				&e.SmsSrcNpi,
+				&e.SmsSrcTon,
+				&e.SubaccountID,
+				&e.Subject,
+				&e.TemplateID,
+				&e.TemplateVersion,
+				&timestampDate,
+				&e.Transactional,
+				&e.TransmissionID,
+				&e.Type,
+			); err != nil {
+				r.logger.Printf("failed to scan row: %s", err)
+				return
+			}
+
+			e.InjectionTime = injectionTimeDate.UnixMilli()
+			e.Timestamp = timestampDate.UnixMilli()
+			e.ScheduledTime = scheduledTimeDate.UnixMilli()
+
+			record := buildCSVRecord(e)
+			recordChan <- record
+		}()
+	}
+
+	wg.Wait()
+	close(recordChan)
+
+	return res, nil
+}
+
+func buildQuery(types, rcpTo string, page, size int) string {
+	var sb strings.Builder
+	sb.WriteString(`
+		SELECT *
+		FROM events
+		WHERE type IN (` + ConvertToSingleQuotes(types) + `)
+	`)
+	if rcpTo != "" {
+		sb.WriteString(fmt.Sprintf(" AND rcpt_to = '%s'", rcpTo))
+	}
+	sb.WriteString(" ORDER BY injection_time DESC")
+
+	offset := (page - 1) * size
+	sb.WriteString(fmt.Sprintf(" LIMIT %d, %d", offset, size))
+
+	return sb.String()
+}
+
+func buildCSVRecord(e model.Event) []string {
+	return []string{
+		strconv.FormatBool(e.AmpEnabled),
+		strconv.Itoa(e.BounceClass),
+		e.CampaignID,
+		strconv.FormatBool(e.ClickTracking),
+		e.CustomerID,
+		e.DelvMethod,
+		e.DeviceToken,
+		e.ErrorCode,
+		e.EventID,
+		e.FriendlyFrom,
+		strconv.FormatBool(e.InitialPixel),
+		strconv.FormatInt(e.InjectionTime, 10),
+		e.IPAddress,
+		e.IPpool,
+		e.MailboxProvider,
+		e.MailboxProviderRegion,
+		e.MessageID,
+		e.MsgFrom,
+		strconv.Itoa(e.MsgSize),
+		strconv.Itoa(e.NumRetries),
+		strconv.FormatBool(e.OpenTracking),
+		convertMapToString(e.RcptMeta),
+		strings.Join(e.RcptTags, ","),
+		e.RcptTo,
+		e.RcptHash,
+		e.RawRcptTo,
+		e.RcptType,
+		e.RawReason,
+		e.Reason,
+		e.RecipientDomain,
+		e.RecvMethod,
+		e.RoutingDomain,
+		strconv.FormatInt(e.ScheduledTime, 10),
+		e.SendingDomain,
+		e.SendingIP,
+		e.SmsCoding,
+		e.SmsDst,
+		e.SmsDstNpi,
+		e.SmsDstTon,
+		e.SmsSrc,
+		e.SmsSrcNpi,
+		e.SmsSrcTon,
+		e.SubaccountID,
+		e.Subject,
+		e.TemplateID,
+		e.TemplateVersion,
+		strconv.FormatInt(e.Timestamp, 10),
+		strconv.FormatBool(e.Transactional),
+		e.TransmissionID,
+		e.Type,
+	}
+}
+
 func (r *ClickhouseRepository) GetEventsCursor(ctx context.Context, types string, rcpTo string, cursor string, page, size int) (res db_util.PageCursor, err error) {
 	var events []model.Event
 
@@ -522,4 +708,21 @@ func (r *ClickhouseRepository) GetAggregateHourly(ctx context.Context, startDate
 	}
 
 	return
+}
+
+// convertMapToString converts a map to a string
+func convertMapToString(m map[string]string) string {
+	var sb strings.Builder
+	for key, value := range m {
+		sb.WriteString(key)
+		sb.WriteString(":")
+		sb.WriteString(value)
+		sb.WriteString(",")
+	}
+	// Remove the trailing comma
+	result := sb.String()
+	if len(result) > 0 {
+		result = result[:len(result)-1]
+	}
+	return result
 }

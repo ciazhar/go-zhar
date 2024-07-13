@@ -16,7 +16,7 @@ func Init(host string, username string, password string, database string, logger
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
-	uri := generateUrk(username, password, host, database)
+	uri := generateUrl(username, password, host, database)
 	connect, err := mongo.Connect(ctx, options.Client().ApplyURI(uri))
 	if err != nil {
 		logger.Fatalf("failed to connect to mongo: %v", err)
@@ -32,7 +32,7 @@ func Init(host string, username string, password string, database string, logger
 	return connect.Database(database)
 }
 
-func generateUrk(username string, password string, hosts string, database string) string {
+func generateUrl(username string, password string, hosts string, database string) string {
 	var sb strings.Builder
 
 	// MongoDB scheme

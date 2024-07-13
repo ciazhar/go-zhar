@@ -17,6 +17,10 @@ func (b *BasicService) Set(value string, expiration time.Duration) error {
 	return b.repository.Set(value, expiration)
 }
 
+func (b *BasicService) Delete() error {
+	return b.repository.Delete()
+}
+
 func (b *BasicService) GetHash(field string) (string, error) {
 	return b.repository.GetHash(field)
 }
@@ -31,6 +35,18 @@ func (b *BasicService) SetHashTTL(field string, value string, ttl time.Duration)
 
 func (b *BasicService) DeleteHash(field string) error {
 	return b.repository.DeleteHash(field)
+}
+
+func (b *BasicService) GetList() ([]string, error) {
+	return b.repository.GetList()
+}
+
+func (b *BasicService) SetList(list []string) error {
+	return b.repository.SetList(list)
+}
+
+func (b *BasicService) DeleteList(value string) error {
+	return b.repository.DeleteList(value)
 }
 
 func NewBasicService(repository repository.RedisRepository) *BasicService {

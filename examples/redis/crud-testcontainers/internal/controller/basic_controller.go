@@ -32,6 +32,13 @@ func (b *BasicController) Set(ctx *fiber.Ctx) error {
 	return ctx.SendStatus(fiber.StatusOK)
 }
 
+func (b *BasicController) Delete(ctx *fiber.Ctx) error {
+	if err := b.aService.Delete(); err != nil {
+		return err
+	}
+	return ctx.SendStatus(fiber.StatusOK)
+}
+
 func (b *BasicController) GetHash(ctx *fiber.Ctx) error {
 	field := ctx.Params("field")
 	val, err := b.aService.GetHash(field)
@@ -68,6 +75,34 @@ func (b *BasicController) SetHashTTL(ctx *fiber.Ctx) error {
 func (b *BasicController) DeleteHash(ctx *fiber.Ctx) error {
 	field := ctx.FormValue("field")
 	if err := b.aService.DeleteHash(field); err != nil {
+		return err
+	}
+	return ctx.SendStatus(fiber.StatusOK)
+}
+
+func (b *BasicController) GetList(ctx *fiber.Ctx) error {
+	val, err := b.aService.GetList()
+	if err != nil {
+		return err
+	}
+	return ctx.JSON(val)
+}
+
+func (b *BasicController) SetList(ctx *fiber.Ctx) error {
+	listStr := ctx.FormValue("list")
+	list := make([]string, 0)
+	for _, val := range listStr {
+		list = append(list, string(val))
+	}
+	if err := b.aService.SetList(list); err != nil {
+		return err
+	}
+	return ctx.SendStatus(fiber.StatusOK)
+}
+
+func (b *BasicController) DeleteList(ctx *fiber.Ctx) error {
+	value := ctx.FormValue("value")
+	if err := b.aService.DeleteList(value); err != nil {
 		return err
 	}
 	return ctx.SendStatus(fiber.StatusOK)
