@@ -10,6 +10,8 @@ import (
 	"path"
 )
 
+const LogFileDir = "/Users/ciazhar/GolandProjects/go-zhar"
+
 // Config Configuration for logging
 type Config struct {
 
@@ -91,29 +93,35 @@ func newRollingFile(config Config) io.Writer {
 	return l
 }
 
-func (l *Logger) GetServiceLogger() *zerolog.Logger {
+func (l Logger) GetServiceLogger() *zerolog.Logger {
 	return l.serviceLogger
 }
 
-func (l *Logger) Errorf(format string, a ...interface{}) error {
+func (l Logger) Errorf(format string, a ...interface{}) error {
 	errs := fmt.Errorf(format, a...)
 	sentry.CaptureException(errs)
 	l.serviceLogger.Error().Caller().Msgf(errs.Error())
 	return errs
 }
 
-func (l *Logger) Infof(format string, a ...interface{}) {
+func (l Logger) Error(format string, a ...interface{}) {
+	errs := fmt.Errorf(format, a...)
+	sentry.CaptureException(errs)
+	l.serviceLogger.Error().Caller().Msgf(errs.Error())
+}
+
+func (l Logger) Infof(format string, a ...interface{}) {
 	l.serviceLogger.Info().Msgf(format, a...)
 }
 
-func (l *Logger) Info(format string) {
+func (l Logger) Info(format string) {
 	l.serviceLogger.Info().Msg(format)
 }
 
-func (l *Logger) Fatalf(format string, a ...interface{}) {
+func (l Logger) Fatalf(format string, a ...interface{}) {
 	l.serviceLogger.Fatal().Msgf(format, a...)
 }
 
-func (l *Logger) Fatal(format string) {
+func (l Logger) Fatal(format string) {
 	l.serviceLogger.Fatal().Msg(format)
 }

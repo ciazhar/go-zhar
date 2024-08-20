@@ -4,3 +4,4 @@
 /config/*
 !.gitkeep
 logfile.log
+logs
