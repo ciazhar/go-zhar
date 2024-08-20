@@ -1,8 +1,0 @@
-{
-  "application": {
-    "port": "3000"
-  },
-  "kafka": {
-    "brokers": "localhost:8097,KAFKA_BROKERS=localhost:8098,KAFKA_BROKERS=localhost:8099"
-  }
-}

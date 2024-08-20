@@ -1,5 +1,5 @@
-run:
-	go run cmd/main.go
+run-consumer:
+	go run cmd/consumer.go
 
-produce:
-	sh scripts/produce.sh
+run-producer:
+	go run cmd/producer.go
