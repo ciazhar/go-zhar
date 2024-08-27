@@ -3,7 +3,7 @@ package main
 import (
 	"context"
 	"fmt"
-	"github.com/ciazhar/go-zhar/examples/fiber/jwt-auth/repository"
+	repository2 "github.com/ciazhar/go-zhar/examples/jwt-auth/repository"
 	"log"
 	"strings"
 	"time"
@@ -35,10 +35,10 @@ func main() {
 	rdb := redis.NewClient(&redis.Options{
 		Addr: "localhost:6379",
 	})
-	tokenRepo := repository.NewRedisTokenRepository(rdb)
+	tokenRepo := repository2.NewRedisTokenRepository(rdb)
 
 	// Initialize in-memory auth repository
-	authRepo := repository.NewInMemoryAuthRepository()
+	authRepo := repository2.NewInMemoryAuthRepository()
 
 	// Login route
 	app.Post("/login", func(c *fiber.Ctx) error {
@@ -70,7 +70,7 @@ func main() {
 		}
 
 		// Save token in Redis
-		accessToken := &repository.AccessToken{
+		accessToken := &repository2.AccessToken{
 			UserID:      user.ID,
 			AuthToken:   t,
 			GeneratedAt: time.Now().Unix(),
