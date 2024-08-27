@@ -1,6 +1,6 @@
 {
   "application": {
-    "name": "my-service",
+    "name": "server-service",
     "host": "localhost",
     "port": 8081
   },
@@ -8,7 +8,7 @@
     "host": "localhost",
     "port": 8500,
     "schema": "http",
-    "key": "example/my-service",
+    "key": "service/server",
     "configType": "json"
   }
 }

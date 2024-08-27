@@ -1,6 +1,6 @@
 {
   "application": {
-    "name": "my-service",
+    "name": "server-service",
     "host": "localhost",
     "port": 8080
   },
