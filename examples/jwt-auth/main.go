@@ -125,5 +125,19 @@ func main() {
 		return c.SendString("Welcome user with ID " + string(rune(userID)))
 	})
 
+	app.Get("/logout", func(c *fiber.Ctx) error {
+
+		user := c.Locals("user").(*jwt.Token)
+		claims := user.Claims.(jwt.MapClaims)
+		userID := int(claims["user_id"].(float64))
+
+		err := tokenRepo.DeleteToken(ctx, userID)
+		if err != nil {
+			return c.SendStatus(fiber.StatusInternalServerError)
+		}
+
+		return c.SendStatus(200)
+	})
+
 	app.Listen(":3000")
 }

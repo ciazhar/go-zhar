@@ -129,5 +129,17 @@ func main() {
 		return c.SendString("Welcome user with ID " + strconv.Itoa(userID))
 	})
 
+	// Logout route
+	app.Post("/logout", func(c *fiber.Ctx) error {
+		userID, _ := strconv.Atoi(c.Locals("user").(string))
+
+		err := tokenRepo.DeleteToken(ctx, userID)
+		if err != nil {
+			return err
+		}
+
+		return c.SendStatus(fiber.StatusOK)
+	})
+
 	app.Listen(":3000")
 }

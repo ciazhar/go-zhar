@@ -66,6 +66,11 @@ func (repo *RedisTokenRepository) GetToken(ctx context.Context, userID int) (*Ac
 	return &token, nil
 }
 
+// DeleteToken deletes a token from Redis by user ID.
+func (repo *RedisTokenRepository) DeleteToken(ctx context.Context, userID int) error {
+	return repo.client.Del(ctx, tokenKey(userID)).Err()
+}
+
 func tokenKey(userID int) string {
 	return "auth_token:" + strconv.Itoa(userID)
 }
