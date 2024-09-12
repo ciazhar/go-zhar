@@ -2,9 +2,9 @@ package internal
 
 import (
 	"context"
-	"github.com/ciazhar/go-zhar/examples/postgres/crud/internal/controller"
-	db "github.com/ciazhar/go-zhar/examples/postgres/crud/internal/generated/repository"
-	"github.com/ciazhar/go-zhar/examples/postgres/crud/internal/service"
+	"github.com/ciazhar/go-zhar/examples/postgres/crud-sqlc/internal/controller"
+	db "github.com/ciazhar/go-zhar/examples/postgres/crud-sqlc/internal/generated/repository"
+	"github.com/ciazhar/go-zhar/examples/postgres/crud-sqlc/internal/service"
 	"github.com/ciazhar/go-zhar/pkg/logger"
 	"github.com/gofiber/fiber/v2"
 	"github.com/jackc/pgx/v4/pgxpool"

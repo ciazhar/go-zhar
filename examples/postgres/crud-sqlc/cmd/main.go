@@ -2,8 +2,8 @@ package main
 
 import (
 	"context"
-	"github.com/ciazhar/go-zhar/examples/postgres/crud/internal"
-	db "github.com/ciazhar/go-zhar/examples/postgres/crud/internal/generated/repository"
+	"github.com/ciazhar/go-zhar/examples/postgres/crud-sqlc/internal"
+	db "github.com/ciazhar/go-zhar/examples/postgres/crud-sqlc/internal/generated/repository"
 	"github.com/ciazhar/go-zhar/pkg/env"
 	"github.com/ciazhar/go-zhar/pkg/logger"
 	"github.com/ciazhar/go-zhar/pkg/postgres"

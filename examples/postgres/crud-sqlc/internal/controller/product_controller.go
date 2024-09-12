@@ -2,8 +2,8 @@ package controller
 
 import (
 	"context"
-	"github.com/ciazhar/go-zhar/examples/postgres/crud/internal/model"
-	"github.com/ciazhar/go-zhar/examples/postgres/crud/internal/service"
+	"github.com/ciazhar/go-zhar/examples/postgres/crud-sqlc/internal/model"
+	"github.com/ciazhar/go-zhar/examples/postgres/crud-sqlc/internal/service"
 	"github.com/gofiber/fiber/v2"
 	"strconv"
 )
