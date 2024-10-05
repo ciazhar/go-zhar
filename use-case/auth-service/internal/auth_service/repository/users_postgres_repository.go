@@ -3,6 +3,7 @@ package repository
 import (
 	"context"
 	"github.com/ciazhar/go-zhar/use-case/auth-service/internal/auth_service/model"
+	"github.com/jackc/pgx/v4"
 	"github.com/jackc/pgx/v4/pgxpool"
 )
 
@@ -29,4 +30,8 @@ func (r *UsersPostgresRepository) Insert(ctx context.Context, user model.User) e
 		return err
 	}
 	return nil
+}
+
+func (r *UsersPostgresRepository) BeginTransaction(ctx context.Context) (pgx.Tx, error) {
+	return r.pg.BeginTx(ctx, pgx.TxOptions{})
 }

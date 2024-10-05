@@ -31,10 +31,22 @@ func (s *AuthService) RegisterUser(ctx context.Context, user model.User) error {
 	}
 	user.Password = hashedPassword
 
-	// Store user in the database
-	if err = s.userPGRepo.Insert(ctx, user); err != nil {
-		return errors.New(fmt.Sprintf("could not insert user: %v", err))
+	tx, err := s.userPGRepo.BeginTransaction(ctx)
+	if err != nil {
+		return errors.New("could not begin transaction")
 	}
+	defer tx.Rollback(ctx)
+
+	// Proceed with inserting the user and other operations
+	err = s.userPGRepo.Insert(ctx, user)
+	if err != nil {
+		return errors.New("could not insert user")
+	}
+
+	if err = tx.Commit(ctx); err != nil {
+		return errors.New("could not commit transaction")
+	}
+
 	return nil
 }
 

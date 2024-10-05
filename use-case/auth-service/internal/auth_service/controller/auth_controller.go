@@ -1,10 +1,13 @@
 package controller
 
 import (
+	"context"
+	"errors"
 	"github.com/ciazhar/go-zhar/use-case/auth-service/internal/auth_service/model"
 	"github.com/ciazhar/go-zhar/use-case/auth-service/internal/auth_service/service"
 	"github.com/ciazhar/go-zhar/use-case/auth-service/pkg/response"
 	"github.com/gofiber/fiber/v2"
+	"time"
 )
 
 type AuthController struct {
@@ -29,7 +32,10 @@ func (c *AuthController) RegisterUser(ctx *fiber.Ctx) error {
 		})
 	}
 
-	err := c.authService.RegisterUser(ctx.Context(), user)
+	newCtx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+
+	err := c.authService.RegisterUser(newCtx, user)
 	if err != nil {
 		return ctx.Status(fiber.StatusInternalServerError).JSON(response.Response{
 			Error: "Could not register user",
@@ -52,7 +58,10 @@ func (c *AuthController) Login(ctx *fiber.Ctx) error {
 		})
 	}
 
-	login, err := c.authService.Login(ctx.Context(), body)
+	newCtx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+
+	login, err := c.authService.Login(newCtx, body)
 	if err != nil {
 		return ctx.Status(fiber.StatusInternalServerError).JSON(response.Response{
 			Error: "Could not login user",
@@ -68,15 +77,19 @@ func (c *AuthController) Login(ctx *fiber.Ctx) error {
 
 // RefreshToken Refresh Token Handler
 func (c *AuthController) RefreshToken(ctx *fiber.Ctx) error {
-	// Get Authorization header
-	authHeader := ctx.Get("Authorization")
-	if authHeader == "" {
+
+	token, err := extractToken(ctx)
+	if err != nil {
 		return ctx.Status(fiber.StatusUnauthorized).JSON(response.Response{
 			Error: "No token provided",
+			Data:  err.Error(),
 		})
 	}
 
-	token, err := c.authService.RefreshToken(ctx.Context(), authHeader[len("Bearer "):])
+	newCtx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+
+	newToken, err := c.authService.RefreshToken(newCtx, token)
 	if err != nil {
 		return ctx.Status(fiber.StatusInternalServerError).JSON(response.Response{
 			Error: "Could not refresh token",
@@ -86,23 +99,26 @@ func (c *AuthController) RefreshToken(ctx *fiber.Ctx) error {
 
 	return ctx.JSON(response.Response{
 		Message: "Token refreshed successfully",
-		Data:    token,
+		Data:    newToken,
 	})
 }
 
 // Protected route example
 func (c *AuthController) Protected(ctx *fiber.Ctx) error {
 
-	// Get Authorization header
-	authHeader := ctx.Get("Authorization")
-	if authHeader == "" {
+	token, err := extractToken(ctx)
+	if err != nil {
 		return ctx.Status(fiber.StatusUnauthorized).JSON(response.Response{
 			Error: "No token provided",
+			Data:  err.Error(),
 		})
 	}
 
+	newCtx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+
 	// Check if the token exists in Redis
-	userId, err := c.authService.Protected(ctx.Context(), authHeader[len("Bearer "):])
+	userId, err := c.authService.Protected(newCtx, token)
 	if err != nil {
 		return ctx.Status(fiber.StatusInternalServerError).JSON(response.Response{
 			Error: "Could not validate token",
@@ -119,15 +135,18 @@ func (c *AuthController) Protected(ctx *fiber.Ctx) error {
 // Logout Handler
 func (c *AuthController) Logout(ctx *fiber.Ctx) error {
 
-	// Get Authorization header
-	authHeader := ctx.Get("Authorization")
-	if authHeader == "" {
+	token, err := extractToken(ctx)
+	if err != nil {
 		return ctx.Status(fiber.StatusUnauthorized).JSON(response.Response{
 			Error: "No token provided",
+			Data:  err.Error(),
 		})
 	}
 
-	if err := c.authService.Logout(ctx.Context(), authHeader[len("Bearer "):]); err != nil {
+	newCtx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+
+	if err := c.authService.Logout(newCtx, token); err != nil {
 		return ctx.Status(fiber.StatusInternalServerError).JSON(response.Response{
 			Error: "Could not logout",
 			Data:  err.Error(),
@@ -142,14 +161,18 @@ func (c *AuthController) Logout(ctx *fiber.Ctx) error {
 // Revoke Handler
 func (c *AuthController) Revoke(ctx *fiber.Ctx) error {
 
-	authHeader := ctx.Get("Authorization")
-	if authHeader == "" {
+	token, err := extractToken(ctx)
+	if err != nil {
 		return ctx.Status(fiber.StatusUnauthorized).JSON(response.Response{
 			Error: "No token provided",
+			Data:  err.Error(),
 		})
 	}
 
-	if err := c.authService.Revoke(ctx.Context(), authHeader[len("Bearer "):]); err != nil {
+	newCtx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+
+	if err := c.authService.Revoke(newCtx, token); err != nil {
 		return ctx.Status(fiber.StatusInternalServerError).JSON(response.Response{
 			Error: "Could not revoke tokens",
 			Data:  err.Error(),
@@ -159,4 +182,15 @@ func (c *AuthController) Revoke(ctx *fiber.Ctx) error {
 	return ctx.JSON(response.Response{
 		Message: "Tokens revoked successfully",
 	})
+}
+
+func extractToken(ctx *fiber.Ctx) (string, error) {
+	authHeader := ctx.Get("Authorization")
+	if authHeader == "" {
+		return "", errors.New("no token provided")
+	}
+	if len(authHeader) < len("Bearer ") {
+		return "", errors.New("invalid token format")
+	}
+	return authHeader[len("Bearer "):], nil
 }
