@@ -2,10 +2,11 @@ package controller
 
 import (
 	"context"
-	"errors"
 	"github.com/ciazhar/go-zhar/use-case/auth-service/internal/auth_service/model"
 	"github.com/ciazhar/go-zhar/use-case/auth-service/internal/auth_service/service"
+	"github.com/ciazhar/go-zhar/use-case/auth-service/pkg/logger"
 	"github.com/ciazhar/go-zhar/use-case/auth-service/pkg/response"
+	"github.com/ciazhar/go-zhar/use-case/auth-service/pkg/token_util"
 	"github.com/gofiber/fiber/v2"
 	"time"
 )
@@ -24,16 +25,30 @@ func NewAuthController(
 
 // RegisterUser Register User
 func (c *AuthController) RegisterUser(ctx *fiber.Ctx) error {
+
+	startTime := time.Now()
+	newCtx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	newCtx = context.WithValue(newCtx, "requestID", ctx.Locals("requestID").(string))
+	defer cancel()
+
 	var user model.User
 	if err := ctx.BodyParser(&user); err != nil {
 		return ctx.Status(fiber.StatusBadRequest).JSON(response.Response{
 			Error: "Invalid input",
-			Data:  err.Error(),
+			Data: logger.LogAndReturnWarning(ctx.Context(), err,
+				"Invalid input",
+				map[string]string{
+					"username": user.Username,
+				},
+			),
 		})
 	}
 
-	newCtx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
-	defer cancel()
+	logger.LogInfo(newCtx,
+		"Register user request started",
+		map[string]string{
+			"username": user.Username,
+		})
 
 	err := c.authService.RegisterUser(newCtx, user)
 	if err != nil {
@@ -43,23 +58,45 @@ func (c *AuthController) RegisterUser(ctx *fiber.Ctx) error {
 		})
 	}
 
+	logger.LogInfo(newCtx,
+		"Register user request completed",
+		map[string]string{
+			"username": user.Username,
+			"duration": time.Since(startTime).String(),
+		})
+
 	return ctx.Status(fiber.StatusCreated).JSON(response.Response{
-		Message: "User registered successfully",
+		RequestID: ctx.Locals("requestID").(string),
+		Message:   "User registered successfully",
 	})
 }
 
 // Login User
 func (c *AuthController) Login(ctx *fiber.Ctx) error {
+
+	startTime := time.Now()
+	newCtx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	newCtx = context.WithValue(newCtx, "requestID", ctx.Locals("requestID").(string))
+	defer cancel()
+
 	var body model.LoginRequest
 	if err := ctx.BodyParser(&body); err != nil {
 		return ctx.Status(fiber.StatusBadRequest).JSON(response.Response{
 			Error: "Invalid input",
-			Data:  err.Error(),
+			Data: logger.LogAndReturnWarning(ctx.Context(), err,
+				"Invalid input",
+				map[string]string{
+					"username": body.Username,
+					"password": body.Password,
+				}),
 		})
 	}
 
-	newCtx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
-	defer cancel()
+	logger.LogInfo(newCtx,
+		"Login request started",
+		map[string]string{
+			"username": body.Username,
+		})
 
 	login, err := c.authService.Login(newCtx, body)
 	if err != nil {
@@ -69,25 +106,37 @@ func (c *AuthController) Login(ctx *fiber.Ctx) error {
 		})
 	}
 
+	logger.LogInfo(newCtx,
+		"Login request completed",
+		map[string]string{
+			"username":      body.Username,
+			"access_token":  login.AccessToken,
+			"refresh_token": login.RefreshToken,
+			"duration":      time.Since(startTime).String(),
+		})
+
 	return ctx.JSON(response.Response{
-		Message: "User logged in successfully",
-		Data:    login,
+		RequestID: ctx.Locals("requestID").(string),
+		Message:   "User logged in successfully",
+		Data:      login,
 	})
 }
 
 // RefreshToken Refresh Token Handler
 func (c *AuthController) RefreshToken(ctx *fiber.Ctx) error {
 
-	token, err := extractToken(ctx)
+	startTime := time.Now()
+	newCtx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	newCtx = context.WithValue(newCtx, "requestID", ctx.Locals("requestID").(string))
+	defer cancel()
+
+	token, err := token_util.ExtractToken(ctx)
 	if err != nil {
 		return ctx.Status(fiber.StatusUnauthorized).JSON(response.Response{
 			Error: "No token provided",
-			Data:  err.Error(),
+			Data:  logger.LogAndReturnWarning(ctx.Context(), err, "No token provided", nil),
 		})
 	}
-
-	newCtx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
-	defer cancel()
 
 	newToken, err := c.authService.RefreshToken(newCtx, token)
 	if err != nil {
@@ -97,25 +146,38 @@ func (c *AuthController) RefreshToken(ctx *fiber.Ctx) error {
 		})
 	}
 
+	logger.LogInfo(newCtx,
+		"Refresh token request completed",
+		map[string]string{
+			"refresh_token": token,
+			"access_token":  newToken.AccessToken,
+			"duration":      time.Since(startTime).String(),
+		})
+
 	return ctx.JSON(response.Response{
-		Message: "Token refreshed successfully",
-		Data:    newToken,
+		RequestID: ctx.Locals("requestID").(string),
+		Message:   "Token refreshed successfully",
+		Data:      newToken,
 	})
 }
 
 // Protected route example
 func (c *AuthController) Protected(ctx *fiber.Ctx) error {
 
-	token, err := extractToken(ctx)
+	startTime := time.Now()
+	newCtx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	newCtx = context.WithValue(newCtx, "requestID", ctx.Locals("requestID").(string))
+	defer cancel()
+
+	token, err := token_util.ExtractToken(ctx)
 	if err != nil {
 		return ctx.Status(fiber.StatusUnauthorized).JSON(response.Response{
 			Error: "No token provided",
-			Data:  err.Error(),
+			Data:  logger.LogAndReturnWarning(ctx.Context(), err, "No token provided", nil),
 		})
 	}
 
-	newCtx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
-	defer cancel()
+	logger.LogInfo(newCtx, "Protected route request started", nil)
 
 	// Check if the token exists in Redis
 	userId, err := c.authService.Protected(newCtx, token)
@@ -126,25 +188,38 @@ func (c *AuthController) Protected(ctx *fiber.Ctx) error {
 		})
 	}
 
+	logger.LogInfo(newCtx, "Protected route request completed", map[string]string{
+		"user_id":  userId,
+		"duration": time.Since(startTime).String(),
+	})
+
 	return ctx.JSON(response.Response{
-		Message: "Token validated successfully",
-		Data:    model.ProtectedResponse{UserId: userId},
+		RequestID: ctx.Locals("requestID").(string),
+		Message:   "Token validated successfully",
+		Data:      model.ProtectedResponse{UserId: userId},
 	})
 }
 
 // Logout Handler
 func (c *AuthController) Logout(ctx *fiber.Ctx) error {
 
-	token, err := extractToken(ctx)
+	startTime := time.Now()
+	newCtx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	newCtx = context.WithValue(newCtx, "requestID", ctx.Locals("requestID").(string))
+	defer cancel()
+
+	token, err := token_util.ExtractToken(ctx)
 	if err != nil {
 		return ctx.Status(fiber.StatusUnauthorized).JSON(response.Response{
 			Error: "No token provided",
-			Data:  err.Error(),
+			Data:  logger.LogAndReturnWarning(ctx.Context(), err, "No token provided", nil),
 		})
 	}
 
-	newCtx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
-	defer cancel()
+	logger.LogInfo(newCtx, "Logout request started", map[string]string{
+		"token":    token,
+		"duration": time.Since(startTime).String(),
+	})
 
 	if err := c.authService.Logout(newCtx, token); err != nil {
 		return ctx.Status(fiber.StatusInternalServerError).JSON(response.Response{
@@ -153,24 +228,32 @@ func (c *AuthController) Logout(ctx *fiber.Ctx) error {
 		})
 	}
 
+	logger.LogInfo(newCtx, "Logout request completed", map[string]string{
+		"token":    token,
+		"duration": time.Since(startTime).String(),
+	})
+
 	return ctx.JSON(response.Response{
-		Message: "User logged out successfully",
+		RequestID: ctx.Locals("requestID").(string),
+		Message:   "User logged out successfully",
 	})
 }
 
 // Revoke Handler
 func (c *AuthController) Revoke(ctx *fiber.Ctx) error {
 
-	token, err := extractToken(ctx)
+	startTime := time.Now()
+	newCtx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	newCtx = context.WithValue(newCtx, "requestID", ctx.Locals("requestID").(string))
+	defer cancel()
+
+	token, err := token_util.ExtractToken(ctx)
 	if err != nil {
 		return ctx.Status(fiber.StatusUnauthorized).JSON(response.Response{
 			Error: "No token provided",
-			Data:  err.Error(),
+			Data:  logger.LogAndReturnWarning(ctx.Context(), err, "No token provided", nil),
 		})
 	}
-
-	newCtx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
-	defer cancel()
 
 	if err := c.authService.Revoke(newCtx, token); err != nil {
 		return ctx.Status(fiber.StatusInternalServerError).JSON(response.Response{
@@ -179,18 +262,13 @@ func (c *AuthController) Revoke(ctx *fiber.Ctx) error {
 		})
 	}
 
-	return ctx.JSON(response.Response{
-		Message: "Tokens revoked successfully",
+	logger.LogInfo(newCtx, "Revoke request completed", map[string]string{
+		"token":    token,
+		"duration": time.Since(startTime).String(),
 	})
-}
 
-func extractToken(ctx *fiber.Ctx) (string, error) {
-	authHeader := ctx.Get("Authorization")
-	if authHeader == "" {
-		return "", errors.New("no token provided")
-	}
-	if len(authHeader) < len("Bearer ") {
-		return "", errors.New("invalid token format")
-	}
-	return authHeader[len("Bearer "):], nil
+	return ctx.JSON(response.Response{
+		RequestID: ctx.Locals("requestID").(string),
+		Message:   "Tokens revoked successfully",
+	})
 }

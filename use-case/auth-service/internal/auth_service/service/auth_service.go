@@ -8,6 +8,7 @@ import (
 	"github.com/ciazhar/go-zhar/use-case/auth-service/internal/auth_service/repository"
 	"github.com/ciazhar/go-zhar/use-case/auth-service/pkg/bcrypt"
 	"github.com/ciazhar/go-zhar/use-case/auth-service/pkg/jwt"
+	"github.com/ciazhar/go-zhar/use-case/auth-service/pkg/logger"
 )
 
 type AuthService struct {
@@ -55,35 +56,59 @@ func (s *AuthService) Login(ctx context.Context, body model.LoginRequest) (model
 	// Retrieve user from the database
 	user, err := s.userPGRepo.GetByUsername(ctx, body.Username)
 	if err != nil {
-		return model.LoginResponse{}, errors.New(fmt.Sprintf("could not get user: %v", err))
+		return model.LoginResponse{}, logger.LogAndReturnError(ctx, err,
+			"could not get user", map[string]string{
+				"username": body.Username,
+			})
 	}
 
 	// Check password
 	if !bcrypt.CheckPasswordHash(body.Password, user.Password) {
-		return model.LoginResponse{}, errors.New("invalid credentials")
+		return model.LoginResponse{}, logger.LogAndReturnWarning(ctx, nil,
+			"invalid credentials", map[string]string{
+				"username": body.Username,
+			})
 	}
 
 	// Generate tokens
 	accessToken, err := jwt.GenerateJWTToken(user.ID, jwt.AccessTokenTTL)
 	if err != nil {
-		return model.LoginResponse{}, errors.New(fmt.Sprintf("could not generate access token: %v", err))
+		return model.LoginResponse{}, logger.LogAndReturnError(ctx, err,
+			"could not generate access token",
+			map[string]string{
+				"userID": user.ID,
+			})
 	}
 
 	refreshToken, err := jwt.GenerateJWTToken(user.ID, jwt.RefreshTokenTTL)
 	if err != nil {
-		return model.LoginResponse{}, errors.New(fmt.Sprintf("could not generate refresh token: %v", err))
+		return model.LoginResponse{}, logger.LogAndReturnError(ctx, err,
+			"could not generate refresh token",
+			map[string]string{
+				"userID": user.ID,
+			})
 	}
 
 	// Store JWT in Redis (allow multiple tokens per user)
 	err = s.authRedisRepo.StoreAccessToken(ctx, user.ID, accessToken)
 	if err != nil {
-		return model.LoginResponse{}, errors.New(fmt.Sprintf("could not store access token: %v", err))
+		return model.LoginResponse{}, logger.LogAndReturnError(ctx, err,
+			"could not store access token",
+			map[string]string{
+				"userID":      user.ID,
+				"accessToken": accessToken,
+			})
 	}
 
 	// Store refresh token in Redis with expiration
 	err = s.authRedisRepo.StoreRefreshToken(ctx, user.ID, refreshToken)
 	if err != nil {
-		return model.LoginResponse{}, errors.New(fmt.Sprintf("could not store refresh token: %v", err))
+		return model.LoginResponse{}, logger.LogAndReturnError(ctx, err,
+			"could not store refresh token",
+			map[string]string{
+				"userID":       user.ID,
+				"refreshToken": refreshToken,
+			})
 	}
 
 	return model.LoginResponse{

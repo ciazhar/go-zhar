@@ -2,7 +2,7 @@
 APP_NAME=myapp
 PORT=3000
 USERNAME=testuser
-PASSWORD=testpassword
+PASSWORD=testpassword2
 
 # Run the application
 run:

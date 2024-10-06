@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"github.com/ciazhar/go-zhar/use-case/auth-service/internal/auth_service"
 	"github.com/ciazhar/go-zhar/use-case/auth-service/pkg/env"
+	"github.com/ciazhar/go-zhar/use-case/auth-service/pkg/logger"
+	"github.com/ciazhar/go-zhar/use-case/auth-service/pkg/middleware"
 	"github.com/ciazhar/go-zhar/use-case/auth-service/pkg/postgres"
 	"github.com/ciazhar/go-zhar/use-case/auth-service/pkg/redis"
 	"github.com/gofiber/fiber/v2"
@@ -14,12 +16,14 @@ import (
 
 func main() {
 
+	logger.InitLogger()
 	env.InitEnv()
 	pg := postgres.InitPostgres(context.Background())
 	postgres.InitPostgresMigration()
 	r := redis.InitRedis()
 
 	app := fiber.New()
+	app.Use(middleware.RequestIDMiddleware)
 	v1 := app.Group("/api/v1")
 	auth_service.Init(v1, pg, r)
 
