@@ -7,6 +7,7 @@ import (
 	"github.com/ciazhar/go-zhar/use-case/auth-service/pkg/logger"
 	"github.com/ciazhar/go-zhar/use-case/auth-service/pkg/response"
 	"github.com/ciazhar/go-zhar/use-case/auth-service/pkg/token_util"
+	"github.com/ciazhar/go-zhar/use-case/auth-service/pkg/validation"
 	"github.com/gofiber/fiber/v2"
 	"time"
 )
@@ -89,6 +90,14 @@ func (c *AuthController) Login(ctx *fiber.Ctx) error {
 					"username": body.Username,
 					"password": body.Password,
 				}),
+		})
+	}
+
+	// Validate request
+	if err := validation.ValidateStruct(body); err != nil {
+		return ctx.Status(fiber.StatusBadRequest).JSON(response.Response{
+			Error: "Invalid input",
+			Data:  logger.LogAndReturnWarning(ctx.Context(), err, "Invalid input", nil),
 		})
 	}
 

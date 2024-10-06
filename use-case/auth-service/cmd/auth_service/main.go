@@ -9,6 +9,7 @@ import (
 	"github.com/ciazhar/go-zhar/use-case/auth-service/pkg/middleware"
 	"github.com/ciazhar/go-zhar/use-case/auth-service/pkg/postgres"
 	"github.com/ciazhar/go-zhar/use-case/auth-service/pkg/redis"
+	"github.com/ciazhar/go-zhar/use-case/auth-service/pkg/validation"
 	"github.com/gofiber/fiber/v2"
 	"log"
 	"os"
@@ -21,6 +22,7 @@ func main() {
 	pg := postgres.InitPostgres(context.Background())
 	postgres.InitPostgresMigration()
 	r := redis.InitRedis()
+	validation.InitValidation()
 
 	app := fiber.New()
 	app.Use(middleware.RequestIDMiddleware)
