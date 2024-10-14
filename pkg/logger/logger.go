@@ -67,7 +67,14 @@ func logEvent(ctx context.Context, event *zerolog.Event, fields map[string]inter
 	}
 
 	for key, value := range fields {
-		event = event.Interface(key, value)
+		switch v := value.(type) {
+		case error:
+			event = event.Err(v)
+		case map[string]interface{}:
+			event = event.Fields(v)
+		default:
+			event = event.Interface(key, value)
+		}
 	}
 
 	return event.CallerSkipFrame(1)
