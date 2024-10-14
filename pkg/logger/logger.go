@@ -50,12 +50,12 @@ func InitLogger(config LogConfig) {
 	}
 
 	// Set log level
-	if err := SetLogLevel(config.LogFile); err != nil {
+	if err := SetLogLevel(config.LogLevel); err != nil {
 		log.Fatal().Err(err).Msg("Failed to set log level")
 	}
 
 	// Configure zerolog
-	log.Logger = zerolog.New(multiWriter).With().Timestamp().Caller().Logger()
+	log.Logger = zerolog.New(multiWriter).With().Timestamp().Caller().Logger().Output(zerolog.SyncWriter(multiWriter))
 }
 
 func SetLogLevel(level string) error {

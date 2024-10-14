@@ -13,6 +13,7 @@ func main() {
 	// Initialize logger
 	testConfig := logger.LogConfig{
 		ConsoleOutput: true,
+		LogLevel:      "debug",
 	}
 	logger.InitLogger(testConfig)
 
