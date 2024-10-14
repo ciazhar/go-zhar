@@ -50,14 +50,21 @@ func InitLogger(config LogConfig) {
 	}
 
 	// Set log level
-	level, err := zerolog.ParseLevel(config.LogLevel)
-	if err != nil {
-		level = zerolog.InfoLevel
+	if err := SetLogLevel(config.LogFile); err != nil {
+		log.Fatal().Err(err).Msg("Failed to set log level")
 	}
-	zerolog.SetGlobalLevel(level)
 
 	// Configure zerolog
 	log.Logger = zerolog.New(multiWriter).With().Timestamp().Caller().Logger()
+}
+
+func SetLogLevel(level string) error {
+	parsedLevel, err := zerolog.ParseLevel(level)
+	if err != nil {
+		return err
+	}
+	zerolog.SetGlobalLevel(parsedLevel)
+	return nil
 }
 
 // logEvent is a helper function to create a log event with common fields
