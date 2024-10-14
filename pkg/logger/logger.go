@@ -27,6 +27,25 @@ type LogConfig struct {
 
 // InitLogger initializes the logger with custom settings and log rotation
 func InitLogger(config LogConfig) {
+	// Setup log writers
+	multiWriter := setupWriters(config)
+
+	// Custom function to format the caller to show only the file name and line number
+	zerolog.CallerMarshalFunc = func(pc uintptr, file string, line int) string {
+		return filepath.Base(file) + ":" + strconv.Itoa(line)
+	}
+
+	// Set log level
+	if err := setLogLevel(config.LogLevel); err != nil {
+		log.Fatal().Err(err).Msg("Failed to set log level")
+	}
+
+	// Enable async logging with buffering
+	log.Logger = zerolog.New(zerolog.SyncWriter(multiWriter)).With().Timestamp().Caller().Logger()
+}
+
+// Setup log writers based on config
+func setupWriters(config LogConfig) io.Writer {
 	// Set up lumberjack for log rotation
 	logRotator := &lumberjack.Logger{
 		Filename:   config.LogFile,
@@ -42,23 +61,11 @@ func InitLogger(config LogConfig) {
 	if config.ConsoleOutput {
 		writers = append(writers, os.Stdout)
 	}
-	multiWriter := io.MultiWriter(writers...)
 
-	// Custom function to format the caller to show only the file name and line number
-	zerolog.CallerMarshalFunc = func(pc uintptr, file string, line int) string {
-		return filepath.Base(file) + ":" + strconv.Itoa(line)
-	}
-
-	// Set log level
-	if err := SetLogLevel(config.LogLevel); err != nil {
-		log.Fatal().Err(err).Msg("Failed to set log level")
-	}
-
-	// Configure zerolog
-	log.Logger = zerolog.New(multiWriter).With().Timestamp().Caller().Logger().Output(zerolog.SyncWriter(multiWriter))
+	return io.MultiWriter(writers...)
 }
 
-func SetLogLevel(level string) error {
+func setLogLevel(level string) error {
 	parsedLevel, err := zerolog.ParseLevel(level)
 	if err != nil {
 		return err
