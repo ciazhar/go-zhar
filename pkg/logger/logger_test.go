@@ -16,10 +16,17 @@ import (
 func TestLogger(t *testing.T) {
 	// Redirect log output to a buffer for testing
 	var buf bytes.Buffer
-	log.Logger = zerolog.New(&buf)
+	log.Logger = zerolog.New(&buf).With().Timestamp().Caller().Logger()
 
-	// Initialize logger
-	InitLogger()
+	// Initialize logger with test configuration
+	testConfig := LogConfig{
+		ConsoleOutput: true,
+	}
+	InitLogger(testConfig)
+
+	// Override the global logger to use our buffer
+	zerolog.SetGlobalLevel(zerolog.DebugLevel)
+	log.Logger = log.Output(&buf)
 
 	// Create a context with a request ID
 	ctx := context.WithValue(context.Background(), context_util.RequestIDKey, "test-request-id")

@@ -3,26 +3,61 @@ package logger
 import (
 	"context"
 	"fmt"
+	"io"
+	"os"
 	"path/filepath"
 	"strconv"
 
 	"github.com/ciazhar/go-start-small/pkg/context_util"
 	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
+	"gopkg.in/natefinch/lumberjack.v2"
 )
 
-// InitLogger initializes the logger with custom settings
-func InitLogger() {
+// LogConfig holds the configuration for the logger
+type LogConfig struct {
+	LogLevel      string
+	LogFile       string
+	MaxSize       int
+	MaxBackups    int
+	MaxAge        int
+	Compress      bool
+	ConsoleOutput bool
+}
+
+// InitLogger initializes the logger with custom settings and log rotation
+func InitLogger(config LogConfig) {
+	// Set up lumberjack for log rotation
+	logRotator := &lumberjack.Logger{
+		Filename:   config.LogFile,
+		MaxSize:    config.MaxSize,
+		MaxBackups: config.MaxBackups,
+		MaxAge:     config.MaxAge,
+		Compress:   config.Compress,
+	}
+
+	// Determine the writers
+	var writers []io.Writer
+	writers = append(writers, logRotator)
+	if config.ConsoleOutput {
+		writers = append(writers, os.Stdout)
+	}
+	multiWriter := io.MultiWriter(writers...)
 
 	// Custom function to format the caller to show only the file name and line number
 	zerolog.CallerMarshalFunc = func(pc uintptr, file string, line int) string {
 		return filepath.Base(file) + ":" + strconv.Itoa(line)
 	}
 
-	// Enable caller logging globally
-	zerolog.SetGlobalLevel(zerolog.InfoLevel)
-	log.Logger = log.With().Caller().Logger()
+	// Set log level
+	level, err := zerolog.ParseLevel(config.LogLevel)
+	if err != nil {
+		level = zerolog.InfoLevel
+	}
+	zerolog.SetGlobalLevel(level)
 
+	// Configure zerolog
+	log.Logger = zerolog.New(multiWriter).With().Timestamp().Caller().Logger()
 }
 
 // logEvent is a helper function to create a log event with common fields

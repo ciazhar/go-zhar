@@ -10,8 +10,11 @@ import (
 )
 
 func main() {
-	// Initialize the logger
-	logger.InitLogger()
+	// Initialize logger
+	testConfig := logger.LogConfig{
+		ConsoleOutput: true,
+	}
+	logger.InitLogger(testConfig)
 
 	// Create a context with a request ID
 	ctx := context.WithValue(context.Background(), context_util.RequestIDKey, uuid.New().String())

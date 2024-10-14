@@ -2,7 +2,10 @@ module github.com/ciazhar/go-start-small
 
 go 1.22.6
 
-require github.com/rs/zerolog v1.33.0
+require (
+	github.com/rs/zerolog v1.33.0
+	gopkg.in/natefinch/lumberjack.v2 v2.2.1
+)
 
 require (
 	github.com/google/uuid v1.6.0
