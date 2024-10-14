@@ -5,6 +5,9 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"fmt"
+	"os"
+	"path/filepath"
 	"strings"
 	"testing"
 
@@ -107,4 +110,88 @@ func TestLogger(t *testing.T) {
             }
         })
     }
+}
+
+
+func TestLogRotation(t *testing.T) {
+	// Get the current working directory
+	currentDir, err := os.Getwd()
+	if err != nil {
+		t.Fatalf("Failed to get current working directory: %v", err)
+	}
+
+	// Use a subdirectory in the current working directory for log files
+	logDir := filepath.Join(currentDir, "test_logs")
+	err = os.MkdirAll(logDir, 0755)
+	if err != nil {
+		t.Fatalf("Failed to create log directory: %v", err)
+	}
+	defer os.RemoveAll(logDir) // Clean up after the test
+
+	// Clear the directory before starting the test
+	files, err := os.ReadDir(logDir)
+	if err != nil {
+		t.Fatalf("Failed to read log directory: %v", err)
+	}
+	for _, file := range files {
+		os.Remove(filepath.Join(logDir, file.Name()))
+	}
+
+	logFile := filepath.Join(logDir, "test.log")
+
+	config := LogConfig{
+		LogLevel:      "debug",
+		LogFile:       logFile,
+		MaxSize:       1, // 1 MB
+		MaxBackups:    3,
+		MaxAge:        1,
+		Compress:      true,
+		ConsoleOutput: false,
+	}
+
+	InitLogger(config)
+
+	ctx := context.WithValue(context.Background(), context_util.RequestIDKey, "test-request-id")
+
+	// Write logs until rotation occurs
+	for i := 0; i < 100000; i++ {
+		LogInfo(ctx, fmt.Sprintf("Log message %d", i), nil)
+	}
+
+	// Check if log files were created
+	files, err = os.ReadDir(logDir)
+	if err != nil {
+		t.Fatalf("Failed to read log directory: %v", err)
+	}
+
+	logFiles := 0
+	gzFiles := 0
+	for _, file := range files {
+		if file.Name() == "test.log" {
+			logFiles++
+		} else if strings.HasPrefix(file.Name(), "test-") && strings.HasSuffix(file.Name(), ".log.gz") {
+			gzFiles++
+		}
+	}
+
+	if logFiles != 1 {
+		t.Errorf("Expected 1 current log file, but found %d", logFiles)
+	}
+
+	if gzFiles != 3 {
+		t.Errorf("Expected 3 compressed backup files, but found %d", gzFiles)
+	}
+
+	// Check if at least one compressed backup exists
+	compressedBackupExists := false
+	for _, file := range files {
+		if strings.HasPrefix(file.Name(), "test-") && strings.HasSuffix(file.Name(), ".log.gz") {
+			compressedBackupExists = true
+			break
+		}
+	}
+
+	if !compressedBackupExists {
+		t.Errorf("Expected at least one compressed backup file to exist")
+	}
 }
