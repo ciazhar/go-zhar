@@ -3,10 +3,12 @@ package logger
 import (
 	"context"
 	"fmt"
-	"github.com/rs/zerolog"
-	"github.com/rs/zerolog/log"
 	"path/filepath"
 	"strconv"
+
+	"github.com/ciazhar/go-start-small/pkg/context_util"
+	"github.com/rs/zerolog"
+	"github.com/rs/zerolog/log"
 )
 
 // InitLogger initializes the logger with custom settings
@@ -25,8 +27,8 @@ func InitLogger() {
 
 // logEvent is a helper function to create a log event with common fields
 func logEvent(ctx context.Context, event *zerolog.Event, fields map[string]interface{}) *zerolog.Event {
-	if requestID, ok := ctx.Value("requestID").(string); ok {
-		event = event.Str("requestID", requestID)
+	if requestID, ok := ctx.Value(context_util.RequestIDKey).(string); ok {
+		event = event.Str("request_id", requestID)
 	}
 
 	for key, value := range fields {

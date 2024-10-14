@@ -8,6 +8,7 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/ciazhar/go-start-small/pkg/context_util"
 	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
 )
@@ -21,7 +22,7 @@ func TestLogger(t *testing.T) {
 	InitLogger()
 
 	// Create a context with a request ID
-	ctx := context.WithValue(context.Background(), "requestID", "test-request-id")
+	ctx := context.WithValue(context.Background(), context_util.RequestIDKey, "test-request-id")
 
 	// Test cases
 	tests := []struct {
@@ -80,6 +81,7 @@ func TestLogger(t *testing.T) {
             if output == "" {
                 t.Fatalf("No log output generated. Check if the log level is set correctly.")
             }
+			t.Log("output",output)
 
             var logEntry map[string]interface{}
             err := json.Unmarshal([]byte(output), &logEntry)

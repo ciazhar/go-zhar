@@ -4,20 +4,17 @@ import (
 	"context"
 	"errors"
 
+	"github.com/ciazhar/go-start-small/pkg/context_util"
 	"github.com/ciazhar/go-start-small/pkg/logger"
 	"github.com/google/uuid"
 )
-
-type contextKey string
-
-const requestIDKey contextKey = "requestID"
 
 func main() {
 	// Initialize the logger
 	logger.InitLogger()
 
 	// Create a context with a request ID
-	ctx := context.WithValue(context.Background(), requestIDKey, uuid.New().String())
+	ctx := context.WithValue(context.Background(), context_util.RequestIDKey, uuid.New().String())
 
 	// Log different levels of messages
 	logger.LogInfo(ctx, "This is an info message", map[string]interface{}{"key": "value"})
