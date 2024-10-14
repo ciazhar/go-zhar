@@ -1,0 +1,19 @@
+with-expecter: True
+packages:
+  github.com/vektra/mockery/v2/pkg:
+    interfaces:
+      TypesPackage:
+      RequesterVariadic:
+        config:
+          with-expecter: False
+        configs:
+          - mockname: MockRequesterVariadicOneArgument
+            unroll-variadic: False
+          - mockname: MockRequesterVariadic
+  io:
+    config:
+      all: True
+    interfaces:
+      Writer:
+        config:
+          with-expecter: False

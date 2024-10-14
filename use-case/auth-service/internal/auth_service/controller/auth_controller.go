@@ -12,12 +12,16 @@ import (
 	"time"
 )
 
+type contextKey string
+
+const requestIDKey contextKey = "requestID"
+
 type AuthController struct {
-	authService *service.AuthService
+	authService service.AuthServiceInterface
 }
 
 func NewAuthController(
-	authService *service.AuthService,
+	authService service.AuthServiceInterface,
 ) *AuthController {
 	return &AuthController{
 		authService: authService,
@@ -29,7 +33,7 @@ func (c *AuthController) RegisterUser(ctx *fiber.Ctx) error {
 
 	startTime := time.Now()
 	newCtx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
-	newCtx = context.WithValue(newCtx, "requestID", ctx.Locals("requestID").(string))
+	newCtx = context.WithValue(newCtx, requestIDKey, ctx.Locals("requestID").(string))
 	defer cancel()
 
 	var user model.User
@@ -42,6 +46,14 @@ func (c *AuthController) RegisterUser(ctx *fiber.Ctx) error {
 					"username": user.Username,
 				},
 			),
+		})
+	}
+
+	// Validate request
+	if err := validation.ValidateStruct(user); err != nil {
+		return ctx.Status(fiber.StatusBadRequest).JSON(response.Response{
+			Error: "Invalid input",
+			Data:  logger.LogAndReturnWarning(ctx.Context(), err, "Invalid input", nil),
 		})
 	}
 
@@ -77,7 +89,7 @@ func (c *AuthController) Login(ctx *fiber.Ctx) error {
 
 	startTime := time.Now()
 	newCtx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
-	newCtx = context.WithValue(newCtx, "requestID", ctx.Locals("requestID").(string))
+	newCtx = context.WithValue(newCtx, requestIDKey, ctx.Locals("requestID").(string))
 	defer cancel()
 
 	var body model.LoginRequest
@@ -136,7 +148,7 @@ func (c *AuthController) RefreshToken(ctx *fiber.Ctx) error {
 
 	startTime := time.Now()
 	newCtx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
-	newCtx = context.WithValue(newCtx, "requestID", ctx.Locals("requestID").(string))
+	newCtx = context.WithValue(newCtx, requestIDKey, ctx.Locals("requestID").(string))
 	defer cancel()
 
 	token, err := token_util.ExtractToken(ctx)
@@ -175,7 +187,7 @@ func (c *AuthController) Protected(ctx *fiber.Ctx) error {
 
 	startTime := time.Now()
 	newCtx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
-	newCtx = context.WithValue(newCtx, "requestID", ctx.Locals("requestID").(string))
+	newCtx = context.WithValue(newCtx, requestIDKey, ctx.Locals("requestID").(string))
 	defer cancel()
 
 	token, err := token_util.ExtractToken(ctx)
@@ -198,7 +210,7 @@ func (c *AuthController) Protected(ctx *fiber.Ctx) error {
 	}
 
 	logger.LogInfo(newCtx, "Protected route request completed", map[string]string{
-		"user_id":  userId,
+		"user_id":	userId,
 		"duration": time.Since(startTime).String(),
 	})
 
@@ -214,7 +226,7 @@ func (c *AuthController) Logout(ctx *fiber.Ctx) error {
 
 	startTime := time.Now()
 	newCtx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
-	newCtx = context.WithValue(newCtx, "requestID", ctx.Locals("requestID").(string))
+	newCtx = context.WithValue(newCtx, requestIDKey, ctx.Locals("requestID").(string))
 	defer cancel()
 
 	token, err := token_util.ExtractToken(ctx)
@@ -253,7 +265,7 @@ func (c *AuthController) Revoke(ctx *fiber.Ctx) error {
 
 	startTime := time.Now()
 	newCtx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
-	newCtx = context.WithValue(newCtx, "requestID", ctx.Locals("requestID").(string))
+	newCtx = context.WithValue(newCtx, requestIDKey, ctx.Locals("requestID").(string))
 	defer cancel()
 
 	token, err := token_util.ExtractToken(ctx)

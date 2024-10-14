@@ -4,6 +4,14 @@ PORT=3000
 USERNAME=testuser
 PASSWORD=testpassword
 
+install:
+	@echo "Installing dependencies..."
+	go install github.com/vektra/mockery/v2@latest
+
+generate:
+	@echo "Generating mocks..."
+	mockery  --output ./internal/mocks --dir ./internal --all
+
 # Run the application
 run:
 	@echo "Running the server..."

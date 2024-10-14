@@ -12,6 +12,18 @@ const (
 	refreshTokenPrefix = "auth:refresh_token:"
 )
 
+type AuthRedisRepositoryInterface interface {
+	StoreAccessToken(ctx context.Context, userId string, accessToken string) error
+	StoreRefreshToken(ctx context.Context, userId string, refreshToken string) error
+	GetAccessToken(ctx context.Context, userId string) (string, error)
+	GetRefreshToken(ctx context.Context, userId string) (string, error)
+	IsAccessTokenExist(ctx context.Context, userId string, accessToken string) (bool, error)
+	IsRefreshTokenExist(ctx context.Context, userId string, refreshToken string) error
+	RemoveAccessToken(ctx context.Context, userId string, accessToken string) error
+	RemoveRefreshToken(ctx context.Context, userId string) error
+	RemoveAllAccessTokens(ctx context.Context, userId string) error
+}
+
 type AuthRedisRepository struct {
 	redis *redis.Client
 }

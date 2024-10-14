@@ -11,12 +11,21 @@ import (
 	"github.com/ciazhar/go-zhar/use-case/auth-service/pkg/logger"
 )
 
-type AuthService struct {
-	userPGRepo    *repository.UsersPostgresRepository
-	authRedisRepo *repository.AuthRedisRepository
+type AuthServiceInterface interface {
+	RegisterUser(ctx context.Context, user model.User) error
+	Login(ctx context.Context, body model.LoginRequest) (model.LoginResponse, error)
+	RefreshToken(ctx context.Context, refreshToken string) (model.RefreshTokenResponse, error)
+	Protected(ctx context.Context, accessToken string) (string, error)
+	Logout(ctx context.Context, accessToken string) error
+	Revoke(ctx context.Context, accessToken string) error
 }
 
-func NewAuthService(userRepo *repository.UsersPostgresRepository, authRedisRepo *repository.AuthRedisRepository) *AuthService {
+type AuthService struct {
+	userPGRepo    repository.UsersPostgresRepositoryInterface
+	authRedisRepo repository.AuthRedisRepositoryInterface
+}
+
+func NewAuthService(userRepo repository.UsersPostgresRepositoryInterface, authRedisRepo repository.AuthRedisRepositoryInterface) *AuthService {
 	return &AuthService{
 		userPGRepo:    userRepo,
 		authRedisRepo: authRedisRepo,
@@ -190,23 +199,22 @@ func (s *AuthService) Logout(ctx context.Context, accessToken string) error {
 }
 
 func (s *AuthService) Revoke(ctx context.Context, accessToken string) error {
-
 	// Validate token
 	claims, err := jwt.ValidateJWT(accessToken)
 	if err != nil {
-		return errors.New(fmt.Sprintf("could not validate access token: %v", err))
+		return fmt.Errorf("could not validate access token: %w", err)
 	}
 
 	// Remove all access tokens for the user
 	err = s.authRedisRepo.RemoveAllAccessTokens(ctx, claims.UserID)
 	if err != nil {
-		return errors.New(fmt.Sprintf("could not revoke tokens: %v", err))
+		return fmt.Errorf("could not revoke access tokens: %w", err)
 	}
 
-	// Delete all refresh tokens for the user
+	// Delete refresh token for the user
 	err = s.authRedisRepo.RemoveRefreshToken(ctx, claims.UserID)
 	if err != nil {
-		return errors.New(fmt.Sprintf("could not revoke tokens: %v", err))
+		return fmt.Errorf("could not revoke refresh token: %w", err)
 	}
 
 	return nil

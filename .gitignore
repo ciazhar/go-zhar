@@ -5,3 +5,9 @@
 !.gitkeep
 logfile.log
 logs
+response.json
+access_token.txt
+refresh_token.txt
+.DS_Store
+deployments/vault/vault/file
+examples/line-bot/line-bot/

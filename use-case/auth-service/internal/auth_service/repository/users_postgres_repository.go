@@ -7,6 +7,12 @@ import (
 	"github.com/jackc/pgx/v4/pgxpool"
 )
 
+type UsersPostgresRepositoryInterface interface {
+	GetByUsername(ctx context.Context, username string) (model.User, error)
+	Insert(ctx context.Context, user model.User) error
+	BeginTransaction(ctx context.Context) (pgx.Tx, error)
+}
+
 type UsersPostgresRepository struct {
 	pg *pgxpool.Pool
 }

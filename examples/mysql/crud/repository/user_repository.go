@@ -2,7 +2,6 @@ package repository
 
 import (
 	"database/sql"
-	"fmt"
 	"github.com/ciazhar/go-zhar/examples/mysql/crud/model"
 	_ "github.com/go-sql-driver/mysql"
 )
@@ -70,9 +69,6 @@ func (repo *MySQLUserRepository) FindAll(name, email *string, limit, offset int)
 
 	query += " LIMIT ? OFFSET ?"
 	args = append(args, limit, offset)
-
-	fmt.Println(query)
-	fmt.Println(args)
 
 	rows, err := repo.db.Query(query, args...)
 	if err != nil {

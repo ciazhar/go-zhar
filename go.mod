@@ -1,6 +1,6 @@
 module github.com/ciazhar/go-zhar
 
-go 1.22.2
+go 1.22
 
 require (
 	aidanwoods.dev/go-paseto v1.5.1
@@ -34,7 +34,7 @@ require (
 	github.com/gobuffalo/pop/v5 v5.3.4
 	github.com/goccy/go-json v0.10.2
 	github.com/gocraft/dbr/v2 v2.7.6
-	github.com/gofiber/fiber/v2 v2.52.2
+	github.com/gofiber/fiber/v2 v2.52.5
 	github.com/gofiber/jwt/v2 v2.2.7
 	github.com/gofiber/swagger v1.0.0
 	github.com/golang-jwt/jwt/v4 v4.5.0
@@ -42,7 +42,6 @@ require (
 	github.com/golang-migrate/migrate/v4 v4.17.1
 	github.com/google/gops v0.3.28
 	github.com/google/uuid v1.6.0
-	github.com/googollee/go-socket.io v1.7.0
 	github.com/hashicorp/consul/api v1.27.0
 	github.com/hashicorp/go-multierror v1.1.1
 	github.com/hashicorp/vault-client-go v0.4.3
@@ -56,6 +55,7 @@ require (
 	github.com/jinzhu/now v1.1.5
 	github.com/jmoiron/modl v0.0.0-20160417153729-99654d091ece
 	github.com/jmoiron/sqlx v1.3.5
+	github.com/joho/godotenv v1.3.0
 	github.com/json-iterator/go v1.1.12
 	github.com/lib/pq v1.10.9
 	github.com/line/line-bot-sdk-go/v8 v8.6.0
@@ -63,6 +63,7 @@ require (
 	github.com/mattn/go-sqlite3 v2.0.3+incompatible
 	github.com/mreiferson/go-ujson v0.0.0-20200614021406-c02629f4935e
 	github.com/naoina/genmai v0.0.0-20170715140901-78583835e1e4
+	github.com/nicksnyder/go-i18n/v2 v2.4.0
 	github.com/o1egl/paseto v1.0.0
 	github.com/pquerna/ffjson v0.0.0-20190930134022-aa0246cd15f7
 	github.com/rabbitmq/amqp091-go v1.9.0
@@ -84,6 +85,7 @@ require (
 	github.com/uptrace/opentelemetry-go-extra/otelsql v0.3.0
 	github.com/wI2L/jettison v0.7.4
 	github.com/xuri/excelize/v2 v2.8.1
+	github.com/zenazn/goji v0.9.0
 	go.mongodb.org/mongo-driver v1.13.1
 	go.opentelemetry.io/otel v1.27.0
 	go.opentelemetry.io/otel/exporters/jaeger v1.17.0
@@ -165,9 +167,7 @@ require (
 	github.com/gogo/protobuf v1.3.2 // indirect
 	github.com/golang/protobuf v1.5.4 // indirect
 	github.com/golang/snappy v0.0.4 // indirect
-	github.com/gomodule/redigo v2.0.0+incompatible // indirect
 	github.com/gorilla/css v1.0.0 // indirect
-	github.com/gorilla/websocket v1.4.2 // indirect
 	github.com/grpc-ecosystem/grpc-gateway/v2 v2.20.0 // indirect
 	github.com/hashicorp/errwrap v1.1.0 // indirect
 	github.com/hashicorp/go-cleanhttp v0.5.2 // indirect
@@ -193,7 +193,6 @@ require (
 	github.com/jcmturner/gokrb5/v8 v8.4.4 // indirect
 	github.com/jcmturner/rpc/v2 v2.0.3 // indirect
 	github.com/jinzhu/inflection v1.0.0 // indirect
-	github.com/joho/godotenv v1.3.0 // indirect
 	github.com/josharian/intern v1.0.0 // indirect
 	github.com/kballard/go-shellquote v0.0.0-20180428030007-95032a82bc51 // indirect
 	github.com/klauspost/compress v1.17.8 // indirect

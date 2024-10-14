@@ -1,0 +1,76 @@
+syntax = "proto3";
+
+package co.ciazhar.grpcprotobuf;
+
+import "google/protobuf/timestamp.proto";
+import "google/api/annotations.proto";
+import "protoc-gen-openapiv2/options/annotations.proto";
+
+option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_swagger) = {
+  info: {version: "1.0"};
+  external_docs: {
+    url: "http://localhost:8081";
+  }
+  schemes: HTTP;
+};
+
+message Account {
+  int64 id = 1;
+  string name = 2;
+  AccountStatus status = 3;
+  google.protobuf.Timestamp opened_date = 4;
+  google.protobuf.Timestamp closed_date = 5;
+  AccessLevel access_level = 6;
+}
+
+enum AccountStatus {
+  ACCOUNT_STATUS_UNKNOWN = 0;
+  ACCOUNT_STATUS_NEW = 1;
+  ACCOUNT_STATUS_OPEN = 2;
+  ACCOUNT_STATUS_CLOSED = 3;
+}
+
+enum AccessLevel {
+  ACCOUNT_ACCESS_LEVEL_UNKNOWN = 0;
+  ACCOUNT_ACCESS_LEVEL_FULL_ACCESS = 1;
+  ACCOUNT_ACCESS_LEVEL_READ_ONLY = 2;
+  ACCOUNT_ACCESS_LEVEL_NO_ACCESS = 3;
+}
+
+
+message CreateAccountRequest {
+  string name =1;
+  AccessLevel accessLevel =2;
+}
+
+message CreateAccountResponse {
+  int64 id = 1;
+}
+
+message GetAccountRequest {
+  int64 id =1;
+}
+
+message GetAccountResponse {
+  int64 id =1;
+  string name = 2;
+  AccountStatus status = 3;
+  AccessLevel accessLevel =4;
+  google.protobuf.Timestamp opened_date = 5;
+  google.protobuf.Timestamp closed_date = 6;
+}
+
+service AccountService {
+  rpc Create(CreateAccountRequest) returns (CreateAccountResponse) {
+    option (google.api.http) = {
+      post: "/api/v1/account"
+      body: "*"
+    };
+  }
+
+  rpc GetById(GetAccountRequest) returns (GetAccountResponse) {
+    option (google.api.http) = {
+      get: "/api/v1/account/{id}"
+    };
+  }
+}

@@ -1,0 +1,12 @@
+version: '3.7'
+
+services:
+  tarantool:
+    image: tarantool/tarantool:2.10
+    container_name: my_tarantool
+    restart: unless-stopped
+    ports:
+      - "3301:3301"
+    volumes:
+      - ./tarantool:/opt/tarantool
+    command: tarantool /opt/tarantool/init.lua
