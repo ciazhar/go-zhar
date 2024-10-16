@@ -115,3 +115,8 @@ func LogDebug(ctx context.Context, msg string, fields map[string]interface{}) {
 func LogInfo(ctx context.Context, msg string, fields map[string]interface{}) {
 	logEvent(ctx, log.Info(), fields).Msg(msg)
 }
+
+// LogFatal logs a fatal message
+func LogFatal(ctx context.Context, err error, msg string, fields map[string]interface{}) {
+	logEvent(ctx, log.Fatal().Err(err), fields).Msg(msg)
+}
