@@ -36,9 +36,7 @@ func InitLogger(config LogConfig) {
 	}
 
 	// Set log level
-	if err := setLogLevel(config.LogLevel); err != nil {
-		log.Fatal().Err(err).Msg("Failed to set log level")
-	}
+	setLogLevel(config.LogLevel)
 
 	// Enable async logging with buffering
 	log.Logger = zerolog.New(zerolog.SyncWriter(multiWriter)).With().Timestamp().Caller().Logger()
@@ -65,13 +63,20 @@ func setupWriters(config LogConfig) io.Writer {
 	return io.MultiWriter(writers...)
 }
 
-func setLogLevel(level string) error {
-	parsedLevel, err := zerolog.ParseLevel(level)
-	if err != nil {
-		return err
+func setLogLevel(level string) {
+	// Set log level based on config.LogLevel
+	switch level {
+	case "debug":
+		zerolog.SetGlobalLevel(zerolog.DebugLevel)
+	case "info":
+		zerolog.SetGlobalLevel(zerolog.InfoLevel)
+	case "warn":
+		zerolog.SetGlobalLevel(zerolog.WarnLevel)
+	case "error":
+		zerolog.SetGlobalLevel(zerolog.ErrorLevel)
+	default:
+		zerolog.SetGlobalLevel(zerolog.DebugLevel) // default to debug if invalid
 	}
-	zerolog.SetGlobalLevel(parsedLevel)
-	return nil
 }
 
 // logEvent is a helper function to create a log event with common fields
@@ -119,4 +124,9 @@ func LogInfo(ctx context.Context, msg string, fields map[string]interface{}) {
 // LogFatal logs a fatal message
 func LogFatal(ctx context.Context, err error, msg string, fields map[string]interface{}) {
 	logEvent(ctx, log.Fatal().Err(err), fields).Msg(msg)
+}
+
+// GetLogger returns the current global zerolog.Logger instance
+func GetLogger() zerolog.Logger {
+	return log.Logger
 }

@@ -15,5 +15,5 @@ func main() {
 	}
 	logger.InitLogger(testConfig)
 
-	postgres.InitDBMigration("postgresql://localhost:5432/dbname?sslmode=disable", migrations.MigrationsFS)
+	postgres.InitDBMigration("localhost", 5432, "dbname", "", "", migrations.MigrationsFS)
 }

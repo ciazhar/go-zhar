@@ -12,19 +12,14 @@ import (
 
 func main() {
 
-	// Initialize logger with default settings
+	// Configuration using flags for source, type, and other details
 	var logLevel string
 	var consoleOutput bool
+	var source, configType, fileName, filePath, consulEndpoint, consulPath string
+
+	// Parse command-line flags
 	flag.StringVar(&logLevel, "log-level", "debug", "Log level")
 	flag.BoolVar(&consoleOutput, "console-output", true, "Console output")
-	flag.Parse()
-	logger.InitLogger(logger.LogConfig{
-		LogLevel:      logLevel,
-		ConsoleOutput: consoleOutput,
-	})
-
-	// Configuration using flags for source, type, and other details
-	var source, configType, fileName, filePath, consulEndpoint, consulPath string
 	flag.StringVar(&source, "source", "consul", "Configuration source (file or consul)")
 	flag.StringVar(&fileName, "file-name", "config.json", "Name of the configuration file")
 	flag.StringVar(&filePath, "file-path", "configs", "Path to the configuration file")
@@ -33,6 +28,13 @@ func main() {
 	flag.StringVar(&consulPath, "consul-path", "path/to/config", "Path to the configuration in Consul")
 	flag.Parse()
 
+	// Initialize logger with parsed configuration
+	logger.InitLogger(logger.LogConfig{
+		LogLevel:      logLevel,
+		ConsoleOutput: consoleOutput,
+	})
+
+	// Configuration using flags for source, type, and other details
 	fileConfig := config.Config{
 		Source: source,
 		Type:   configType,
