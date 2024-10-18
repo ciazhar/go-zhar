@@ -4,7 +4,7 @@ import (
 	"errors"
 	"strings"
 
-	"github.com/ciazhar/go-start-small/examples/basic_auth/internal/model"
+	"github.com/ciazhar/go-start-small/examples/basic_auth_internal_api/internal/model"
 	"github.com/ciazhar/go-start-small/pkg/hashing/bcrypt"
 )
 

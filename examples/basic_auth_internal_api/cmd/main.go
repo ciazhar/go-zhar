@@ -1,7 +1,7 @@
 package main
 
 import (
-	"github.com/ciazhar/go-start-small/examples/basic_auth/internal/repository"
+	"github.com/ciazhar/go-start-small/examples/basic_auth_internal_api/internal/repository"
 	"github.com/ciazhar/go-start-small/pkg/fiber_middleware"
 	"github.com/gofiber/fiber/v2"
 )
