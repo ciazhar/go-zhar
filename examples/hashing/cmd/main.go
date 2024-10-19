@@ -1,9 +1,10 @@
 package main
 
 import (
-	"fmt"
-
+	"context"
+	
 	bcrypt "github.com/ciazhar/go-start-small/pkg/hashing/bcrypt"
+	"github.com/ciazhar/go-start-small/pkg/logger"
 )
 
 func main() {
@@ -13,11 +14,11 @@ func main() {
 	// Hash the password
 	hashedPassword, err := bcrypt.HashPassword(password)
 	if err != nil {
-		fmt.Println("Error hashing password:", err)
+		logger.LogFatal(context.Background(), err, "could not hash password", map[string]interface{}{"password": password})
 		return
 	}
-	fmt.Println("Hashed password:", hashedPassword)
+	logger.LogInfo(context.Background(), "hashed password", map[string]interface{}{"hashedPassword": hashedPassword})
 
 	// Validate the password
-	fmt.Println("Password validation result:", bcrypt.ValidatePassword(password, hashedPassword))
+	logger.LogInfo(context.Background(), "validating password", map[string]interface{}{"password": password})
 }

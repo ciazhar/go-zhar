@@ -1,22 +1,23 @@
 package main
 
 import (
-	"fmt"
+	"context"
 
 	"github.com/ciazhar/go-start-small/pkg/encryption/aes"
+	"github.com/ciazhar/go-start-small/pkg/logger"
 )
 
 func main() {
 	key := aes.GenerateKey()
-	fmt.Println("Key:", key)
+	logger.LogInfo(context.Background(), "Key generated", map[string]interface{}{"key": key})
 
 	plaintext := "Hello, AES in Go!"
 
 	// Encrypt
 	ciphertext := aes.Encrypt(plaintext, key)
-	fmt.Println("Encrypted:", ciphertext)
+	logger.LogInfo(context.Background(), "Encrypted text", map[string]interface{}{"ciphertext": ciphertext})
 
 	// Decrypt
 	decryptedText := aes.Decrypt(ciphertext, key)
-	fmt.Println("Decrypted:", decryptedText)
+	logger.LogInfo(context.Background(), "Decrypted text", map[string]interface{}{"decryptedText": decryptedText})
 }

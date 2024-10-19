@@ -3,15 +3,21 @@ package main
 import (
 	"context"
 	"flag"
-	"fmt"
 
+	"github.com/ciazhar/go-start-small/examples/jwt_authorization_service/db/migrations"
+	"github.com/ciazhar/go-start-small/examples/jwt_authorization_service/internal"
 	"github.com/ciazhar/go-start-small/pkg/config"
 	"github.com/ciazhar/go-start-small/pkg/logger"
+	"github.com/ciazhar/go-start-small/pkg/middleware"
+	"github.com/ciazhar/go-start-small/pkg/postgres"
+	"github.com/ciazhar/go-start-small/pkg/redis"
+	"github.com/ciazhar/go-start-small/pkg/validation"
+	"github.com/gofiber/fiber/v2"
 	"github.com/spf13/viper"
 )
 
-func main() {
-
+func main(){
+	
 	// Configuration using flags for source, type, and other details
 	var logLevel string
 	var consoleOutput bool
@@ -49,12 +55,42 @@ func main() {
 	}
 
 	config.InitConfig(fileConfig)
+	
+	pg := postgres.InitPostgres(
+		viper.GetString("postgres.host"),
+		viper.GetInt("postgres.port"),
+		viper.GetString("postgres.dbname"),
+		viper.GetString("postgres.username"),
+		viper.GetString("postgres.password"),
+		logLevel,
+	)
+	postgres.InitDBMigration(
+		viper.GetString("postgres.host"),
+		viper.GetInt("postgres.port"),
+		viper.GetString("postgres.dbname"),
+		viper.GetString("postgres.username"),
+		viper.GetString("postgres.password"),
+		migrations.MigrationsFS,
+	)
+	r := redis.InitRedis(
+		viper.GetString("redis.host"),
+		viper.GetInt("redis.port"),
+		viper.GetString("redis.password"),
+	)
+	validation.InitValidation()
 
-	// Verify that the configuration was loaded correctly
-	if viper.GetString("key1") != "value1" {
-		logger.LogFatal(context.Background(), nil, fmt.Sprintf("Expected key1 to be 'value1', got '%s'", viper.GetString("key1")), nil)
+	app := fiber.New()
+	app.Use(middleware.RequestIDMiddleware)
+	v1 := app.Group("/api/v1")
+	internal.Init(v1, pg, r)
+
+	// Start the server
+	port := viper.GetString("server.port")
+	if port == "" {
+		port = "3000"
 	}
-	if viper.GetString("key2") != "value2" {
-		logger.LogFatal(context.Background(), nil, fmt.Sprintf("Expected key2 to be 'value2', got '%s'", viper.GetString("key2")), nil)
+	err := app.Listen(":"+port)
+	if err != nil {
+		logger.LogFatal(context.Background(), err, "Server stopped", nil)
 	}
 }

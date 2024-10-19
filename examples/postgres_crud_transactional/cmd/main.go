@@ -22,7 +22,7 @@ func main() {
 	// Parse command-line flags
 	flag.StringVar(&logLevel, "log-level", "debug", "Log level (default: debug)")
 	flag.BoolVar(&consoleOutput, "console-output", true, "Console output (default: true)")
-	flag.StringVar(&source, "source", "consul", "Configuration source (file or consul)")
+	flag.StringVar(&source, "source", "file", "Configuration source (file or consul)")
 	flag.StringVar(&fileName, "file-name", "config.json", "Name of the configuration file")
 	flag.StringVar(&filePath, "file-path", "configs", "Path to the configuration file")
 	flag.StringVar(&configType, "config-type", "json", "Configuration file type")
