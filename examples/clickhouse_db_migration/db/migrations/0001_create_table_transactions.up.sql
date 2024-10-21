@@ -1,4 +1,4 @@
-CREATE TABLE transactions_2
+CREATE TABLE transactions
 (
     Timestamp DateTime CODEC (Delta, ZSTD),
     Type      Enum8('Purchase' = 1, 'Refund' = 2, 'Subscription' = 3, 'Cancellation' = 4) CODEC (LZ4),
