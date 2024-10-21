@@ -51,7 +51,7 @@ func BasicAuthMiddleware(isUserExist func(username string) (string, error)) fibe
 		}
 
 		// Compare the provided password with the stored bcrypt-hashed password
-		if bcrypt.ValidatePassword(providedPassword, storedPasswordHash); err != nil {
+		if bcrypt.ValidatePassword(providedPassword, storedPasswordHash) {
 			c.Set("WWW-Authenticate", `Basic realm="restricted"`)
 			return c.Status(fiber.StatusUnauthorized).SendString("Unauthorized: Invalid username or password")
 		}
