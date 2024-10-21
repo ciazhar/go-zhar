@@ -2,11 +2,19 @@ package clickhouse
 
 import (
 	"context"
+	"fmt"
+	"strings"
 
 	"github.com/ClickHouse/clickhouse-go/v2"
 	"github.com/ciazhar/go-start-small/pkg/logger"
 )
 
+// [clickhouse][conn=1][127.0.0.1:9000][send query] compression="none"
+// SELECT UserID, COUNT(*) AS transaction_count
+// FROM transactions
+// WHERE Timestamp >= now() - INTERVAL 30 DAY
+// GROUP BY UserID
+// HAVING transaction_count > 10
 func Init(hosts string, database string, username string, password string, debug bool) clickhouse.Conn {
 
 	logger.LogInfo(context.Background(), "ClickHouse connection initializing", nil)
@@ -20,7 +28,9 @@ func Init(hosts string, database string, username string, password string, debug
 		},
 		Debug: debug,
 		Debugf: func(format string, v ...any) {
-			logger.LogDebug(context.Background(), format, toMap(v))
+			if strings.Contains(format, "send query") {
+				logger.LogDebug(context.Background(), fmt.Sprintf(format, v...), nil)
+			}
 		},
 	})
 	if err != nil {
@@ -28,17 +38,4 @@ func Init(hosts string, database string, username string, password string, debug
 	}
 	logger.LogInfo(context.Background(), "ClickHouse connection initialized", nil)
 	return conn
-}
-
-func toMap(v ...any) map[string]interface{} {
-	m := make(map[string]interface{})
-	for i := 0; i < len(v); i += 2 {
-		if i+1 < len(v) {
-			key, ok := v[i].(string)
-			if ok {
-				m[key] = v[i+1]
-			}
-		}
-	}
-	return m
 }
