@@ -1,4 +1,4 @@
-package fiber_middleware
+package middleware
 
 import (
 	"encoding/base64"

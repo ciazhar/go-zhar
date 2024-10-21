@@ -2,7 +2,7 @@ package main
 
 import (
 	"github.com/ciazhar/go-start-small/examples/basic_auth/internal/repository"
-	"github.com/ciazhar/go-start-small/pkg/fiber_middleware"
+	"github.com/ciazhar/go-start-small/pkg/middleware"
 	"github.com/gofiber/fiber/v2"
 )
 
@@ -15,7 +15,7 @@ func main() {
 	authRepo := repository.NewInMemoryAuthRepository()
 
 	// Apply the Basic Auth middleware
-	app.Use(fiber_middleware.BasicAuthMiddleware(authRepo.FindPasswordByUsername))
+	app.Use(middleware.BasicAuthMiddleware(authRepo.FindPasswordByUsername))
 
 	app.Get("/", func(c *fiber.Ctx) error {
 		return c.SendString("Welcome to the protected route!")
