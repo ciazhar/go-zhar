@@ -1,4 +1,4 @@
-package oteljaeger
+package oteljaegerv2
 
 import (
 	"context"

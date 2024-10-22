@@ -6,7 +6,7 @@ import (
 	"github.com/ciazhar/go-start-small/examples/http_distributed_tracing/internal/user"
 	"github.com/ciazhar/go-start-small/pkg/config"
 	"github.com/ciazhar/go-start-small/pkg/logger"
-	oteljaeger "github.com/ciazhar/go-start-small/pkg/otel_jaeger"
+	oteljaeger "github.com/ciazhar/go-start-small/pkg/otel_jaeger/v1"
 	"github.com/gofiber/fiber/v2"
 	"github.com/spf13/viper"
 )
