@@ -24,7 +24,7 @@ func main() {
 		},
 	)
 
-	traceProvider := oteljaeger.StartTracing("user-service", viper.GetString("opentelemetry.url"))
+	traceProvider := oteljaeger.StartTracing("user-service", viper.GetString("opentelemetry.urlv1"))
 	defer func() {
 		if err := traceProvider.Shutdown(context.Background()); err != nil {
 			logger.LogFatal(context.Background(), err, "failed to shutdown", nil)

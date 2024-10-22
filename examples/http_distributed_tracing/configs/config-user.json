@@ -4,6 +4,7 @@
     "name": "user-service"
   },
   "opentelemetry": {
-      "url": "localhost:4318"
+      "urlv1": "http://localhost:14268/api/traces",
+      "urlv2": "localhost:4318"
   }
 }

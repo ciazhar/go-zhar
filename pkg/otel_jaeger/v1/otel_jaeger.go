@@ -13,7 +13,7 @@ import (
 )
 
 func StartTracing(serviceName string, endpoint string) *sdktrace.TracerProvider {
-	exporter, err := jaeger.New(jaeger.WithCollectorEndpoint(jaeger.WithEndpoint("http://localhost:14268/api/traces")))
+	exporter, err := jaeger.New(jaeger.WithCollectorEndpoint(jaeger.WithEndpoint(endpoint)))
 	if err != nil {
 		log.Fatal(err)
 	}
