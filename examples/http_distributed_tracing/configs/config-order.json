@@ -1,0 +1,10 @@
+{
+  "application": {
+    "port": 3001,
+    "name": "order-service",
+    "user-service-url": "http://localhost:3000"
+  },
+  "opentelemetry": {
+    "url": "localhost:4318"
+  }
+}
