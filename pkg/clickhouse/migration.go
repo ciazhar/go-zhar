@@ -39,5 +39,7 @@ func InitDBMigration(host string, port int, dbName string, username string, pass
 		logger.LogFatal(context.Background(), err, "Failed to run migrations", nil)
 	}
 
+	defer m.Close()
+
 	logger.LogInfo(context.Background(), "Migrations completed", nil)
 }

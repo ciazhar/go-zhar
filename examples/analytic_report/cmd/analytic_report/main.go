@@ -22,6 +22,7 @@ func main() {
 		"",
 		true,
 	)
+	defer conn.Close()
 
     repo := repository.NewTransactionRepository(conn)
     tc := controller.NewTransactionController(repo)

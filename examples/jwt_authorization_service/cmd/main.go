@@ -64,6 +64,7 @@ func main(){
 		viper.GetString("postgres.password"),
 		logLevel,
 	)
+	defer pg.Close()
 	postgres.InitDBMigration(
 		viper.GetString("postgres.host"),
 		viper.GetInt("postgres.port"),
@@ -77,6 +78,7 @@ func main(){
 		viper.GetInt("redis.port"),
 		viper.GetString("redis.password"),
 	)
+	defer r.Close()
 	validation.InitValidation()
 
 	app := fiber.New()
