@@ -3,11 +3,12 @@ package main
 import (
 	"context"
 	"fmt"
-	"net/http"
 	"os/signal"
 	"sync"
 	"syscall"
 	"time"
+
+	"github.com/gofiber/fiber/v2"
 )
 
 func main() {
@@ -15,15 +16,21 @@ func main() {
 	ctx, stop := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM)
 	defer stop()
 
-	// Start the HTTP server in a separate goroutine
-	server := &http.Server{Addr: ":8080", Handler: http.DefaultServeMux}
+	// Initialize Fiber app
+	app := fiber.New()
+
+	// Define a simple route
+	app.Get("/", func(c *fiber.Ctx) error {
+		return c.SendString("Hello, World!")
+	})
+
 	var wg sync.WaitGroup
 	wg.Add(1)
 	go func() {
 		defer wg.Done()
-		fmt.Println("Starting server...")
-		if err := server.ListenAndServe(); err != http.ErrServerClosed {
-			fmt.Printf("Server failed: %v\n", err)
+		fmt.Println("Starting Fiber server on :8080...")
+		if err := app.Listen(":8080"); err != nil {
+			fmt.Printf("Fiber server failed: %v\n", err)
 		}
 	}()
 
@@ -38,15 +45,15 @@ func main() {
 	<-ctx.Done() // Block until signal is received
 	fmt.Println("\nShutting down gracefully...")
 
-	// Start graceful shutdown process
+	// Start graceful shutdown process with a 10-second timeout
 	shutdownCtx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
-	// Gracefully shutdown the HTTP server
-	if err := server.Shutdown(shutdownCtx); err != nil {
-		fmt.Printf("Error shutting down server: %v\n", err)
+	// Gracefully shutdown Fiber app
+	if err := app.ShutdownWithContext(shutdownCtx); err != nil {
+		fmt.Printf("Error shutting down Fiber server: %v\n", err)
 	} else {
-		fmt.Println("Server shut down successfully.")
+		fmt.Println("Fiber server shut down successfully.")
 	}
 
 	// Wait for background tasks to complete
