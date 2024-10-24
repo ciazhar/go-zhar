@@ -126,6 +126,10 @@ func LogFatal(ctx context.Context, err error, msg string, fields map[string]inte
 	logEvent(ctx, log.Fatal().Err(err), fields).Msg(msg)
 }
 
+func LogWarn(ctx context.Context, err error, msg string, fields map[string]interface{}) {
+	logEvent(ctx, log.Warn().Err(err), fields).Msg(msg)
+}
+
 // GetLogger returns the current global zerolog.Logger instance
 func GetLogger() zerolog.Logger {
 	return log.Logger
