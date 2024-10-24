@@ -54,13 +54,6 @@ func (a *Controller) sendAsyncMessage(c *fiber.Ctx) error {
 	return c.JSON(fiber.Map{"status": "success", "message": message})
 }
 
-func startConsumer(ctx context.Context, wg *sync.WaitGroup, kafkaConsumer *kafka.KafkaConsumer) {
-	defer wg.Done()
-
-	wg.Add(1)
-	kafkaConsumer.ConsumeMessages(ctx, wg)
-}
-
 func main() {
 	// Initialize Fiber app
 	app := fiber.New()
@@ -90,7 +83,8 @@ func main() {
 
 	// Start Kafka consumer in a separate goroutine
 	ctx, cancel := context.WithCancel(context.Background())
-	go startConsumer(ctx, &wg, kafkaConsumer)
+	wg.Add(1)
+	go kafkaConsumer.ConsumeMessages(ctx, &wg)
 
 	// Graceful shutdown
 	go func() {
