@@ -7,7 +7,6 @@ import (
 	"image/color"
 	"image/draw"
 	"image/png"
-	"log"
 	"os"
 
 	"github.com/boombuler/barcode"
@@ -17,12 +16,18 @@ import (
 
 func GenerateQrCode(url string, dimension int, base64OverlayLogo string) (string, error) {
 	// Generate QR code
-	qrCode, _ := qr.Encode(url, qr.M, qr.Auto)
-	qrCode, _ = barcode.Scale(qrCode, dimension, dimension)
+	qrCode, err := qr.Encode(url, qr.M, qr.Auto)
+	if err != nil {
+		return "", err
+	}
+	qrCode, err = barcode.Scale(qrCode, dimension, dimension)
+	if err != nil {
+		return "", err
+	}
 
 	// Create image with white background
 	img := image.NewRGBA(image.Rect(0, 0, dimension, dimension))
-	white := color.RGBA{uint8(dimension), uint8(dimension), uint8(dimension), uint8(dimension)}
+	white := color.RGBA{255, 255, 255, 255}
 	draw.Draw(img, img.Bounds(), &image.Uniform{C: white}, image.Point{}, draw.Src)
 
 	// Draw QR code onto the image
@@ -32,17 +37,12 @@ func GenerateQrCode(url string, dimension int, base64OverlayLogo string) (string
 
 	// Add logo image if provided
 	if base64OverlayLogo != "" {
-		// Decode base64 logo image
 		decodedImg, err := base64.StdEncoding.DecodeString(base64OverlayLogo)
 		if err != nil {
-			log.Println(err)
 			return "", err
 		}
-
-		// Decode the logo image
 		logoImg, _, err := image.Decode(bytes.NewReader(decodedImg))
 		if err != nil {
-			log.Println(err)
 			return "", err
 		}
 
@@ -52,12 +52,15 @@ func GenerateQrCode(url string, dimension int, base64OverlayLogo string) (string
 		draw.Draw(img, logoImg.Bounds().Add(logoOffset), logoImg, logoBounds.Min, draw.Over)
 	}
 
-	// Save the final image to a file
+	// Save the final image to a file or return as base64
 	fileName := uuid.New().String() + ".png"
-	outFile, _ := os.Create(fileName)
+	outFile, err := os.Create(fileName)
+	if err != nil {
+		return "", err
+	}
 	defer outFile.Close()
+
 	if err := png.Encode(outFile, img); err != nil {
-		log.Println(err)
 		return "", err
 	}
 
