@@ -1,0 +1,18 @@
+# redpanda-docker-compose.yml
+version: '3.8'
+services:
+  redpanda:
+    image: vectorized/redpanda:v23.1.10
+    command:
+      - redpanda
+      - start
+      - --overprovisioned
+      - --smp 1
+      - --memory 1G
+      - --reserve-memory 0M
+      - --node-id 0
+      - --check=false
+    environment:
+      - REDPANDA_AUTO_CREATE_TOPICS=true
+    ports:
+      - "9093:9092"  # Remap port 9092 to 9093 to avoid conflict with Kafka
