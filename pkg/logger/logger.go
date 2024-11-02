@@ -105,6 +105,10 @@ func LogAndReturnError(ctx context.Context, err error, msg string, fields map[st
 	return fmt.Errorf("%s: %w", msg, err)
 }
 
+func LogError(ctx context.Context, err error, msg string, fields map[string]interface{}) {
+	logEvent(ctx, log.Error().Err(err), fields).Msg(msg)
+}
+
 // LogAndReturnWarning logs a warning and returns it as an error
 func LogAndReturnWarning(ctx context.Context, err error, msg string, fields map[string]interface{}) error {
 	logEvent(ctx, log.Warn().Err(err), fields).Msg(msg)
