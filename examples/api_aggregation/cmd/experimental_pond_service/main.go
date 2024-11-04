@@ -80,10 +80,7 @@ func getDashboard(c *fiber.Ctx) error {
 		})
 	}
 
-	ctx, cancel := context.WithTimeout(c.Context(), 4*time.Second)
-	defer cancel()
-
-	data, err := getDashboardData(ctx, userID)
+	data, err := getDashboardData(userID)
 	if err != nil {
 		return errorHandler(c, err)
 	}
@@ -91,7 +88,7 @@ func getDashboard(c *fiber.Ctx) error {
 	return c.JSON(data)
 }
 
-func getDashboardData(ctx context.Context, userID string) (*pkg.GetDashboardDataResponse, error) {
+func getDashboardData(userID string) (*pkg.GetDashboardDataResponse, error) {
 	dashboard := &pkg.GetDashboardDataResponse{
 		Orders:   make([]pkg.GetUserOrdersResponse, 0),
 		Products: make([]pkg.GetProductRecommendationsResponse, 0),
