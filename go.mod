@@ -72,6 +72,8 @@ require (
 	github.com/ClickHouse/clickhouse-go/v2 v2.30.0
 	github.com/IBM/sarama v1.43.3
 	github.com/Microsoft/go-winio v0.6.2 // indirect
+	github.com/alitto/pond v1.9.2
+	github.com/alitto/pond/v2 v2.0.4
 	github.com/andybalholm/brotli v1.1.1 // indirect
 	github.com/armon/go-metrics v0.4.1 // indirect
 	github.com/boombuler/barcode v1.0.2

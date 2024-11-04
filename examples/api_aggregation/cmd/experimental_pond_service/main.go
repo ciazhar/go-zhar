@@ -9,8 +9,8 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/alitto/pond/v2"
 	"github.com/ciazhar/go-start-small/examples/api_aggregation/pkg"
-	"github.com/ciazhar/go-start-small/pkg/worker_pool"
 	"github.com/gofiber/fiber/v2"
 )
 
@@ -22,40 +22,41 @@ type RequestConfig struct {
 }
 
 // makeRequest creates a function that performs an HTTP request and decodes the response
-func makeRequest(cfg RequestConfig) workerpool.GenericFunction {
-    return func(ctx context.Context) error {
-        req, err := http.NewRequestWithContext(ctx, http.MethodGet, cfg.URL, nil)
-        if err != nil {
-            return fmt.Errorf("%s: failed to create request: %w", cfg.ServiceName, err)
-        }
+func makeRequest(cfg RequestConfig) error {
 
-        req.Header.Set("Accept", "application/json")
-        
-        resp, err := http.DefaultClient.Do(req)
-        if err != nil {
-            return fmt.Errorf("%s: request failed: %w", cfg.ServiceName, err)
-        }
-        defer resp.Body.Close()
+	req, err := http.NewRequest(http.MethodGet, cfg.URL, nil)
+	if err != nil {
+		return fmt.Errorf("%s: failed to create request: %w", cfg.ServiceName, err)
+	}
 
-        // Debug: Print raw response
-        bodyBytes, err := io.ReadAll(resp.Body)
-        if err != nil {
-            return fmt.Errorf("%s: failed to read response body: %w", cfg.ServiceName, err)
-        }
+	req.Header.Set("Accept", "application/json")
 
-        if resp.StatusCode != http.StatusOK {
-            return fmt.Errorf("%s: unexpected status code %d: %s",
-                cfg.ServiceName, resp.StatusCode, string(bodyBytes))
-        }
+	resp, err := http.DefaultClient.Do(req)
+	if err != nil {
+		return fmt.Errorf("%s: request failed: %w", cfg.ServiceName, err)
+	}
+	defer resp.Body.Close()
 
-        // Create new reader from bytes since we consumed the original body
-        if err := json.NewDecoder(bytes.NewReader(bodyBytes)).Decode(cfg.Target); err != nil {
-            return fmt.Errorf("%s: failed to decode response: %w\nResponse body: %s", 
-                cfg.ServiceName, err, string(bodyBytes))
-        }
+	bodyBytes, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return fmt.Errorf("%s: failed to read response body: %w", cfg.ServiceName, err)
+	}
 
-        return nil
-    }
+	// fmt.Printf("Raw response from %s: %s\n", cfg.ServiceName, string(bodyBytes))
+
+	if resp.StatusCode != http.StatusOK {
+		return fmt.Errorf("%s: unexpected status code %d: %s",
+			cfg.ServiceName, resp.StatusCode, string(bodyBytes))
+	}
+
+	if err := json.NewDecoder(bytes.NewReader(bodyBytes)).Decode(cfg.Target); err != nil {
+		return fmt.Errorf("%s: failed to decode response: %w\nResponse body: %s",
+			cfg.ServiceName, err, string(bodyBytes))
+	}
+
+	// fmt.Printf("Decoded %s response: %+v\n", cfg.ServiceName, cfg.Target)
+
+	return nil
 }
 
 func main() {
@@ -66,7 +67,7 @@ func main() {
 
 	app.Get("/dashboard", getDashboard)
 
-	if err := app.Listen(":3000"); err != nil {
+	if err := app.Listen(":3004"); err != nil {
 		panic(fmt.Sprintf("failed to start server: %v", err))
 	}
 }
@@ -79,7 +80,6 @@ func getDashboard(c *fiber.Ctx) error {
 		})
 	}
 
-	// Create context with timeout
 	ctx, cancel := context.WithTimeout(c.Context(), 4*time.Second)
 	defer cancel()
 
@@ -97,7 +97,6 @@ func getDashboardData(ctx context.Context, userID string) (*pkg.GetDashboardData
 		Products: make([]pkg.GetProductRecommendationsResponse, 0),
 	}
 
-	// Configure requests
 	requests := []RequestConfig{
 		{
 			URL:         fmt.Sprintf("http://localhost:3001/orders?userID=%s", userID),
@@ -116,31 +115,28 @@ func getDashboardData(ctx context.Context, userID string) (*pkg.GetDashboardData
 		},
 	}
 
-	// Create functions for each request
-	funcs := make([]workerpool.GenericFunction, len(requests))
-	for i, req := range requests {
-		funcs[i] = makeRequest(req)
-	}
+	// Set up pond worker pool
+	pool := pond.NewPool(len(requests)) // Adjust worker and queue size as needed
+	defer pool.StopAndWait()
 
-	// Configure async runner options
-	opts := workerpool.Options{
-		Timeout:         3 * time.Second,
-		MaxConcurrent:   3,
-		ContinueOnError: false, // Stop on first error
-	}
-
-	// Execute requests concurrently
-	results := workerpool.RunAsync(ctx, opts, funcs...)
-
-	// Check for errors
+	// errorChan := make(chan error, len(requests))
 	var errors []error
-	for _, result := range results {
-		if result.Err != nil {
-			errors = append(errors, result.Err)
+
+	// Submit tasks to the pond pool
+	for _, req := range requests {
+		// req := req
+		task := pool.SubmitErr(func() error {
+			return makeRequest(req)
+		})
+		err := task.Wait()
+		if err != nil {
+			errors = append(errors, err)
 		}
 	}
 
-	// If any requests failed, return all errors
+	// Wait for all tasks to complete
+	pool.StopAndWait()
+
 	if len(errors) > 0 {
 		return nil, fmt.Errorf("failed to fetch dashboard data: %v", errors)
 	}
@@ -152,7 +148,6 @@ func getDashboardData(ctx context.Context, userID string) (*pkg.GetDashboardData
 func errorHandler(c *fiber.Ctx, err error) error {
 	code := fiber.StatusInternalServerError
 
-	// Check for specific error types
 	if err == context.DeadlineExceeded {
 		code = fiber.StatusGatewayTimeout
 	}
