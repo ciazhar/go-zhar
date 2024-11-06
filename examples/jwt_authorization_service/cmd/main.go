@@ -11,13 +11,13 @@ import (
 	"github.com/ciazhar/go-start-small/pkg/middleware"
 	"github.com/ciazhar/go-start-small/pkg/postgres"
 	"github.com/ciazhar/go-start-small/pkg/redis"
-	"github.com/ciazhar/go-start-small/pkg/validation"
+	"github.com/ciazhar/go-start-small/pkg/validator"
 	"github.com/gofiber/fiber/v2"
 	"github.com/spf13/viper"
 )
 
-func main(){
-	
+func main() {
+
 	// Configuration using flags for source, type, and other details
 	var logLevel string
 	var consoleOutput bool
@@ -55,7 +55,7 @@ func main(){
 	}
 
 	config.InitConfig(fileConfig)
-	
+
 	pg := postgres.InitPostgres(
 		viper.GetString("postgres.host"),
 		viper.GetInt("postgres.port"),
@@ -79,19 +79,19 @@ func main(){
 		viper.GetString("redis.password"),
 	)
 	defer r.Close()
-	validation.InitValidation()
+	v := validator.New("id")
 
 	app := fiber.New()
 	app.Use(middleware.RequestIDMiddleware)
 	v1 := app.Group("/api/v1")
-	internal.Init(v1, pg, r)
+	internal.Init(v1, pg, r, v)
 
 	// Start the server
 	port := viper.GetString("server.port")
 	if port == "" {
 		port = "3000"
 	}
-	err := app.Listen(":"+port)
+	err := app.Listen(":" + port)
 	if err != nil {
 		logger.LogFatal(context.Background(), err, "Server stopped", nil)
 	}

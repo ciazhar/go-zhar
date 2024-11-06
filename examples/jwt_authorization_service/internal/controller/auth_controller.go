@@ -10,20 +10,22 @@ import (
 	"github.com/ciazhar/go-start-small/pkg/logger"
 	"github.com/ciazhar/go-start-small/pkg/response"
 	"github.com/ciazhar/go-start-small/pkg/token_util"
-	"github.com/ciazhar/go-start-small/pkg/validation"
+	"github.com/ciazhar/go-start-small/pkg/validator"
 	"github.com/gofiber/fiber/v2"
 )
 
-
 type AuthController struct {
 	authService service.AuthServiceInterface
+	v           validator.Validator
 }
 
 func NewAuthController(
 	authService service.AuthServiceInterface,
+	v validator.Validator,
 ) *AuthController {
 	return &AuthController{
 		authService: authService,
+		v:           v,
 	}
 }
 
@@ -49,7 +51,7 @@ func (c *AuthController) RegisterUser(ctx *fiber.Ctx) error {
 	}
 
 	// Validate request
-	if err := validation.ValidateStruct(user); err != nil {
+	if err := c.v.ValidateStruct(user); err != nil {
 		return ctx.Status(fiber.StatusBadRequest).JSON(response.Response{
 			Error: "Invalid input",
 			Data:  logger.LogAndReturnWarning(ctx.Context(), err, "Invalid input", nil),
@@ -105,7 +107,7 @@ func (c *AuthController) Login(ctx *fiber.Ctx) error {
 	}
 
 	// Validate request
-	if err := validation.ValidateStruct(body); err != nil {
+	if err := c.v.ValidateStruct(body); err != nil {
 		return ctx.Status(fiber.StatusBadRequest).JSON(response.Response{
 			Error: "Invalid input",
 			Data:  logger.LogAndReturnWarning(ctx.Context(), err, "Invalid input", nil),
@@ -209,7 +211,7 @@ func (c *AuthController) Protected(ctx *fiber.Ctx) error {
 	}
 
 	logger.LogInfo(newCtx, "Protected route request completed", map[string]interface{}{
-		"user_id":	userId,
+		"user_id":  userId,
 		"duration": time.Since(startTime).String(),
 	})
 
