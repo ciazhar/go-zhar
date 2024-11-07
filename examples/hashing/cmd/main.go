@@ -2,7 +2,7 @@ package main
 
 import (
 	"context"
-	
+
 	bcrypt "github.com/ciazhar/go-start-small/pkg/hashing/bcrypt"
 	"github.com/ciazhar/go-start-small/pkg/logger"
 )
@@ -20,5 +20,11 @@ func main() {
 	logger.LogInfo(context.Background(), "hashed password", map[string]interface{}{"hashedPassword": hashedPassword})
 
 	// Validate the password
-	logger.LogInfo(context.Background(), "validating password", map[string]interface{}{"password": password})
+	valid := bcrypt.ValidatePassword(password, hashedPassword)
+	if !valid {
+		logger.LogFatal(context.Background(), err, "could not validate password", map[string]interface{}{"password": password})
+		return
+	} else {
+		logger.LogInfo(context.Background(), "password is valid", map[string]interface{}{"password": password})
+	}
 }
