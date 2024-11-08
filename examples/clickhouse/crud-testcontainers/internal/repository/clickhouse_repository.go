@@ -327,7 +327,7 @@ func (r *ClickhouseRepository) ExportEvents(ctx context.Context, types string, r
 
 	file, err := os.Create("data.csv")
 	if err != nil {
-		r.logger.Printf("failed to create file: %s", err)
+		//r.logger.Printf("failed to create file: %s", err)
 		return res, err
 	}
 	defer file.Close()
@@ -338,7 +338,7 @@ func (r *ClickhouseRepository) ExportEvents(ctx context.Context, types string, r
 	query := buildQuery(types, rcpTo, page, size)
 	rows, err := r.db.QueryContext(ctx, query)
 	if err != nil {
-		r.logger.Printf("failed to execute query: %s", err)
+		//r.logger.Printf("failed to execute query: %s", err)
 		return res, err
 	}
 	defer rows.Close()
@@ -349,7 +349,7 @@ func (r *ClickhouseRepository) ExportEvents(ctx context.Context, types string, r
 	go func() {
 		for record := range recordChan {
 			if err := writer.Write(record); err != nil {
-				r.logger.Printf("failed to write record: %s", err)
+				//r.logger.Printf("failed to write record: %s", err)
 			}
 		}
 	}()
@@ -358,7 +358,7 @@ func (r *ClickhouseRepository) ExportEvents(ctx context.Context, types string, r
 		wg.Add(1)
 		go func() {
 			defer wg.Done()
-			var e Event
+			var e model.Event
 			var injectionTimeDate, timestampDate, scheduledTimeDate time.Time
 
 			if err = rows.Scan(
@@ -413,7 +413,7 @@ func (r *ClickhouseRepository) ExportEvents(ctx context.Context, types string, r
 				&e.TransmissionID,
 				&e.Type,
 			); err != nil {
-				r.logger.Printf("failed to scan row: %s", err)
+				//r.logger.Printf("failed to scan row: %s", err)
 				return
 			}
 
