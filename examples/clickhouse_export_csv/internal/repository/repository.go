@@ -18,6 +18,10 @@ type ClickhouseRepository struct {
 	conn clickhouse.Conn
 }
 
+func NewClickhouseRepository(conn clickhouse.Conn) *ClickhouseRepository {
+	return &ClickhouseRepository{conn: conn}
+}
+
 func (r *ClickhouseRepository) ExportEvents(ctx context.Context, types, rcpTo string) (res model_util.Page, err error) {
 	file, err := os.Create("data.csv")
 	if err != nil {

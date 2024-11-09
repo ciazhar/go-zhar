@@ -27,9 +27,7 @@ func main() {
 
 	// Example usage
 	ctx := context.Background()
-	repo := &repository.ClickhouseRepository{
-		conn: conn,
-	}
+	repo := repository.NewClickhouseRepository(conn)
 	_, err := repo.ExportEvents(ctx, "", "")
 	if err != nil {
 		log.Fatalf("failed to export events: %s", err)
