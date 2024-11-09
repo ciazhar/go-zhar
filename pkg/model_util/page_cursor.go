@@ -1,4 +1,4 @@
-package model
+package model_util
 
 type Page struct {
 	Data      interface{} `json:"data"`

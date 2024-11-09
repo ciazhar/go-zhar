@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"github.com/ciazhar/go-start-small/examples/clickhouse_crud_testcontainers/internal/model"
 	"github.com/ciazhar/go-start-small/pkg/logger"
+	"github.com/ciazhar/go-start-small/pkg/model_util"
 	"os"
 	"strconv"
 	"strings"
@@ -219,7 +220,7 @@ func ConvertToSingleQuotes(s string) string {
 	return buf.String()
 }
 
-func (r *ClickhouseRepository) GetEvents(ctx context.Context, types string, rcpTo string, page, size int) (res model.Page, err error) {
+func (r *ClickhouseRepository) GetEvents(ctx context.Context, types string, rcpTo string, page, size int) (res model_util.Page, err error) {
 	var events []model.Event
 
 	query := `
@@ -321,7 +322,7 @@ func (r *ClickhouseRepository) GetEvents(ctx context.Context, types string, rcpT
 	return
 }
 
-func (r *ClickhouseRepository) ExportEvents(ctx context.Context, types string, rcpTo string, page, size int) (res model.Page, err error) {
+func (r *ClickhouseRepository) ExportEvents(ctx context.Context, types string, rcpTo string, page, size int) (res model_util.Page, err error) {
 
 	file, err := os.Create("data.csv")
 	if err != nil {
@@ -503,7 +504,7 @@ func buildCSVRecord(e model.Event) []string {
 	}
 }
 
-func (r *ClickhouseRepository) GetEventsCursor(ctx context.Context, types string, rcpTo string, cursor string, page, size int) (res model.PageCursor, err error) {
+func (r *ClickhouseRepository) GetEventsCursor(ctx context.Context, types string, rcpTo string, cursor string, page, size int) (res model_util.PageCursor, err error) {
 	var events []model.Event
 
 	query := `

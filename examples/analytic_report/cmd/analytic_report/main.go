@@ -10,11 +10,10 @@ import (
 )
 
 func main() {
-    // Initialize Fiber app
-    app := fiber.New()
+	// Initialize Fiber app
+	app := fiber.New()
 
-    // ClickHouse connection setup
-
+	// ClickHouse connection setup
 	conn := clickhouse.Init(
 		"localhost:9000",
 		"default",
@@ -24,21 +23,21 @@ func main() {
 	)
 	defer conn.Close()
 
-    repo := repository.NewTransactionRepository(conn)
-    tc := controller.NewTransactionController(repo)
+	repo := repository.NewTransactionRepository(conn)
+	tc := controller.NewTransactionController(repo)
 
-    // Define routes
-    app.Get("/aggregate-amount", tc.AggregateTotalAmount)
+	// Define routes
+	app.Get("/aggregate-amount", tc.AggregateTotalAmount)
 	app.Get("/count-transactions", tc.CountTransactions)
 	app.Get("/average-transaction-value", tc.AverageTransactionValue)
 	app.Get("/top-users", tc.TopUsers)
-    app.Get("/daily-volume", tc.GetTransactionSummary)
+	app.Get("/daily-volume", tc.GetTransactionSummary)
 	app.Get("/users-x-transactions", tc.GetUsersWithMoreThanXTransactions)
 	app.Get("/purchase-sum", tc.GetSumOfTransactionAmountsPerDay)
 	app.Get("/total-refunds", tc.GetTotalRefundsProcessed)
 	app.Get("/peak-hour", tc.GetPeakHourForTransactions)
 	app.Get("/both-purchases-refunds", tc.GetUsersWithBothPurchasesAndRefunds)
 
-    // Start the server
-    log.Fatal(app.Listen(":3000"))
+	// Start the server
+	log.Fatal(app.Listen(":3000"))
 }
