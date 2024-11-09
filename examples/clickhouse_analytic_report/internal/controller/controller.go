@@ -3,7 +3,7 @@ package controller
 import (
 	"context"
 
-	"github.com/ciazhar/go-start-small/examples/analytic_report/internal/repository"
+	"github.com/ciazhar/go-start-small/examples/clickhouse_analytic_report/internal/repository"
 	"github.com/ciazhar/go-start-small/pkg/logger"
 	"github.com/ciazhar/go-start-small/pkg/response"
 	"github.com/gofiber/fiber/v2"

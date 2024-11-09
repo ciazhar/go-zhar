@@ -6,7 +6,7 @@ import (
 	"time"
 
 	"github.com/ClickHouse/clickhouse-go/v2"
-	"github.com/ciazhar/go-start-small/examples/analytic_report/internal/model"
+	"github.com/ciazhar/go-start-small/examples/clickhouse_analytic_report/internal/model"
 )
 
 type TransactionRepository struct {
@@ -155,7 +155,7 @@ func (r *TransactionRepository) TopUsersByTotalTransactionValue(ctx context.Cont
 
 // GetTransactionSummary fetches the transaction summary from ClickHouse and fills missing dates in the past 30 days.
 func (r *TransactionRepository) GetTransactionSummary(ctx context.Context) ([]model.TransactionSummary, error) {
-    query := `
+	query := `
         SELECT toStartOfDay(Timestamp) AS date,
                SUM(Type = 'Purchase')     AS Purchase,
                SUM(Type = 'Refund')       AS Refund,
@@ -168,62 +168,62 @@ func (r *TransactionRepository) GetTransactionSummary(ctx context.Context) ([]mo
         ORDER BY date;
     `
 
-    rows, err := r.conn.Query(ctx, query)
-    if err != nil {
-        return nil, fmt.Errorf("failed to execute query: %w", err)
-    }
-    defer rows.Close()
+	rows, err := r.conn.Query(ctx, query)
+	if err != nil {
+		return nil, fmt.Errorf("failed to execute query: %w", err)
+	}
+	defer rows.Close()
 
-    var summaries []model.TransactionSummary
-    for rows.Next() {
-        var summary model.TransactionSummary
-        var date time.Time
+	var summaries []model.TransactionSummary
+	for rows.Next() {
+		var summary model.TransactionSummary
+		var date time.Time
 
-        if err := rows.Scan(&date, &summary.Purchase, &summary.Refund, &summary.Subscription, &summary.Cancellation); err != nil {
-            return nil, fmt.Errorf("failed to scan row: %w", err)
-        }
+		if err := rows.Scan(&date, &summary.Purchase, &summary.Refund, &summary.Subscription, &summary.Cancellation); err != nil {
+			return nil, fmt.Errorf("failed to scan row: %w", err)
+		}
 
-        // Ensure the date is in UTC and truncated to midnight (00:00:00 UTC)
-        summary.Date = date.UTC().Truncate(24 * time.Hour)
-        summaries = append(summaries, summary)
-    }
+		// Ensure the date is in UTC and truncated to midnight (00:00:00 UTC)
+		summary.Date = date.UTC().Truncate(24 * time.Hour)
+		summaries = append(summaries, summary)
+	}
 
-    // Generate a full list of dates in time.Time for the last 30 days
-    dates := generateDateRange(30)
+	// Generate a full list of dates in time.Time for the last 30 days
+	dates := generateDateRange(30)
 
-    // Merge the fetched summaries with the full list of dates
-    mergedSummaries := mergeSummaries(dates, summaries)
+	// Merge the fetched summaries with the full list of dates
+	mergedSummaries := mergeSummaries(dates, summaries)
 
-    return mergedSummaries, nil
+	return mergedSummaries, nil
 }
 
 // generateDateRange generates a list of dates (as time.Time) for the past 'days' days.
 func generateDateRange(days int) []time.Time {
-    now := time.Now().UTC().Truncate(24 * time.Hour) // Truncate to midnight UTC
-    dates := make([]time.Time, days)
-    for i := 0; i < days; i++ {
-        date := now.AddDate(0, 0, -i)
-        dates[i] = date
-    }
-    return dates
+	now := time.Now().UTC().Truncate(24 * time.Hour) // Truncate to midnight UTC
+	dates := make([]time.Time, days)
+	for i := 0; i < days; i++ {
+		date := now.AddDate(0, 0, -i)
+		dates[i] = date
+	}
+	return dates
 }
 
 // mergeSummaries fills in missing dates in the transaction summary (dates are in time.Time).
 func mergeSummaries(dates []time.Time, summaries []model.TransactionSummary) []model.TransactionSummary {
-    summaryMap := make(map[time.Time]model.TransactionSummary)
-    for _, s := range summaries {
-        summaryMap[s.Date] = s
-    }
+	summaryMap := make(map[time.Time]model.TransactionSummary)
+	for _, s := range summaries {
+		summaryMap[s.Date] = s
+	}
 
-    result := make([]model.TransactionSummary, len(dates))
-    for i, date := range dates {
-        if summary, exists := summaryMap[date]; exists {
-            result[i] = summary
-        } else {
-            result[i] = model.TransactionSummary{Date: date}
-        }
-    }
-    return result
+	result := make([]model.TransactionSummary, len(dates))
+	for i, date := range dates {
+		if summary, exists := summaryMap[date]; exists {
+			result[i] = summary
+		} else {
+			result[i] = model.TransactionSummary{Date: date}
+		}
+	}
+	return result
 }
 
 func (r *TransactionRepository) GetUsersWithMoreThanXTransactions(ctx context.Context, threshold int) ([]model.User, error) {

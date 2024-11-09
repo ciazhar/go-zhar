@@ -3,8 +3,8 @@ package main
 import (
 	"log"
 
-	"github.com/ciazhar/go-start-small/examples/analytic_report/internal/controller"
-	"github.com/ciazhar/go-start-small/examples/analytic_report/internal/repository"
+	"github.com/ciazhar/go-start-small/examples/clickhouse_analytic_report/internal/controller"
+	"github.com/ciazhar/go-start-small/examples/clickhouse_analytic_report/internal/repository"
 	"github.com/ciazhar/go-start-small/pkg/clickhouse"
 	"github.com/gofiber/fiber/v2"
 )
