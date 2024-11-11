@@ -30,6 +30,26 @@ func CreateAsyncProducer(brokers []string) sarama.AsyncProducer {
 		logger.LogFatal(context.Background(), err, "Failed to create async producer", nil)
 	}
 
+	// Handle async successes and errors in separate goroutines
+	go func() {
+		for success := range producer.Successes() {
+			logger.LogDebug(context.Background(), "Async message sent", map[string]interface{}{
+				"partition": success.Partition,
+				"offset":    success.Offset,
+			})
+		}
+	}()
+
+	go func() {
+		for err := range producer.Errors() {
+			logger.LogDebug(context.Background(), "Async message failed", map[string]interface{}{
+				"partition": err.Msg.Partition,
+				"offset":    err.Msg.Offset,
+				"error":     err.Err.Error(),
+			})
+		}
+	}()
+
 	return producer
 }
 
@@ -54,26 +74,4 @@ func SendAsyncMessageWithKey(producer sarama.AsyncProducer, topic, key, message 
 
 	// Send the message asynchronously
 	producer.Input() <- msg
-}
-
-func HandleAsyncResponse(producer sarama.AsyncProducer) {
-	// Handle async successes and errors in separate goroutines
-	go func() {
-		for success := range producer.Successes() {
-			logger.LogDebug(context.Background(), "Async message sent", map[string]interface{}{
-				"partition": success.Partition,
-				"offset":    success.Offset,
-			})
-		}
-	}()
-
-	go func() {
-		for err := range producer.Errors() {
-			logger.LogDebug(context.Background(), "Async message failed", map[string]interface{}{
-				"partition": err.Msg.Partition,
-				"offset":    err.Msg.Offset,
-				"error":     err.Err.Error(),
-			})
-		}
-	}()
 }

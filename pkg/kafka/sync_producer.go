@@ -38,19 +38,17 @@ func CreateProducer(brokers []string) sarama.SyncProducer {
 }
 
 // Send message using the reusable producer
-func SendMessage(producer sarama.SyncProducer, topic, message string) {
+func SendMessage(producer sarama.SyncProducer, topic, message string) error {
 	msg := &sarama.ProducerMessage{
 		Topic: topic,
 		Value: sarama.StringEncoder(message),
 	}
 
 	_, _, err := producer.SendMessage(msg)
-	if err != nil {
-		logger.LogAndReturnError(context.Background(), err, "Failed to send message", nil)
-	}
+	return err
 }
 
-func SendMessageWithKey(producer sarama.SyncProducer, topic, key, message string) {
+func SendMessageWithKey(producer sarama.SyncProducer, topic, key, message string) error {
 	msg := &sarama.ProducerMessage{
 		Topic: topic,
 		Key:   sarama.StringEncoder(key),
@@ -58,7 +56,5 @@ func SendMessageWithKey(producer sarama.SyncProducer, topic, key, message string
 	}
 
 	_, _, err := producer.SendMessage(msg)
-	if err != nil {
-		logger.LogAndReturnError(context.Background(), err, "Failed to send message", nil)
-	}
+	return err
 }

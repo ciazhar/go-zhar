@@ -2,6 +2,7 @@ package kafka
 
 import (
 	"context"
+	"errors"
 	"fmt"
 
 	"github.com/IBM/sarama"
@@ -20,7 +21,7 @@ func CreateKafkaAdminClient(brokers []string) (sarama.ClusterAdmin, error) {
 }
 
 // CreateKafkaTopic creates a new Kafka topic using an existing admin client.
-func CreateKafkaTopic(admin sarama.ClusterAdmin, topicName string, numPartitions int32, replicationFactor int16, retentionMs int64, config map[string]string) error {
+func CreateKafkaTopic(admin sarama.ClusterAdmin, topicName string, numPartitions int32, replicationFactor int16, retentionMs int64, config map[string]string) {
 	// Prepare topic details
 	topicDetail := sarama.TopicDetail{
 		NumPartitions:     numPartitions,
@@ -37,12 +38,16 @@ func CreateKafkaTopic(admin sarama.ClusterAdmin, topicName string, numPartitions
 	// Create the topic
 	err := admin.CreateTopic(topicName, &topicDetail, false)
 	if err != nil {
-		logger.LogFatal(context.Background(), err, "Failed to create topic", map[string]interface{}{
-			"topic": topicName,
-		})
+		if errors.Is(err, sarama.ErrTopicAlreadyExists) {
+			logger.LogInfo(context.Background(), "Topic already exists", map[string]interface{}{
+				"topic": topicName,
+			})
+		} else {
+			logger.LogFatal(context.Background(), err, "Failed to create topic", map[string]interface{}{
+				"topic": topicName,
+			})
+		}
 	}
-
-	return nil
 }
 
 // Helper function to convert string to *string
