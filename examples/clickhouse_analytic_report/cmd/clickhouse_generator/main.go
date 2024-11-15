@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"fmt"
 	"log"
 	"math/rand"
 	"time"
@@ -34,7 +35,7 @@ func generateTransactions(batchSize int) []Transaction {
 
 // Helper function to generate random UserID
 func generateUserID() string {
-	return "user_" + string('A'+rand.Intn(26)) + string('A'+rand.Intn(26)) + string('0'+rand.Intn(10))
+	return fmt.Sprintf("user_%c%c%d", 'A'+rand.Intn(26), 'A'+rand.Intn(26), rand.Intn(10))
 }
 
 func main() {
