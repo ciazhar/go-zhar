@@ -55,11 +55,9 @@ func TestBasicService(t *testing.T) {
 	basicService.PublishRabbitmq("test_message_1")
 	basicService.PublishTTLRabbitmq("test_message_2")
 
-	select {
-	case <-ctx.Done():
-		if err := rabbitmqContainer.Terminate(context.Background()); err != nil {
-			log.Fatalf("failed to terminate container: %s", err)
-		}
+	<-ctx.Done()
+	if err := rabbitmqContainer.Terminate(context.Background()); err != nil {
+		log.Fatalf("failed to terminate container: %s", err)
 	}
 
 	wg.Wait()
