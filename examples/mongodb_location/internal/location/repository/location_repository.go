@@ -64,7 +64,7 @@ func NewLocationRepository(conn *mongo.Database) *LocationRepository {
 	// Define the index model
 	indexModel := mongo.IndexModel{
 		Keys:    bson.D{{"coordinate", "2dsphere"}},
-		Options: options.Index().SetName("coordinate_2dsphere").SetBackground(true),
+		Options: options.Index().SetName("coordinate_2dsphere"),
 	}
 
 	// Create the index if not exists
