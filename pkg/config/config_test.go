@@ -84,7 +84,6 @@ func TestInitConfigWithConsul(t *testing.T) {
 			}
 			continue // Try again if the first attempt fails
 		}
-		defer consulContainer.Terminate(ctx)
 
 		// Get the host and mapped port for Consul
 		host, err := consulContainer.Host(ctx)
@@ -121,7 +120,6 @@ func TestInitConfigWithConsul(t *testing.T) {
 		if err != nil {
 			t.Fatal("Failed to write config to Consul:", err)
 		}
-		defer resp.Body.Close()
 
 		if resp.StatusCode != http.StatusOK {
 			t.Fatalf("Failed to write config to Consul: status code %d", resp.StatusCode)
@@ -152,6 +150,17 @@ func TestInitConfigWithConsul(t *testing.T) {
 		// Assertions to verify that the settings were loaded correctly
 		assert.Equal(t, "value1", settings["key1"])
 		assert.Equal(t, "value2", settings["key2"])
+
+		err = resp.Body.Close()
+		if err != nil {
+			return
+		}
+
+		err = consulContainer.Terminate(ctx)
+		if err != nil {
+			return
+		}
+
 		return // Exit the loop if the test is successful
 	}
 }
