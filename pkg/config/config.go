@@ -63,15 +63,21 @@ func InitConfig(config Config) {
 
 		// Load configuration from Consul
 		viper.SetConfigType(config.Type)
-		viper.AddRemoteProvider(config.Source, config.Consul.Endpoint, config.Consul.Path)
-		err := viper.ReadRemoteConfig()
+		err := viper.AddRemoteProvider(config.Source, config.Consul.Endpoint, config.Consul.Path)
+		if err != nil {
+			logger.LogFatal(context.Background(), err, "Failed to add remote provider", map[string]interface{}{
+				"endpoint": config.Consul.Endpoint,
+				"path":     config.Consul.Path,
+			})
+		}
+		err = viper.ReadRemoteConfig()
 		if err != nil {
 			logger.LogFatal(context.Background(), err, "Failed to read config from Consul", map[string]interface{}{
 				"endpoint": config.Consul.Endpoint,
 				"path":     config.Consul.Path,
 			})
 		}
-		
+
 	} else {
 		logger.LogFatal(context.Background(), nil, "Invalid config source", map[string]interface{}{
 			"source": config.Source,
