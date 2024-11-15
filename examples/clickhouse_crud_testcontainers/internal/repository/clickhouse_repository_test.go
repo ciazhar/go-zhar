@@ -8,7 +8,6 @@ import (
 	_ "github.com/ClickHouse/clickhouse-go/v2"
 	"github.com/ciazhar/go-start-small/examples/clickhouse_crud_testcontainers/internal/model"
 	"github.com/go-faker/faker/v4"
-	"github.com/testcontainers/testcontainers-go"
 	"github.com/testcontainers/testcontainers-go/modules/clickhouse"
 	"golang.org/x/exp/rand"
 	"log"
@@ -72,8 +71,8 @@ func TestClickHouseRepository(t *testing.T) {
 	password := "default"
 	dbname := "default"
 
-	chContainer, err := clickhouse.RunContainer(ctx,
-		testcontainers.WithImage("clickhouse/clickhouse-server:23.3.8.21-alpine"),
+	chContainer, err := clickhouse.Run(ctx,
+		"clickhouse/clickhouse-server:23.3.8.21-alpine",
 		clickhouse.WithUsername(user),
 		clickhouse.WithPassword(password),
 		clickhouse.WithDatabase(dbname),
