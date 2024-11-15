@@ -6,7 +6,6 @@ import (
 )
 
 type AccidentReportRepository struct {
-	a string
 }
 
 type AccidentReportRepositoryInterface interface {
