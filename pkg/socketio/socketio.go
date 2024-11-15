@@ -1,6 +1,8 @@
 package socketio
 
 import (
+	"context"
+	"github.com/ciazhar/go-start-small/pkg/logger"
 	gosocketio "github.com/graarh/golang-socketio"
 	"github.com/graarh/golang-socketio/transport"
 	"log"
@@ -20,16 +22,22 @@ func Init(funcs ...ChannelHandler) *gosocketio.Server {
 		server = gosocketio.NewServer(transport.GetDefaultWebsocketTransport())
 	})
 
-	server.On(gosocketio.OnConnection, func(c *gosocketio.Channel) {
+	err := server.On(gosocketio.OnConnection, func(c *gosocketio.Channel) {
 		log.Println("New client connected")
 
 		//join them to room
-		c.Join(SocketIORoomName)
+		err := c.Join(SocketIORoomName)
+		if err != nil {
+			logger.LogFatal(context.Background(), err, "failed to join room", nil)
+		}
 
 		for _, fn := range funcs {
 			fn(c)
 		}
 	})
+	if err != nil {
+		logger.LogFatal(context.Background(), err, "failed to initialize socketio", nil)
+	}
 
 	return server
 }
