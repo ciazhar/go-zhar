@@ -3,7 +3,6 @@ package validator
 import (
 	"context"
 	"errors"
-	"fmt"
 	"strings"
 
 	"github.com/ciazhar/go-start-small/pkg/logger"
@@ -75,7 +74,7 @@ func (v Validator) ValidateStruct(s interface{}) error {
 			concatenatedErr.WriteString(message.Translate(v.translator) + separator)
 		}
 
-		return fmt.Errorf(concatenatedErr.String())
+		return errors.New(concatenatedErr.String())
 	}
 	return nil
 }
