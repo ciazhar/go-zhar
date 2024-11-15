@@ -16,21 +16,21 @@ import (
 )
 
 type BenchmarkConfig struct {
-	Brokers        []string
-	Topic          string
-	MessageSize    int
-	MessageCount   int
-	ProducerCount  int
-	ConsumerCount  int
-	ConsumerGroup  string
-	RunDuration    time.Duration
-	IsRedPanda     bool
+	Brokers       []string
+	Topic         string
+	MessageSize   int
+	MessageCount  int
+	ProducerCount int
+	ConsumerCount int
+	ConsumerGroup string
+	RunDuration   time.Duration
+	IsRedPanda    bool
 }
 
 type BenchmarkResults struct {
-	MessagesProduced uint64
-	MessagesConsumed uint64
-	Duration         time.Duration
+	MessagesProduced   uint64
+	MessagesConsumed   uint64
+	Duration           time.Duration
 	ProducerThroughput float64
 	ConsumerThroughput float64
 	AverageLatency     time.Duration
@@ -85,7 +85,7 @@ func runBenchmark(config BenchmarkConfig) BenchmarkResults {
 	kafkaConfig.Producer.Return.Successes = true
 	kafkaConfig.Producer.RequiredAcks = sarama.WaitForAll
 	kafkaConfig.Producer.Retry.Max = 5
-	
+
 	if config.IsRedPanda {
 		// Redpanda-specific optimizations
 		kafkaConfig.Net.MaxOpenRequests = 1
@@ -115,16 +115,16 @@ func runBenchmark(config BenchmarkConfig) BenchmarkResults {
 					return
 				default:
 					msg := &sarama.ProducerMessage{
-						Topic: config.Topic,
-						Value: sarama.ByteEncoder(message),
+						Topic:     config.Topic,
+						Value:     sarama.ByteEncoder(message),
 						Timestamp: time.Now(),
 					}
-					
+
 					if _, _, err := producer.SendMessage(msg); err != nil {
 						log.Printf("Failed to send message: %v", err)
 						continue
 					}
-					
+
 					atomic.AddUint64(&messagesProduced, 1)
 				}
 			}
@@ -133,14 +133,14 @@ func runBenchmark(config BenchmarkConfig) BenchmarkResults {
 
 	// Start consumers
 	consumerConfig := sarama.NewConfig()
-	consumerConfig.Consumer.Group.Rebalance.Strategy = sarama.BalanceStrategyRoundRobin
+	consumerConfig.Consumer.Group.Rebalance.GroupStrategies = []sarama.BalanceStrategy{sarama.NewBalanceStrategyRoundRobin()}
 	consumerConfig.Consumer.Offsets.Initial = sarama.OffsetNewest
 
 	for i := 0; i < config.ConsumerCount; i++ {
 		wg.Add(1)
 		go func(consumerID int) {
 			defer wg.Done()
-			
+
 			group, err := sarama.NewConsumerGroup(config.Brokers, config.ConsumerGroup, consumerConfig)
 			if err != nil {
 				log.Printf("Failed to create consumer %d: %v", consumerID, err)
@@ -176,9 +176,9 @@ func runBenchmark(config BenchmarkConfig) BenchmarkResults {
 	duration := time.Since(startTime)
 
 	return BenchmarkResults{
-		MessagesProduced:    messagesProduced,
-		MessagesConsumed:    messagesConsumed,
-		Duration:            duration,
+		MessagesProduced:   messagesProduced,
+		MessagesConsumed:   messagesConsumed,
+		Duration:           duration,
 		ProducerThroughput: float64(messagesProduced) / duration.Seconds(),
 		ConsumerThroughput: float64(messagesConsumed) / duration.Seconds(),
 	}
