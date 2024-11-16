@@ -1,0 +1,69 @@
+<?xml version="1.0"?>
+<yandex>
+    <!-- Server configuration -->
+
+    <!-- TCP port for client connections -->
+    <tcp_port>9000</tcp_port>
+
+    <!-- HTTP port for HTTP client connections -->
+    <http_port>8123</http_port>
+
+    <!-- Inter-server HTTP port for internal communication between nodes -->
+    <interserver_http_port>9009</interserver_http_port>
+
+    <!-- Path to store data -->
+    <path>/var/lib/clickhouse/</path>
+
+    <!-- Path to store temporary data -->
+    <tmp_path>/var/lib/clickhouse/tmp/</tmp_path>
+
+    <!-- Path to store metadata of databases and tables -->
+    <metadata_path>/var/lib/clickhouse/metadata/</metadata_path>
+
+    <!-- System logs directory -->
+    <logger>
+        <log>/var/log/clickhouse-server/clickhouse-server.log</log>
+        <errorlog>/var/log/clickhouse-server/clickhouse-server.err.log</errorlog>
+        <size>1000M</size>
+        <count>10</count>
+    </logger>
+
+    <!-- Settings related to memory, cache, limits, etc. -->
+    <max_connections>1024</max_connections>
+    <keep_alive_timeout>3</keep_alive_timeout>
+    <max_concurrent_queries>100</max_concurrent_queries>
+
+    <!-- Limits the number of concurrent queries for a single user -->
+    <max_concurrent_queries_for_user>10</max_concurrent_queries_for_user>
+
+    <!-- Allows fine-tuning of user access rights and profiles -->
+    <users_config>/etc/clickhouse-server/users.xml</users_config>
+
+    <!-- Default compression and storage format settings -->
+    <compression>
+        <case>
+            <min_part_size>10000000</min_part_size>
+            <min_part_size_ratio>0.01</min_part_size_ratio>
+            <method>lz4</method>
+        </case>
+    </compression>
+
+    <!-- Network throttling settings, can be useful in distributed setups -->
+    <network_compression_method>lz4</network_compression_method>
+
+    <!-- Defines clusters, used for distributed table configurations -->
+    <remote_servers>/etc/clickhouse-server/clusters.xml</remote_servers>
+
+    <!-- Default profiles, quotas, and users defined in separate files -->
+    <profiles>/etc/clickhouse-server/profiles.xml</profiles>
+    <quotas>/etc/clickhouse-server/quotas.xml</quotas>
+
+    <!-- Kafka settings -->
+    <kafka>
+        <sasl_username>username</sasl_username>
+        <sasl_password>password</sasl_password>
+        <security_protocol>sasl_ssl</security_protocol>
+        <sasl_mechanisms>PLAIN</sasl_mechanisms>
+    </kafka>
+
+</yandex>
