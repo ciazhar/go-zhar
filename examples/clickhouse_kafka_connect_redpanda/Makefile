@@ -23,13 +23,14 @@ create-topic:
 # Create the ClickHouse Sink Connector
 create-connector:
 	@echo "Creating ClickHouse Sink Connector..."
-	curl -X POST http://$(CONNECT_HOST):$(CONNECT_PORT)/connectors \
+	@curl -X POST http://$(CONNECT_HOST):$(CONNECT_PORT)/connectors \
 		-H "Content-Type: application/json" \
-		--data '{"name":"$(CONNECTOR_NAME)", \
+		--data '{ \
+			"name": "$(CONNECTOR_NAME)", \
 			"config": { \
 				"connector.class": "com.clickhouse.kafka.connect.ClickHouseSinkConnector", \
 				"topics": "$(KAFKA_TOPIC)", \
-				"hostname": "$(KAFKA_TOPIC)", \
+				"hostname": "$(CLICKHOUSE_HOST)", \
 				"port": "$(CLICKHOUSE_PORT)", \
 				"clickhouse.database": "$(CLICKHOUSE_DB)", \
 				"clickhouse.table": "$(CLICKHOUSE_TABLE)", \
