@@ -49,7 +49,7 @@ func main() {
 
 	// Output workflow results
 	//log.Printf("Started workflow with ID %s and Run ID %s\n", we.GetID(), we.GetRunID())
-	log.Printf("Workflow result: %s", result.Itinerary)
+	log.Printf("Workflow ID: %s, result: %s", workflowId, result.Itinerary)
 }
 
 // ExecuteWorkflowWithResult executes a workflow with a unified input struct and returns the result
