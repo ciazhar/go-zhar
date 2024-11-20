@@ -8,7 +8,7 @@ import (
 )
 
 // TripPlannerWorkflow orchestrates fetching data and generating an itinerary
-func TripPlannerWorkflow(ctx workflow.Context, destination string, date string, userPreferences model.UserPreferences) (string, error) {
+func TripPlannerWorkflow(ctx workflow.Context, request model.TripPlannerWorkflowRequest) (model.TripPlannerWorkflowResponse, error) {
 	ao := temporal.GetDefaultActivityOptions()
 	ctx = workflow.WithActivityOptions(ctx, ao)
 
@@ -17,11 +17,11 @@ func TripPlannerWorkflow(ctx workflow.Context, destination string, date string, 
 		model.FetchFlightInfoRequest,
 		model.FetchFlightInfoResponse,
 	](ctx, activities.FetchFlightInfo, model.FetchFlightInfoRequest{
-		Destination: destination,
-		Date:        date,
+		Destination: request.Destination,
+		Date:        request.Date,
 	})
 	if err != nil {
-		return "", err
+		return model.TripPlannerWorkflowResponse{}, err
 	}
 
 	// Step 2: Fetch places to visit
@@ -29,10 +29,10 @@ func TripPlannerWorkflow(ctx workflow.Context, destination string, date string, 
 		model.FetchPlacesInfoRequest,
 		[]model.FetchPlacesInfoResponse,
 	](ctx, activities.FetchPlacesInfo, model.FetchPlacesInfoRequest{
-		Destination: destination,
+		Destination: request.Destination,
 	})
 	if err != nil {
-		return "", err
+		return model.TripPlannerWorkflowResponse{}, err
 	}
 
 	// Step 3: Fetch reviews and activities
@@ -40,10 +40,10 @@ func TripPlannerWorkflow(ctx workflow.Context, destination string, date string, 
 		model.FetchReviewsAndActivitiesRequest,
 		[]model.FetchReviewsAndActivitiesResponse,
 	](ctx, activities.FetchReviewsAndActivities, model.FetchReviewsAndActivitiesRequest{
-		Destination: destination,
+		Destination: request.Destination,
 	})
 	if err != nil {
-		return "", err
+		return model.TripPlannerWorkflowResponse{}, err
 	}
 
 	// Step 4: Generate itinerary using ChatGPT
@@ -51,17 +51,19 @@ func TripPlannerWorkflow(ctx workflow.Context, destination string, date string, 
 		model.GenerateItineraryWithChatGPTRequest,
 		model.GenerateItineraryWithChatGPTResponse,
 	](ctx, activities.GenerateItineraryWithChatGPT, model.GenerateItineraryWithChatGPTRequest{
-		UserPreferences: userPreferences,
+		UserPreferences: request.UserPreferences,
 		FlightInfo:      flightInfo,
 		Places:          places,
 		Activities:      activitiesList,
 	})
 	if err != nil {
-		return "", err
+		return model.TripPlannerWorkflowResponse{}, err
 	}
 
 	// Return final itinerary
-	return itinerary.Itinerary, nil
+	return model.TripPlannerWorkflowResponse{
+		Itinerary: itinerary.Itinerary,
+	}, nil
 }
 
 func ExecuteActivity[I any, R any](ctx workflow.Context, activityFunc interface{}, input I) (R, error) {
