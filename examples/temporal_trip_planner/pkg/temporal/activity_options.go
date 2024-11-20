@@ -21,10 +21,3 @@ func GetDefaultActivityOptions() workflow.ActivityOptions {
 
 	return options
 }
-
-//
-//func ExecuteActivity[I any, R any](ctx workflow.Context, activityFunc interface{}, input I) (R, error) {
-//	var res R
-//	err := workflow.ExecuteActivity(ctx, activityFunc, input).Get(ctx, &res)
-//	return res, err
-//}
