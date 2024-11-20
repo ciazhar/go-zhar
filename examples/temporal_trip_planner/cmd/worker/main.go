@@ -2,6 +2,7 @@ package main
 
 import (
 	"github.com/ciazhar/go-start-small/examples/temporal_trip_planner/internal/activities"
+	"github.com/ciazhar/go-start-small/examples/temporal_trip_planner/internal/model"
 	"github.com/ciazhar/go-start-small/examples/temporal_trip_planner/internal/workflows"
 	"log"
 
@@ -18,7 +19,7 @@ func main() {
 	defer c.Close()
 
 	// Register worker
-	w := worker.New(c, "TripPlannerTaskQueue", worker.Options{})
+	w := worker.New(c, model.TripPlannerWorkflowQueue, worker.Options{})
 	w.RegisterWorkflow(workflows.TripPlannerWorkflow)
 	w.RegisterActivity(activities.FetchFlightInfo)
 	w.RegisterActivity(activities.FetchPlacesInfo)
