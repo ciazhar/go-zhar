@@ -22,7 +22,7 @@ func (p *PersonRepository) Delete(ctx context.Context, id string) (err error) {
 		return
 	}
 
-	_, err = p.c.DeleteOne(ctx, bson.D{{"_id", hex}})
+	_, err = p.c.DeleteOne(ctx, bson.D{{Key: "_id", Value: hex}})
 	return
 }
 
@@ -33,7 +33,7 @@ func (p *PersonRepository) Update(ctx context.Context, id string, person model.U
 		return
 	}
 
-	_, err = p.c.UpdateOne(ctx, bson.D{{"_id", hex}}, bson.D{{"$set", person}})
+	_, err = p.c.UpdateOne(ctx, bson.D{{Key: "_id", Value: hex}}, bson.D{{Key: "$set", Value: person}})
 	return
 }
 
@@ -60,7 +60,7 @@ func (p *PersonRepository) FindHobby(ctx context.Context, hobby []string) (res [
 
 	filter := bson.D{}
 	if len(hobby) != 0 {
-		filter = append(filter, bson.E{Key: "hobbies", Value: bson.D{{"$in", hobby}}})
+		filter = append(filter, bson.E{Key: "hobbies", Value: bson.D{{Key: "$in", Value: hobby}}})
 	}
 	cursor, err := p.c.Find(ctx, filter)
 	if err != nil {
@@ -76,10 +76,10 @@ func (p *PersonRepository) FindAgeRange(ctx context.Context, min int, max int) (
 
 	filter := bson.D{}
 	if min != 0 {
-		filter = append(filter, bson.E{Key: "age", Value: bson.D{{"$gte", min}}})
+		filter = append(filter, bson.E{Key: "age", Value: bson.D{{Key: "$gte", Value: min}}})
 	}
 	if max != 0 {
-		filter = append(filter, bson.E{Key: "age", Value: bson.D{{"$lte", max}}})
+		filter = append(filter, bson.E{Key: "age", Value: bson.D{{Key: "$lte", Value: max}}})
 	}
 	cursor, err := p.c.Find(ctx, filter)
 	if err != nil {
