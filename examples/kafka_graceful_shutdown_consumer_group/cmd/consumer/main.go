@@ -3,7 +3,7 @@ package main
 import (
 	"context"
 	"flag"
-	"github.com/ciazhar/go-start-small/examples/kafka_producer_consumer_graceful_shutdown/internal/event"
+	"github.com/ciazhar/go-start-small/examples/kafka_graceful_shutdown_consumer_group/internal/event"
 	"github.com/ciazhar/go-start-small/pkg/config"
 	"github.com/ciazhar/go-start-small/pkg/logger"
 	"os"

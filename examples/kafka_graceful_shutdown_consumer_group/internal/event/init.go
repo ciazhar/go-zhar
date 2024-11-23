@@ -2,7 +2,7 @@ package event
 
 import (
 	"context"
-	"github.com/ciazhar/go-start-small/examples/kafka_producer_consumer_graceful_shutdown/internal/event/service"
+	"github.com/ciazhar/go-start-small/examples/kafka_graceful_shutdown_consumer_group/internal/event/service"
 	"github.com/ciazhar/go-start-small/pkg/kafka"
 	"github.com/spf13/viper"
 	"sync"

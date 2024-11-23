@@ -3,7 +3,7 @@ package main
 import (
 	"encoding/json"
 	"flag"
-	"github.com/ciazhar/go-start-small/examples/kafka_producer_consumer_graceful_shutdown/internal/event/model"
+	"github.com/ciazhar/go-start-small/examples/kafka_graceful_shutdown_consumer_group/internal/event/model"
 	"github.com/ciazhar/go-start-small/pkg/config"
 	"github.com/ciazhar/go-start-small/pkg/kafka"
 	"github.com/ciazhar/go-start-small/pkg/logger"
