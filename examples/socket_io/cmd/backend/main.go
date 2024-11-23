@@ -73,7 +73,7 @@ func main() {
 		w.WriteHeader(http.StatusOK)
 	})
 
-	r.HandleFunc("/socket.io/", socketio.Init(bloodService.ListenLatestBlood).ServeHTTP)
+	r.HandleFunc("/socket.io/", socketio.Init(model.RoomName, bloodService.ListenLatestBlood).ServeHTTP)
 
 	// Create server
 	srv := &http.Server{

@@ -12,9 +12,7 @@ import (
 // ChannelHandler Define the function type that accepts *gosocketio.Channel as a parameter
 type ChannelHandler func(c *gosocketio.Channel)
 
-const SocketIORoomName = "digisar"
-
-func Init(funcs ...ChannelHandler) *gosocketio.Server {
+func Init(roomName string, funcs ...ChannelHandler) *gosocketio.Server {
 	var once sync.Once
 	var server *gosocketio.Server
 
@@ -26,7 +24,7 @@ func Init(funcs ...ChannelHandler) *gosocketio.Server {
 		log.Println("New client connected")
 
 		//join them to room
-		err := c.Join(SocketIORoomName)
+		err := c.Join(roomName)
 		if err != nil {
 			logger.LogFatal(context.Background(), err, "failed to join room", nil)
 		}
