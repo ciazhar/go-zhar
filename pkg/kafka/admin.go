@@ -10,14 +10,14 @@ import (
 )
 
 // CreateKafkaAdminClient creates and returns a single Kafka admin client.
-func CreateKafkaAdminClient(brokers []string) (sarama.ClusterAdmin, error) {
+func CreateKafkaAdminClient(brokers []string) sarama.ClusterAdmin {
 	configSarama := sarama.NewConfig()
 
 	admin, err := sarama.NewClusterAdmin(brokers, configSarama)
 	if err != nil {
 		logger.LogFatal(context.Background(), err, "Failed to create Kafka admin client", nil)
 	}
-	return admin, nil
+	return admin
 }
 
 // CreateKafkaTopic creates a new Kafka topic using an existing admin client.
