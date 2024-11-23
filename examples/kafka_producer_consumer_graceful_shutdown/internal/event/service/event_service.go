@@ -4,7 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"github.com/IBM/sarama"
-	"github.com/ciazhar/go-start-small/examples/kafka_producer_consumer_gracefull_shutdown/internal/event/model"
+	"github.com/ciazhar/go-start-small/examples/kafka_producer_consumer_graceful_shutdown/internal/event/model"
 	"github.com/ciazhar/go-start-small/pkg/logger"
 )
 
