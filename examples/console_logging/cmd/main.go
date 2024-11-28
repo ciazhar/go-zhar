@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"errors"
+	"fmt"
 
 	"github.com/ciazhar/go-start-small/pkg/context_util"
 	"github.com/ciazhar/go-start-small/pkg/logger"
@@ -10,29 +11,53 @@ import (
 )
 
 func main() {
-	// Initialize logger
-	testConfig := logger.LogConfig{
+	// Initialize the logger
+	logConfig := logger.LogConfig{
 		ConsoleOutput: true,
 		LogLevel:      "debug",
 	}
-	logger.InitLogger(testConfig)
+	logger.InitLogger(logConfig)
 
-	// Create a context with a request ID
+	// Simulate a login request with a unique request ID
 	ctx := context.WithValue(context.Background(), context_util.RequestIDKey, uuid.New().String())
 
-	// Log different levels of messages
-	logger.LogInfo(ctx, "This is an info message", map[string]interface{}{"key": "value"})
-	logger.LogDebug(ctx, "This is a debug message", map[string]interface{}{"debug_key": "debug_value"})
+	// Mock user credentials
+	username := "testuser"
+	password := "wrongpassword"
 
-	// Log and return an error
-	err := logger.LogAndReturnError(ctx, errors.New("example error"), "An error occurred", map[string]interface{}{"error_key": "error_value"})
-	if err != nil {
-		// Handle the error
+	// Call the login function
+	if err := login(ctx, username, password); err != nil {
+		fmt.Println("Login process completed with errors.")
+	} else {
+		fmt.Println("Login successful.")
+	}
+}
+
+// Mock database of users
+var mockUserDB = map[string]string{
+	"testuser": "password123",
+}
+
+// login simulates a login process with logging for different scenarios
+func login(ctx context.Context, username, password string) error {
+	// Log the start of the login process
+	logger.LogInfo(ctx, "Starting login process", map[string]interface{}{"username": username})
+
+	// Simulate user lookup
+	storedPassword, userExists := mockUserDB[username]
+	if !userExists {
+		// Log and return a warning for unknown username
+		return logger.LogAndReturnWarning(ctx, errors.New("user not found"), "Invalid login attempt: user does not exist", map[string]interface{}{"username": username})
 	}
 
-	// Log and return a warning
-	warning := logger.LogAndReturnWarning(ctx, errors.New("example warning"), "A warning occurred", map[string]interface{}{"warning_key": "warning_value"})
-	if warning != nil {
-		// Handle the warning
+	// Simulate password validation
+	if password != storedPassword {
+		// Log and return a warning for incorrect password
+		return logger.LogAndReturnWarning(ctx, errors.New("invalid credentials"), "Invalid login attempt: incorrect password", map[string]interface{}{"username": username})
 	}
+
+	// Log successful login
+	logger.LogInfo(ctx, "User successfully logged in", map[string]interface{}{"username": username})
+
+	return nil
 }
