@@ -17,7 +17,7 @@ func Init(ctx context.Context, router fiber.Router, mq *rabbitmq.RabbitMQ, wg *s
 
 	s.StartRabbitConsumer()
 
-	r := router.Group("/basic")
-	r.Post("/", c.Publish)
-	r.Post("/ttl", c.PublishTTL)
+	r := router.Group("/notification")
+	r.Post("/order-status", c.UpdateOrderStatus)
+	r.Post("/payment-reminder", c.SendPaymentReminder)
 }

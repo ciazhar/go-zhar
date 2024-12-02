@@ -69,7 +69,8 @@ func main() {
 		viper.GetString("rabbitmq.host"),
 		viper.GetString("rabbitmq.port"),
 	)
-	ra.CreateQueue(model.QueueBasic)
+	ra.CreateQueue(model.OrderStatusQueue)
+	ra.CreateQueue(model.PaymentReminderQueue)
 	defer ra.Close()
 
 	// Fiber configuration

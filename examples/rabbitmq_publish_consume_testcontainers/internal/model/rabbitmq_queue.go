@@ -1,5 +1,6 @@
 package model
 
 const (
-	QueueBasic = "queue_basic"
+	OrderStatusQueue     = "order_status_queue"
+	PaymentReminderQueue = "payment_reminder_queue"
 )

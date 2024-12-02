@@ -42,7 +42,8 @@ func TestBasicService(t *testing.T) {
 	rabbitMQClient := rabbitmq2.New("test-connection", "guest", "guest", host, port.Port())
 
 	// Create queue
-	rabbitMQClient.CreateQueue(model.QueueBasic)
+	rabbitMQClient.CreateQueue(model.OrderStatusQueue)
+	rabbitMQClient.CreateQueue(model.PaymentReminderQueue)
 
 	// Initialize BasicService
 	wg := &sync.WaitGroup{}
@@ -52,8 +53,8 @@ func TestBasicService(t *testing.T) {
 	basicService.StartRabbitConsumer()
 
 	// Publish messages to RabbitMQ
-	basicService.PublishRabbitmq("test_message_1")
-	basicService.PublishTTLRabbitmq("test_message_2")
+	basicService.PublishRabbitmq(`{"order_id": "12345","status": "Order Shipped"}`)
+	basicService.PublishTTLRabbitmq(`{"order_id": "12345","reminder": "Please complete your payment within 10 minutes."}`)
 
 	<-ctx.Done()
 	if err := rabbitmqContainer.Terminate(context.Background()); err != nil {

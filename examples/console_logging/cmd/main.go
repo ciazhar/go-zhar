@@ -23,7 +23,7 @@ func main() {
 
 	// Mock user credentials
 	username := "testuser"
-	password := "wrongpassword"
+	password := "password123"
 
 	// Call the login function
 	if err := login(ctx, username, password); err != nil {

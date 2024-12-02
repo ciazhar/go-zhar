@@ -150,7 +150,7 @@ func (r *RabbitMQ) ConsumeMessages(ctx context.Context, queueName string, handle
 		)
 		if err != nil {
 			logger.LogFatal(context.Background(), err, "Failed to register consumer", map[string]interface{}{
-				"queue": queueName,
+				"queue":   queueName,
 				"attempt": i + 1,
 			})
 			time.Sleep(retryDelay)
