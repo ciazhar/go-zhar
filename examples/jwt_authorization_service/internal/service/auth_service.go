@@ -49,7 +49,7 @@ func (s *AuthService) RegisterUser(ctx context.Context, user model.User) error {
 	defer tx.Rollback(ctx)
 
 	// Proceed with inserting the user and other operations
-	err = s.userPGRepo.Insert(ctx, user)
+	err = s.userPGRepo.Insert(ctx, tx, user)
 	if err != nil {
 		return logger.LogAndReturnError(ctx, err, "could not insert user", nil)
 	}
