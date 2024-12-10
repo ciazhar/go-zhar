@@ -50,11 +50,13 @@ func (s *OrderService) GetOrderByOrderID(ctx context.Context, orderId string, pa
 	)
 	defer span.End()
 
+	span.AddEvent("Getting order from repository")
 	order, err := s.orderRepository.GetOrderByOrderID(ctx, orderId, span)
 	if err != nil {
 		return nil, err
 	}
 
+	span.AddEvent("Getting user from repository")
 	user, err := s.userHTTPRepository.GetUserByUsername(ctx, span, order.Username)
 	if err != nil {
 		return nil, err
