@@ -5,6 +5,7 @@ services:
     container_name: zookeeper
     environment:
       ZOOKEEPER_CLIENT_PORT: 2181
+
   kafka1:
     image: confluentinc/cp-kafka:7.2.2
     container_name: kafka1
@@ -18,6 +19,7 @@ services:
       KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: EXTERNAL:PLAINTEXT,INTERNAL:PLAINTEXT
       KAFKA_ADVERTISED_LISTENERS: EXTERNAL://localhost:8097,INTERNAL://kafka1:9092
       KAFKA_INTER_BROKER_LISTENER_NAME: INTERNAL
+
   kafka2:
     image: confluentinc/cp-kafka:7.2.2
     container_name: kafka2
@@ -31,6 +33,7 @@ services:
       KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: EXTERNAL:PLAINTEXT,INTERNAL:PLAINTEXT
       KAFKA_ADVERTISED_LISTENERS: EXTERNAL://localhost:8098,INTERNAL://kafka2:9092
       KAFKA_INTER_BROKER_LISTENER_NAME: INTERNAL
+
   kafka3:
     image: confluentinc/cp-kafka:7.2.2
     container_name: kafka3
@@ -44,3 +47,18 @@ services:
       KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: EXTERNAL:PLAINTEXT,INTERNAL:PLAINTEXT
       KAFKA_ADVERTISED_LISTENERS: EXTERNAL://localhost:8099,INTERNAL://kafka3:9092
       KAFKA_INTER_BROKER_LISTENER_NAME: INTERNAL
+
+  kafdrop:
+    image: obsidiandynamics/kafdrop:latest
+    container_name: kafdrop
+    ports:
+      - "9000:9000"
+    depends_on:
+      - kafka1
+      - kafka2
+      - kafka3
+    environment:
+      KAFKA_BROKERCONNECT: "kafka1:9092,kafka2:9092,kafka3:9092"
+      SERVER_PORT: 9000
+    command:
+      ["--schemaregistry.connect=", "--topics.config=", "--consumer.limit="]
