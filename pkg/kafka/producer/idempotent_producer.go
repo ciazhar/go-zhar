@@ -1,6 +1,9 @@
 package producer
 
-import "github.com/IBM/sarama"
+import (
+	"encoding/json"
+	"github.com/IBM/sarama"
+)
 
 // IdempotentProducer IDEMPOTENT PRODUCER
 // Pros: Exactly-once delivery semantics
@@ -22,4 +25,23 @@ func NewIdempotentProducer(brokerList []string) (*IdempotentProducer, error) {
 	}
 
 	return &IdempotentProducer{producer: producer}, nil
+}
+
+func (p *IdempotentProducer) SendMessage(topic, key string, value any) (partition int32, offset int64, err error) {
+
+	marshal, err := json.Marshal(value)
+	if err != nil {
+		return 0, 0, err
+	}
+
+	msg := &sarama.ProducerMessage{
+		Topic: topic,
+		Value: sarama.StringEncoder(marshal), // use string encoder for text and json data, for binary data use byte encoder
+	}
+
+	if key != "" {
+		msg.Key = sarama.StringEncoder(key)
+	}
+
+	return p.producer.SendMessage(msg)
 }

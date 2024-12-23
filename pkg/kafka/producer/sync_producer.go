@@ -1,6 +1,9 @@
 package producer
 
-import "github.com/IBM/sarama"
+import (
+	"encoding/json"
+	"github.com/IBM/sarama"
+)
 
 // SyncProducer SYNCHRONOUS PRODUCER
 // Pros: Simple to use, immediate feedback on success/failure
@@ -9,11 +12,11 @@ type SyncProducer struct {
 	producer sarama.SyncProducer
 }
 
-func NewSyncProducer(brokerList []string) (*SyncProducer, error) {
+func NewSyncProducer(brokerList []string, maxRetry int) (*SyncProducer, error) {
 	config := sarama.NewConfig()
 	config.Producer.Return.Successes = true
 	config.Producer.RequiredAcks = sarama.WaitForAll
-	config.Producer.Retry.Max = 5
+	config.Producer.Retry.Max = maxRetry
 
 	producer, err := sarama.NewSyncProducer(brokerList, config)
 	if err != nil {
@@ -23,11 +26,20 @@ func NewSyncProducer(brokerList []string) (*SyncProducer, error) {
 	return &SyncProducer{producer: producer}, nil
 }
 
-func (p *SyncProducer) SendMessage(topic, key, value string) (partition int32, offset int64, err error) {
+func (p *SyncProducer) SendMessage(topic, key string, value any) (partition int32, offset int64, err error) {
+
+	marshal, err := json.Marshal(value)
+	if err != nil {
+		return 0, 0, err
+	}
+
 	msg := &sarama.ProducerMessage{
 		Topic: topic,
-		Key:   sarama.StringEncoder(key),
-		Value: sarama.StringEncoder(value),
+		Value: sarama.StringEncoder(marshal), // use string encoder for text and json data, for binary data use byte encoder
+	}
+
+	if key != "" {
+		msg.Key = sarama.StringEncoder(key)
 	}
 
 	return p.producer.SendMessage(msg)
