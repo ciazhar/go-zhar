@@ -2,8 +2,8 @@ package main
 
 import (
 	"flag"
-	"github.com/ciazhar/go-start-small/examples/redis-cache-for-every-data-structure/internal/controller"
-	"github.com/ciazhar/go-start-small/examples/redis-cache-for-every-data-structure/internal/repository"
+	"github.com/ciazhar/go-start-small/examples/redis_caching_for_every_data_structure/internal/controller"
+	"github.com/ciazhar/go-start-small/examples/redis_caching_for_every_data_structure/internal/repository"
 	"github.com/ciazhar/go-start-small/pkg/config"
 	"github.com/ciazhar/go-start-small/pkg/logger"
 	"github.com/ciazhar/go-start-small/pkg/redis"

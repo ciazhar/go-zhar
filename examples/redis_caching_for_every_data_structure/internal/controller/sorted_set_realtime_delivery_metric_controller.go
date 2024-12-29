@@ -2,7 +2,7 @@ package controller
 
 import (
 	"context"
-	"github.com/ciazhar/go-start-small/examples/redis-cache-for-every-data-structure/internal/repository"
+	"github.com/ciazhar/go-start-small/examples/redis_caching_for_every_data_structure/internal/repository"
 	"net/http"
 
 	"github.com/gofiber/fiber/v2"
