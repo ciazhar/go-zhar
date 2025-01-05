@@ -32,7 +32,7 @@ func (r *PgxOrderRepository) Create(ctx context.Context, tx pgx.Tx, customerName
 	if err != nil {
 		return orderID, fmt.Errorf("failed to create order: %w", err)
 	}
-	return 0, nil
+	return orderID, nil
 }
 
 func (r *PgxOrderRepository) BeginTransaction(ctx context.Context) (pgx.Tx, error) {
