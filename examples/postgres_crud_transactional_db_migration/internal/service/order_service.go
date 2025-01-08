@@ -2,80 +2,94 @@ package service
 
 import (
 	"context"
+	"errors"
 	"github.com/ciazhar/go-start-small/examples/postgres_crud_transactional_db_migration/internal/model"
 	"github.com/ciazhar/go-start-small/examples/postgres_crud_transactional_db_migration/internal/repository"
 )
 
 type OrderServiceInterface interface {
-	CreateOrder(ctx context.Context, request model.OrderRequest) error
-	GetAllOrders(ctx context.Context) ([]model.Order, error)
-	GetOrder(ctx context.Context, orderID int) (*model.Order, error)
-	Delete(ctx context.Context, orderID int) error
+	PlaceOrder(ctx context.Context, customerID int, items []model.OrderItem) (int, error)
+	ProcessPayment(ctx context.Context, orderID int, method string, amount float64) error
+	ShipOrder(ctx context.Context, orderID int, trackingNumber, carrier string) error
+	MarkOrderDelivered(ctx context.Context, orderID int) error
 }
 
 type OrderService struct {
-	orderRepository     repository.OrderRepository
-	inventoryRepository repository.InventoryRepository
-	paymentRepository   repository.PaymentRepository
+	orderRepository    *repository.PgxOrderRepository
+	productRepository  *repository.PgxProductRepository
+	paymentRepository  *repository.PgxPaymentRepository
+	shipmentRepository *repository.PgxShipmentRepository
 }
 
 func NewOrderService(
-	orderRepository repository.OrderRepository,
-	inventoryRepository repository.InventoryRepository,
-	paymentRepository repository.PaymentRepository,
+	orderRepository *repository.PgxOrderRepository,
+	productRepository *repository.PgxProductRepository,
+	paymentRepository *repository.PgxPaymentRepository,
+	shipmentRepository *repository.PgxShipmentRepository,
 ) *OrderService {
 	return &OrderService{
-		orderRepository:     orderRepository,
-		inventoryRepository: inventoryRepository,
-		paymentRepository:   paymentRepository,
+		orderRepository:    orderRepository,
+		productRepository:  productRepository,
+		paymentRepository:  paymentRepository,
+		shipmentRepository: shipmentRepository,
 	}
 }
 
-func (s *OrderService) CreateOrder(ctx context.Context, request model.OrderRequest) error {
+func (s *OrderService) PlaceOrder(ctx context.Context, customerID int, items []model.OrderItem) (int, error) {
 
 	tx, err := s.orderRepository.BeginTransaction(ctx)
 	if err != nil {
-		return err
+		return 0, err
 	}
 	defer tx.Rollback(ctx)
 
-	// Step 1: Insert Order
-	orderID, err := s.orderRepository.Create(ctx, tx, request.CustomerName)
+	// Create order
+	orderID, err := s.orderRepository.CreateOrder(ctx, tx, customerID, "Pending")
 	if err != nil {
-		return err
+		return 0, err
 	}
 
-	// Step 2: Update Inventory
-	for _, quantity := range request.Items {
-		err = s.inventoryRepository.Update(ctx, tx, quantity.Quantity, quantity.ProductID)
+	var totalAmount float64
+	for _, item := range items {
+
+		product, err := s.productRepository.GetProductByID(ctx, tx, item.ProductID)
 		if err != nil {
-			return err
+			return 0, err
+		}
+
+		if product.Stock < item.Quantity {
+			return 0, errors.New("insufficient stock")
+		}
+
+		totalPrice := float64(item.Quantity) * item.Price
+		err = s.orderRepository.AddOrderItem(ctx, tx, orderID, item.ProductID, item.Quantity, item.Price, totalPrice)
+		if err != nil {
+			return 0, err
+		}
+		totalAmount += totalPrice
+
+		// Adjust stock
+		err = s.productRepository.AdjustStock(ctx, tx, item.ProductID, -item.Quantity)
+		if err != nil {
+			return 0, err
 		}
 	}
 
-	// Step 3: Process Payment
-	err = s.paymentRepository.Create(ctx, tx, orderID, int(request.Amount), "Success")
+	// Update order total
+	err = s.orderRepository.UpdateOrderTotal(ctx, tx, orderID, totalAmount)
 	if err != nil {
-		return err
+		return 0, err
 	}
 
 	// Commit the transaction
 	err = tx.Commit(ctx)
 	if err != nil {
-		return err
+		return 0, err
 	}
-	return nil
+	return orderID, nil
 }
 
-func (s *OrderService) GetAllOrders(ctx context.Context) ([]model.Order, error) {
-	return s.orderRepository.GetAllOrders(ctx)
-}
-
-func (s *OrderService) GetOrder(ctx context.Context, orderID int) (*model.Order, error) {
-	return s.orderRepository.GetOrderByID(ctx, orderID)
-}
-
-func (s *OrderService) Delete(ctx context.Context, orderID int) error {
+func (s *OrderService) ProcessPayment(ctx context.Context, orderID int, method string, amount float64) error {
 
 	tx, err := s.orderRepository.BeginTransaction(ctx)
 	if err != nil {
@@ -83,14 +97,13 @@ func (s *OrderService) Delete(ctx context.Context, orderID int) error {
 	}
 	defer tx.Rollback(ctx)
 
-	// Step 1: Delete Order
-	err = s.orderRepository.DeleteOrderByID(ctx, orderID)
+	err = s.paymentRepository.ProcessPayment(ctx, tx, orderID, method, amount, "Success")
 	if err != nil {
 		return err
 	}
 
-	// Step 2: Delete Payment
-	err = s.paymentRepository.Delete(ctx, tx, orderID)
+	// Update order status to Completed
+	err = s.orderRepository.UpdateOrderStatus(ctx, tx, orderID, "Completed")
 	if err != nil {
 		return err
 	}
@@ -100,6 +113,13 @@ func (s *OrderService) Delete(ctx context.Context, orderID int) error {
 	if err != nil {
 		return err
 	}
-
 	return nil
+}
+
+func (s *OrderService) ShipOrder(ctx context.Context, orderID int, trackingNumber, carrier string) error {
+	return s.shipmentRepository.CreateShipment(ctx, orderID, trackingNumber, carrier, "Shipped")
+}
+
+func (s *OrderService) MarkOrderDelivered(ctx context.Context, orderID int) error {
+	return s.shipmentRepository.UpdateShipmentStatus(ctx, orderID, "Delivered")
 }

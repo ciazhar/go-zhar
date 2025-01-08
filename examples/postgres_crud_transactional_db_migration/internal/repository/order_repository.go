@@ -2,75 +2,49 @@ package repository
 
 import (
 	"context"
-	"fmt"
-	"github.com/ciazhar/go-start-small/examples/postgres_crud_transactional_db_migration/internal/model"
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
 type OrderRepository interface {
-	Create(ctx context.Context, tx pgx.Tx, customerName string) (int, error)
 	BeginTransaction(ctx context.Context) (pgx.Tx, error)
-	GetAllOrders(ctx context.Context) ([]model.Order, error)
-	GetOrderByID(ctx context.Context, orderID int) (*model.Order, error)
-	DeleteOrderByID(ctx context.Context, orderID int) error
+	CreateOrder(ctx context.Context, customerID int, status string) (int, error)
+	AddOrderItem(ctx context.Context, orderID, productID, quantity int, price, totalPrice float64) error
+	UpdateOrderTotal(ctx context.Context, orderID int, totalAmount float64) error
 }
 
 type PgxOrderRepository struct {
 	pool *pgxpool.Pool
 }
 
-func NewPgxOrderRepository(pool *pgxpool.Pool) *PgxOrderRepository {
+func NewOrderRepository(pool *pgxpool.Pool) *PgxOrderRepository {
 	return &PgxOrderRepository{
 		pool: pool,
 	}
-}
-
-func (r *PgxOrderRepository) Create(ctx context.Context, tx pgx.Tx, customerName string) (int, error) {
-	var orderID int
-	err := tx.QueryRow(ctx, "INSERT INTO orders (customer_name) VALUES ($1) RETURNING id", customerName).Scan(&orderID)
-	if err != nil {
-		return orderID, fmt.Errorf("failed to create order: %w", err)
-	}
-	return orderID, nil
 }
 
 func (r *PgxOrderRepository) BeginTransaction(ctx context.Context) (pgx.Tx, error) {
 	return r.pool.BeginTx(ctx, pgx.TxOptions{})
 }
 
-func (r *PgxOrderRepository) GetAllOrders(ctx context.Context) ([]model.Order, error) {
-	rows, err := r.pool.Query(ctx, "SELECT id, customer_name, created_at FROM orders")
-	if err != nil {
-		return nil, fmt.Errorf("failed to fetch orders: %w", err)
-	}
-	defer rows.Close()
-
-	var orders []model.Order
-	for rows.Next() {
-		var order model.Order
-		if err := rows.Scan(&order.ID, &order.CustomerName, &order.CreatedAt); err != nil {
-			return nil, fmt.Errorf("failed to scan order row: %w", err)
-		}
-		orders = append(orders, order)
-	}
-
-	return orders, nil
+func (r *PgxOrderRepository) CreateOrder(ctx context.Context, tx pgx.Tx, customerID int, status string) (int, error) {
+	var id int
+	err := tx.QueryRow(ctx, `INSERT INTO orders (customer_id, status) VALUES ($1, $2) RETURNING id`, customerID, status).Scan(&id)
+	return id, err
 }
 
-func (r *PgxOrderRepository) GetOrderByID(ctx context.Context, orderID int) (*model.Order, error) {
-	var order model.Order
-	err := r.pool.QueryRow(ctx, "SELECT id, customer_name, created_at FROM orders WHERE id = $1", orderID).Scan(&order.ID, &order.CustomerName, &order.CreatedAt)
-	if err != nil {
-		return nil, fmt.Errorf("failed to fetch order: %w", err)
-	}
-	return &order, nil
+func (r *PgxOrderRepository) AddOrderItem(ctx context.Context, tx pgx.Tx, orderID, productID, quantity int, price, totalPrice float64) error {
+	_, err := tx.Exec(ctx, `INSERT INTO order_items (order_id, product_id, quantity, price, total_price) VALUES ($1, $2, $3, $4, $5)`, orderID, productID, quantity, price, totalPrice)
+	return err
 }
 
-func (r *PgxOrderRepository) DeleteOrderByID(ctx context.Context, orderID int) error {
-	_, err := r.pool.Exec(ctx, "DELETE FROM orders WHERE id = $1", orderID)
-	if err != nil {
-		return fmt.Errorf("failed to delete order: %w", err)
-	}
-	return nil
+func (r *PgxOrderRepository) UpdateOrderTotal(ctx context.Context, tx pgx.Tx, orderID int, totalAmount float64) error {
+	_, err := tx.Exec(ctx, `UPDATE orders SET total_amount = $1, updated_at = CURRENT_TIMESTAMP WHERE id = $2`, totalAmount, orderID)
+	return err
+}
+
+func (r *PgxOrderRepository) UpdateOrderStatus(ctx context.Context, tx pgx.Tx, orderID int, status string) error {
+	query := `UPDATE orders SET status = $1, updated_at = CURRENT_TIMESTAMP WHERE id = $2`
+	_, err := tx.Exec(ctx, query, status, orderID)
+	return err
 }

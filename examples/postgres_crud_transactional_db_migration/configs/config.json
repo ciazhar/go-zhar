@@ -1,0 +1,13 @@
+{
+  "application": {
+    "port": 3000,
+    "debug": true
+  },
+  "postgres": {
+    "host": "localhost",
+    "port": 5432,
+    "dbname": "postgres",
+    "username": "",
+    "password": ""
+  }
+}

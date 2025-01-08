@@ -9,18 +9,31 @@ import (
 )
 
 func Init(app *fiber.App, pool *pgxpool.Pool) {
-	ir := repository.NewPgxInventoryRepository(pool)
-	or := repository.NewPgxOrderRepository(pool)
-	pr := repository.NewPgxPaymentRepository(pool)
-	os := service.NewOrderService(or, ir, pr)
+	customerRepository := repository.NewCustomerRepository(pool)
+	productRepository := repository.NewProductRepository(pool)
+	orderRepository := repository.NewOrderRepository(pool)
+	paymentRepository := repository.NewPaymentRepository(pool)
+	shipmentRepository := repository.NewShipmentRepository(pool)
 
-	oc := controller.NewOrderController(os)
+	customerService := service.NewCustomerService(customerRepository)
+	productService := service.NewProductService(productRepository)
+	orderService := service.NewOrderService(orderRepository, productRepository, paymentRepository, shipmentRepository)
 
-	app.Get("/orders", oc.GetAllOrders)
+	customerController := controller.NewCustomerController(customerService)
+	productController := controller.NewProductController(productService)
+	orderController := controller.NewOrderController(orderService)
 
-	app.Get("/orders/:id", oc.GetOrder)
+	customers := app.Group("/customers")
+	customers.Post("/", customerController.CreateCustomer)
 
-	app.Delete("/orders/:id", oc.Delete)
+	products := app.Group("/products")
+	products.Get("/", productController.GetProducts)
+	products.Post("/", productController.CreateProduct)
 
-	app.Post("/orders", oc.CreateOrder)
+	orders := app.Group("/orders")
+	orders.Post("/", orderController.PlaceOrder)
+	orders.Post("/payment", orderController.ProcessPayment)
+	orders.Post("/ship", orderController.ShipOrder)
+	orders.Patch("/:orderID/delivered", orderController.MarkOrderDelivered)
+
 }

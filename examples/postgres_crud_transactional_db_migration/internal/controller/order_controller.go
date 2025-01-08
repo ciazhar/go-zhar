@@ -1,6 +1,9 @@
 package controller
 
 import (
+	"net/http"
+	"strconv"
+
 	"github.com/ciazhar/go-start-small/examples/postgres_crud_transactional_db_migration/internal/model"
 	"github.com/ciazhar/go-start-small/examples/postgres_crud_transactional_db_migration/internal/service"
 	"github.com/gofiber/fiber/v2"
@@ -11,55 +14,80 @@ type OrderController struct {
 }
 
 func NewOrderController(orderService service.OrderServiceInterface) *OrderController {
-	return &OrderController{
-		orderService: orderService,
-	}
+	return &OrderController{orderService: orderService}
 }
 
-func (uc *OrderController) CreateOrder(c *fiber.Ctx) error {
-
-	var request model.OrderRequest
-	if err := c.BodyParser(&request); err != nil {
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Invalid input"})
+// PlaceOrder handles the creation of an order
+func (c *OrderController) PlaceOrder(ctx *fiber.Ctx) error {
+	var request struct {
+		CustomerID int               `json:"customer_id"`
+		Items      []model.OrderItem `json:"items"`
 	}
 
-	err := uc.orderService.CreateOrder(c.Context(), request)
+	if err := ctx.BodyParser(&request); err != nil {
+		return ctx.Status(http.StatusBadRequest).JSON(fiber.Map{"error": "invalid request body"})
+	}
+
+	orderID, err := c.orderService.PlaceOrder(ctx.Context(), request.CustomerID, request.Items)
 	if err != nil {
-		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
+		return ctx.Status(http.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
 	}
-	return c.SendStatus(fiber.StatusNoContent)
+
+	return ctx.Status(http.StatusCreated).JSON(fiber.Map{"order_id": orderID})
 }
 
-func (uc *OrderController) GetAllOrders(c *fiber.Ctx) error {
-	orders, err := uc.orderService.GetAllOrders(c.Context())
-	if err != nil {
-		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
+// ProcessPayment handles payment processing for an order
+func (c *OrderController) ProcessPayment(ctx *fiber.Ctx) error {
+	var request struct {
+		OrderID int     `json:"order_id"`
+		Method  string  `json:"method"`
+		Amount  float64 `json:"amount"`
 	}
-	return c.JSON(orders)
+
+	if err := ctx.BodyParser(&request); err != nil {
+		return ctx.Status(http.StatusBadRequest).JSON(fiber.Map{"error": "invalid request body"})
+	}
+
+	err := c.orderService.ProcessPayment(ctx.Context(), request.OrderID, request.Method, request.Amount)
+	if err != nil {
+		return ctx.Status(http.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
+	}
+
+	return ctx.Status(http.StatusOK).JSON(fiber.Map{"message": "payment processed successfully"})
 }
 
-func (uc *OrderController) GetOrder(c *fiber.Ctx) error {
-	id, err := c.ParamsInt("id")
-	if err != nil {
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Invalid order ID"})
+// ShipOrder handles the shipment of an order
+func (c *OrderController) ShipOrder(ctx *fiber.Ctx) error {
+	var request struct {
+		OrderID        int    `json:"order_id"`
+		TrackingNumber string `json:"tracking_number"`
+		Carrier        string `json:"carrier"`
 	}
 
-	order, err := uc.orderService.GetOrder(c.Context(), id)
-	if err != nil {
-		return c.Status(fiber.StatusNotFound).JSON(fiber.Map{"error": err.Error()})
+	if err := ctx.BodyParser(&request); err != nil {
+		return ctx.Status(http.StatusBadRequest).JSON(fiber.Map{"error": "invalid request body"})
 	}
-	return c.JSON(order)
+
+	err := c.orderService.ShipOrder(ctx.Context(), request.OrderID, request.TrackingNumber, request.Carrier)
+	if err != nil {
+		return ctx.Status(http.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
+	}
+
+	return ctx.Status(http.StatusOK).JSON(fiber.Map{"message": "order shipped successfully"})
 }
 
-func (uc *OrderController) Delete(c *fiber.Ctx) error {
-	id, err := c.ParamsInt("id")
+// MarkOrderDelivered handles marking an order as delivered
+func (c *OrderController) MarkOrderDelivered(ctx *fiber.Ctx) error {
+	orderIDStr := ctx.Params("orderID")
+	orderID, err := strconv.Atoi(orderIDStr)
 	if err != nil {
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "Invalid order ID"})
+		return ctx.Status(http.StatusBadRequest).JSON(fiber.Map{"error": "invalid order ID"})
 	}
 
-	err = uc.orderService.Delete(c.Context(), id)
+	err = c.orderService.MarkOrderDelivered(ctx.Context(), orderID)
 	if err != nil {
-		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
+		return ctx.Status(http.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
 	}
-	return c.SendStatus(fiber.StatusNoContent)
+
+	return ctx.Status(http.StatusOK).JSON(fiber.Map{"message": "order marked as delivered"})
 }
