@@ -13,13 +13,13 @@ import (
 )
 
 // InitDBMigration initializes ClickHouse database migrations
-func InitDBMigration(host string, port int, dbName string, username string, password string, fs embed.FS) {
+func InitDBMigration(hosts string, dbName string, username string, password string, fs embed.FS) {
 	// Connection string for ClickHouse
 	connString := ""
 	if username == "" && password == "" {
-		connString = fmt.Sprintf("clickhouse://%s:%d/%s", host, port, dbName)
+		connString = fmt.Sprintf("clickhouse://%s/%s", hosts, dbName)
 	} else {
-		connString = fmt.Sprintf("clickhouse://%s:%s@%s:%d/%s", username, password, host, port, dbName)
+		connString = fmt.Sprintf("clickhouse://%s:%s@%s/%s", username, password, hosts, dbName)
 	}
 
 	logger.LogInfo(context.Background(), "Running migrations", map[string]interface{}{

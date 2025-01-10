@@ -112,7 +112,7 @@ func (tc *TransactionController) GetUsersWithMoreThanXTransactions(c *fiber.Ctx)
 
 func (tc *TransactionController) GetSumOfTransactionAmountsPerDay(c *fiber.Ctx) error {
 	// Assuming transaction type is passed as a query parameter, e.g. /purchase-sum?type=Purchase
-	transactionType := c.Query("type", "Purchase")
+	transactionType := c.Query("type", "purchase")
 
 	sums, err := tc.repo.GetSumOfTransactionAmountsPerDay(context.Background(), transactionType)
 	if err != nil {

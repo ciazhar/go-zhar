@@ -2,76 +2,87 @@ package main
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
+	"github.com/ciazhar/go-start-small/examples/clickhouse_analytic_report/db/migrations"
+	clickhouse2 "github.com/ciazhar/go-start-small/pkg/clickhouse"
 	"log"
 	"math/rand"
+	"strconv"
 	"time"
 
 	"github.com/ClickHouse/clickhouse-go/v2"
+	"github.com/google/uuid"
+	"github.com/shopspring/decimal"
 )
 
 type Transaction struct {
-	Timestamp time.Time
-	Type      string
-	UserID    string
-	Amount    float64
+	EventID         string
+	UserID          uint64
+	TransactionType string
+	Amount          decimal.Decimal // Use Decimal type from shopspring/decimal
+	Timestamp       time.Time
+	ProductID       uint32
+	Category        string
+	PaymentMethod   string
+	IsFraudulent    uint8
+	Metadata        string
+	CreatedAt       time.Time
 }
 
-// Helper function to generate random transactions
-func generateTransactions(batchSize int) []Transaction {
-	transactionTypes := []string{"Purchase", "Refund", "Subscription", "Cancellation"}
-	transactions := make([]Transaction, 0, batchSize)
+const (
+	BatchSize    = 1000
+	TotalRecords = 10_000
+	DBAddr       = "localhost:9000"
+	DBName       = "default"
+	DBUser       = "default"
+	DBPassword   = ""
+)
 
-	for i := 0; i < batchSize; i++ {
-		transactions = append(transactions, Transaction{
-			Timestamp: time.Now().Add(time.Duration(rand.Intn(100000)) * time.Second * -1), // Random timestamp in the past
-			Type:      transactionTypes[rand.Intn(len(transactionTypes))],
-			UserID:    generateUserID(),
-			Amount:    float64(rand.Intn(10000)) + rand.Float64(),
-		})
-	}
-	return transactions
-}
-
-// Helper function to generate random UserID
-func generateUserID() string {
-	return fmt.Sprintf("user_%c%c%d", 'A'+rand.Intn(26), 'A'+rand.Intn(26), rand.Intn(10))
-}
+var (
+	transactionTypes = []string{"purchase", "refund"}
+	categories       = []string{"electronics", "clothing", "home", "sports", "books"}
+	paymentMethods   = []string{"credit_card", "paypal", "bank_transfer", "cash"}
+)
 
 func main() {
 	ctx := context.Background()
 
-	// Step 1: Connect to ClickHouse
 	conn, err := clickhouse.Open(&clickhouse.Options{
-		Addr: []string{"localhost:9000"}, // Adjust the address accordingly
+		Addr: []string{DBAddr},
 		Auth: clickhouse.Auth{
-			Database: "default",
-			Username: "default",
-			Password: "",
+			Database: DBName,
+			Username: DBUser,
+			Password: DBPassword,
 		},
 		Debug: true,
 	})
 	if err != nil {
 		log.Fatalf("Failed to connect to ClickHouse: %v", err)
 	}
+	defer conn.Close()
 
-	// Set batch size and total number of records to insert
-	batchSize := 1000             // You can adjust the batch size based on your system's memory
-	totalRecords := 1_000_000_000 // 1 billion records
-	totalBatches := totalRecords / batchSize
+	// Initialize database
+	clickhouse2.InitDBMigration(DBAddr, DBName, DBUser, DBPassword, migrations.MigrationsFS)
 
-	// Start inserting batches
+	totalBatches := TotalRecords / BatchSize
+	log.Printf("Starting data generation: Total Records=%d, Batch Size=%d, Total Batches=%d", TotalRecords, BatchSize, totalBatches)
+
 	for batchNum := 0; batchNum < totalBatches; batchNum++ {
-		transactions := generateTransactions(batchSize)
+		transactions := generateTransactions(BatchSize)
 
-		// Step 3: Insert data in batches
-		batch, err := conn.PrepareBatch(ctx, "INSERT INTO transactions (Timestamp, Type, UserID, Amount)")
+		batch, err := conn.PrepareBatch(ctx, `INSERT INTO transactions (
+			event_id, user_id, transaction_type, amount, timestamp, 
+			product_id, category, payment_method, is_fraudulent, metadata, created_at)`)
 		if err != nil {
 			log.Fatalf("Failed to prepare batch: %v", err)
 		}
 
 		for _, tx := range transactions {
-			if err := batch.Append(tx.Timestamp, tx.Type, tx.UserID, tx.Amount); err != nil {
+			if err := batch.Append(
+				tx.EventID, tx.UserID, tx.TransactionType, tx.Amount, tx.Timestamp,
+				tx.ProductID, tx.Category, tx.PaymentMethod, tx.IsFraudulent, tx.Metadata, tx.CreatedAt,
+			); err != nil {
 				log.Fatalf("Failed to append transaction to batch: %v", err)
 			}
 		}
@@ -80,11 +91,61 @@ func main() {
 			log.Fatalf("Failed to send batch: %v", err)
 		}
 
-		// Log the progress every 10,000 batches
-		if batchNum%10000 == 0 {
-			log.Printf("Inserted %d records so far...", batchNum*batchSize)
+		if batchNum%100 == 0 {
+			log.Printf("Batch %d/%d inserted.", batchNum+1, totalBatches)
 		}
 	}
 
-	log.Println("Successfully inserted 1 billion records!")
+	log.Println("Data generation and insertion completed successfully.")
+}
+
+func generateTransactions(batchSize int) []Transaction {
+	transactions := make([]Transaction, 0, batchSize)
+
+	for i := 0; i < batchSize; i++ {
+		userID := uint64(rand.Int63n(1_000_000))
+		amount := decimal.NewFromFloat(generateRandomAmount()).Round(2) // Format as Decimal(18, 2)
+		timestamp := time.Now().Add(time.Duration(rand.Intn(100000)) * time.Second * -1)
+		productID := uint32(rand.Intn(10000))
+		category := categories[rand.Intn(len(categories))]
+		paymentMethod := paymentMethods[rand.Intn(len(paymentMethods))]
+		isFraudulent := uint8(rand.Intn(2))
+
+		metadata := map[string]interface{}{
+			"ip_address":   fmt.Sprintf("192.168.%d.%d", rand.Intn(256), rand.Intn(256)),
+			"device_type":  "mobile",
+			"geo_location": fmt.Sprintf("%.6f,%.6f", rand.Float64()*180-90, rand.Float64()*360-180),
+		}
+		metadataJSON, _ := json.Marshal(metadata)
+
+		transactions = append(transactions, Transaction{
+			EventID:         uuid.New().String(),
+			UserID:          userID,
+			TransactionType: transactionTypes[rand.Intn(len(transactionTypes))],
+			Amount:          amount,
+			Timestamp:       timestamp,
+			ProductID:       productID,
+			Category:        category,
+			PaymentMethod:   paymentMethod,
+			IsFraudulent:    isFraudulent,
+			Metadata:        string(metadataJSON),
+			CreatedAt:       time.Now(),
+		})
+	}
+	return transactions
+}
+
+func generateRandomAmount() float64 {
+	mean := 100.0
+	stddev := 50.0
+	amount := rand.NormFloat64()*stddev + mean
+	if amount < 0 {
+		amount = 0.01
+	}
+	return amount
+}
+
+func formatAmount(amount float64) string {
+	// Format the amount as a string with two decimal places
+	return strconv.FormatFloat(amount, 'f', 2, 64)
 }

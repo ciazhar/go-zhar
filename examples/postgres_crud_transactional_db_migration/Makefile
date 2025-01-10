@@ -13,14 +13,14 @@ create-products:
 	curl -X POST http://localhost:3000/products \
 	-H "Content-Type: application/json" \
 	-d '{ \
-	  "name": "Product A", \
+	  "name": "Laptop", \
 	  "price": 10.00, \
 	  "stock": 50 \
 	}'
 	curl -X POST http://localhost:3000/products \
 	-H "Content-Type: application/json" \
 	-d '{ \
-	  "name": "Product B", \
+	  "name": "Wireless Mouse", \
 	  "price": 20.00, \
 	  "stock": 100 \
 	}'

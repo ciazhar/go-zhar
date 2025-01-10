@@ -7,37 +7,14 @@ GO_RUN=$(GO_CMD) run
 BINARY_NAME=app
 SRC_DIR=./
 
-# Default target: Run the application
-.PHONY: run
-run:
-	$(GO_RUN) cmd/analytic_report/main.go
+run-clickhouse:
+	cd ../../deployments/clickhouse && docker-compose up
 
-# Build the Go application
-.PHONY: build
-build:
-	$(GO_CMD) build -o $(BINARY_NAME) $(SRC_DIR)
+run-dataset-generator:
+	go run cmd/clickhouse_generator/main.go
 
-# Test the Go application
-.PHONY: test
-test:
-	$(GOTEST) ./...
-
-# Clean up binaries
-.PHONY: clean
-clean:
-	rm -f $(BINARY_NAME)
-
-# Format the Go code
-.PHONY: fmt
-fmt:
-	$(GOFMT) ./...
-
-# Vet the Go code for errors
-.PHONY: vet
-vet:
-	$(GOVET) ./...
-
-# API Tests using curl, printing responses to stdout
+run-analytic-report:
+	go run cmd/analytic_report/main.go
 
 # Test: Aggregate Total Amount for the Last Month
 .PHONY: api-test-aggregate
@@ -108,11 +85,3 @@ api-test-all: api-test-aggregate api-test-count-transactions api-test-avg-transa
 # Full process: Clean, format, vet, build, and run
 .PHONY: all
 all: clean fmt vet build run
-
-# Run local server and test specific API
-.PHONY: run-local
-run-local:
-	CLICKHOUSE_ADDR=localhost:9000 \
-	CLICKHOUSE_USER=default \
-	CLICKHOUSE_PASSWORD='' \
-	$(GO_RUN) main.go
