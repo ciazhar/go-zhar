@@ -4,6 +4,7 @@ import (
 	"log"
 	"sync"
 	"sync/atomic"
+	"time"
 
 	"github.com/IBM/sarama"
 )
@@ -24,6 +25,8 @@ type BatchProducer struct {
 	messagesSent uint64
 	batchesSent  uint64
 	errors       uint64
+	mu           sync.RWMutex
+	closed       bool
 }
 
 type ProducerConfig struct {
@@ -42,38 +45,76 @@ func NewBatchProducer(brokers []string, config ProducerConfig) (*BatchProducer, 
 		return nil, err
 	}
 
+	// Increase buffer size to handle high throughput
+	bufferSize := config.BatchSize * 10 // or another appropriate multiplier
+
 	return &BatchProducer{
 		producer:  producer,
-		input:     make(chan Message),
+		input:     make(chan Message, bufferSize),
 		batch:     make([]*sarama.ProducerMessage, 0, config.BatchSize),
 		batchSize: config.BatchSize,
 		done:      make(chan struct{}),
 	}, nil
 }
 
+func (p *BatchProducer) SendMessage(topic, key, value string) error {
+	p.mu.RLock()
+	if p.closed {
+		p.mu.RUnlock()
+		return ErrProducerClosed
+	}
+	p.mu.RUnlock()
+
+	// Blocking send
+	p.input <- Message{
+		Topic: topic,
+		Key:   []byte(key),
+		Value: []byte(value),
+	}
+	return nil
+}
+
+// Make the processing loop more efficient
 func (p *BatchProducer) Start() {
 	//log.Println("Starting batch processor")
 	p.wg.Add(1)
 	go func() {
 		defer p.wg.Done()
-		for msg := range p.input {
-			producerMsg := &sarama.ProducerMessage{
-				Topic: msg.Topic,
-				Key:   sarama.ByteEncoder(msg.Key),
-				Value: sarama.ByteEncoder(msg.Value),
-			}
 
-			p.batch = append(p.batch, producerMsg)
+		ticker := time.NewTicker(100 * time.Millisecond) // Flush interval
+		defer ticker.Stop()
 
-			if len(p.batch) >= p.batchSize {
-				p.flush()
+		for {
+			select {
+			case msg, ok := <-p.input:
+				if !ok {
+					// Channel closed, flush remaining messages and exit
+					if len(p.batch) > 0 {
+						p.flush()
+					}
+					close(p.done)
+					return
+				}
+
+				producerMsg := &sarama.ProducerMessage{
+					Topic: msg.Topic,
+					Key:   sarama.StringEncoder(msg.Key),
+					Value: sarama.StringEncoder(msg.Value),
+				}
+
+				p.batch = append(p.batch, producerMsg)
+
+				if len(p.batch) >= p.batchSize {
+					p.flush()
+				}
+
+			case <-ticker.C:
+				// Periodically flush if there are messages
+				if len(p.batch) > 0 {
+					p.flush()
+				}
 			}
 		}
-
-		if len(p.batch) > 0 {
-			p.flush()
-		}
-		close(p.done)
 	}()
 }
 
@@ -94,22 +135,16 @@ func (p *BatchProducer) flush() {
 	p.batch = p.batch[:0]
 }
 
-func (p *BatchProducer) Input() chan<- Message {
-	return p.input
-}
-
 func (p *BatchProducer) Close() error {
+	p.mu.Lock()
+	if p.closed {
+		p.mu.Unlock()
+		return nil
+	}
+	p.closed = true
+	p.mu.Unlock()
+
 	close(p.input)
 	p.wg.Wait()
 	return p.producer.Close()
-}
-
-func (p *BatchProducer) Done() <-chan struct{} {
-	return p.done
-}
-
-func (p *BatchProducer) Stats() (uint64, uint64, uint64) {
-	return atomic.LoadUint64(&p.messagesSent),
-		atomic.LoadUint64(&p.batchesSent),
-		atomic.LoadUint64(&p.errors)
 }

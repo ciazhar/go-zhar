@@ -6,26 +6,9 @@ import (
 	"time"
 )
 
-const (
-	testTopic     = "benchmark_topic"
-	messageSize   = 1000 // 1KB
-	numMessages   = 100000
-	benchmarkTime = 30 * time.Second
-)
-
-// generateMessage creates a message of specified size
-func generateMessage(size int) string {
-	message := make([]byte, size)
-	for i := 0; i < size; i++ {
-		message[i] = 'a' + byte(i%26)
-	}
-	return string(message)
-}
-
 // BenchmarkAsyncProducer_SendMessage benchmarks the sending of messages
 func BenchmarkAsyncProducer_SendMessage(b *testing.B) {
 	// Connect to your Kafka brokers
-	brokers := []string{"localhost:9092", "localhost:9093", "localhost:9094"}
 	producer, err := NewAsyncProducer(brokers)
 	if err != nil {
 		b.Fatalf("Failed to create producer: %v", err)
@@ -39,7 +22,7 @@ func BenchmarkAsyncProducer_SendMessage(b *testing.B) {
 		counter := 0
 		for pb.Next() {
 			key := fmt.Sprintf("key-%d", counter)
-			err := producer.SendMessage(testTopic, key, message)
+			err = producer.SendMessage(testTopic, key, message)
 			if err != nil {
 				b.Fatalf("Failed to send message: %v", err)
 			}
@@ -50,7 +33,6 @@ func BenchmarkAsyncProducer_SendMessage(b *testing.B) {
 
 // BenchmarkAsyncProducer_Throughput measures messages/second
 func BenchmarkAsyncProducer_Throughput(b *testing.B) {
-	brokers := []string{"localhost:9092", "localhost:9093", "localhost:9094"}
 	producer, err := NewAsyncProducer(brokers)
 	if err != nil {
 		b.Fatalf("Failed to create producer: %v", err)
@@ -77,7 +59,6 @@ func BenchmarkAsyncProducer_Throughput(b *testing.B) {
 
 // BenchmarkAsyncProducer_TimeBound runs for a fixed duration
 func BenchmarkAsyncProducer_TimeBound(b *testing.B) {
-	brokers := []string{"localhost:9092", "localhost:9093", "localhost:9094"}
 	producer, err := NewAsyncProducer(brokers)
 	if err != nil {
 		b.Fatalf("Failed to create producer: %v", err)
