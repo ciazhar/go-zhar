@@ -3,6 +3,7 @@ package producer
 import (
 	"log"
 	"sync"
+	"sync/atomic"
 
 	"github.com/IBM/sarama"
 )
@@ -14,20 +15,29 @@ type Message struct {
 }
 
 type BatchProducer struct {
-	producer  sarama.SyncProducer
-	input     chan Message
-	batch     []*sarama.ProducerMessage
-	batchSize int
-	done      chan struct{}
-	wg        sync.WaitGroup
+	producer     sarama.SyncProducer
+	input        chan Message
+	batch        []*sarama.ProducerMessage
+	batchSize    int
+	done         chan struct{}
+	wg           sync.WaitGroup
+	messagesSent uint64
+	batchesSent  uint64
+	errors       uint64
 }
 
-func NewBatchProducer(brokers []string, batchSize int) (*BatchProducer, error) {
-	config := sarama.NewConfig()
-	config.Producer.Return.Successes = true
-	config.Producer.RequiredAcks = sarama.WaitForAll
+type ProducerConfig struct {
+	BatchSize   int
+	Compression sarama.CompressionCodec
+}
 
-	producer, err := sarama.NewSyncProducer(brokers, config)
+func NewBatchProducer(brokers []string, config ProducerConfig) (*BatchProducer, error) {
+	saramaConfig := sarama.NewConfig()
+	saramaConfig.Producer.Return.Successes = true
+	saramaConfig.Producer.RequiredAcks = sarama.WaitForAll
+	saramaConfig.Producer.Compression = config.Compression
+
+	producer, err := sarama.NewSyncProducer(brokers, saramaConfig)
 	if err != nil {
 		return nil, err
 	}
@@ -35,14 +45,14 @@ func NewBatchProducer(brokers []string, batchSize int) (*BatchProducer, error) {
 	return &BatchProducer{
 		producer:  producer,
 		input:     make(chan Message),
-		batch:     make([]*sarama.ProducerMessage, 0, batchSize),
-		batchSize: batchSize,
+		batch:     make([]*sarama.ProducerMessage, 0, config.BatchSize),
+		batchSize: config.BatchSize,
 		done:      make(chan struct{}),
 	}, nil
 }
 
 func (p *BatchProducer) Start() {
-	log.Println("Starting batch processor")
+	//log.Println("Starting batch processor")
 	p.wg.Add(1)
 	go func() {
 		defer p.wg.Done()
@@ -56,13 +66,10 @@ func (p *BatchProducer) Start() {
 			p.batch = append(p.batch, producerMsg)
 
 			if len(p.batch) >= p.batchSize {
-				log.Printf("Batch full, flushing %d messages", len(p.batch))
 				p.flush()
 			}
 		}
 
-		// Flush any remaining messages when the input channel is closed
-		log.Println("Messages channel closed, flushing remaining messages")
 		if len(p.batch) > 0 {
 			p.flush()
 		}
@@ -75,13 +82,15 @@ func (p *BatchProducer) flush() {
 		return
 	}
 
-	log.Printf("Flushing batch of %d messages", len(p.batch))
 	err := p.producer.SendMessages(p.batch)
 	if err != nil {
+		atomic.AddUint64(&p.errors, 1)
 		log.Printf("Failed to send messages: %v", err)
+	} else {
+		atomic.AddUint64(&p.messagesSent, uint64(len(p.batch)))
+		atomic.AddUint64(&p.batchesSent, 1)
 	}
 
-	// Clear the batch
 	p.batch = p.batch[:0]
 }
 
@@ -97,4 +106,10 @@ func (p *BatchProducer) Close() error {
 
 func (p *BatchProducer) Done() <-chan struct{} {
 	return p.done
+}
+
+func (p *BatchProducer) Stats() (uint64, uint64, uint64) {
+	return atomic.LoadUint64(&p.messagesSent),
+		atomic.LoadUint64(&p.batchesSent),
+		atomic.LoadUint64(&p.errors)
 }
