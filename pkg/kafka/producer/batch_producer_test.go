@@ -18,7 +18,7 @@ func BenchmarkBatchProducer_SendMessage(b *testing.B) {
 	if err != nil {
 		b.Fatalf("Failed to create producer: %v", err)
 	}
-	producer.Start()
+	//producer.Start()
 	defer producer.Close()
 
 	message := generateMessage(messageSize)
@@ -53,7 +53,7 @@ func BenchmarkBatchProducer_BatchSizes(b *testing.B) {
 			if err != nil {
 				b.Fatalf("Failed to create producer: %v", err)
 			}
-			producer.Start()
+			//producer.Start()
 			defer producer.Close()
 
 			b.ResetTimer()
@@ -88,7 +88,7 @@ func BenchmarkBatchProducer_Compression(b *testing.B) {
 			if err != nil {
 				b.Fatalf("Failed to create producer: %v", err)
 			}
-			producer.Start()
+			//producer.Start()
 			defer producer.Close()
 
 			message := generateMessage(messageSize)
@@ -106,61 +106,61 @@ func BenchmarkBatchProducer_Compression(b *testing.B) {
 }
 
 func BenchmarkBatchProducer_Throughput(b *testing.B) {
-	configs := []struct {
-		name      string
-		batchSize int
-	}{
-		{"BatchSize-100", 100},
-		{"BatchSize-500", 500},
-		{"BatchSize-1000", 1000},
+	config := ProducerConfig{
+		BatchSize:   1000,
+		Compression: sarama.CompressionSnappy,
 	}
+
+	producer, err := NewBatchProducer(brokers, config)
+	if err != nil {
+		b.Fatalf("Failed to create producer: %v", err)
+	}
+	defer producer.Close()
 
 	message := generateMessage(messageSize)
 
-	for _, cfg := range configs {
-		b.Run(cfg.name, func(b *testing.B) {
-			config := ProducerConfig{
-				BatchSize:   cfg.batchSize,
-				Compression: sarama.CompressionSnappy, // Use compression for better performance
-			}
+	// Measure time taken to send numMessages
+	start := time.Now()
+	for i := 0; i < numMessages; i++ {
+		key := fmt.Sprintf("key-%d", i)
+		err := producer.SendMessage(testTopic, key, message)
+		if err != nil {
+			b.Fatalf("Failed to send message: %v", err)
+		}
+	}
+	duration := time.Since(start)
 
+	messagesPerSecond := float64(numMessages) / duration.Seconds()
+	b.ReportMetric(messagesPerSecond, "msgs/sec")
+	b.ReportMetric(float64(messageSize*numMessages)/duration.Seconds(), "bytes/sec")
+}
+
+func BenchmarkBatchProducer_DifferentSizes(b *testing.B) {
+	sizes := []int{100, 1000, 10000, 100000} // 100B, 1KB, 10KB, 100KB
+	config := ProducerConfig{
+		BatchSize:   1000,
+		Compression: sarama.CompressionSnappy,
+	}
+
+	for _, size := range sizes {
+		b.Run(fmt.Sprintf("MessageSize-%dB", size), func(b *testing.B) {
+			brokers := []string{"localhost:9092", "localhost:9093", "localhost:9094"}
 			producer, err := NewBatchProducer(brokers, config)
 			if err != nil {
 				b.Fatalf("Failed to create producer: %v", err)
 			}
-			producer.Start()
 			defer producer.Close()
 
-			b.ResetTimer()
-			start := time.Now()
+			message := generateMessage(size)
 
-			// Send messages
-			for i := 0; i < numMessages; i++ {
+			b.ResetTimer()
+			for i := 0; i < b.N; i++ {
 				key := fmt.Sprintf("key-%d", i)
 				err := producer.SendMessage(testTopic, key, message)
 				if err != nil {
 					b.Fatalf("Failed to send message: %v", err)
 				}
 			}
-
-			//// Wait for all messages to be processed
-			//producer.Close()
-			//<-producer.Done()
-
-			duration := time.Since(start)
-
-			// Calculate and report metrics
-			messagesPerSecond := float64(numMessages) / duration.Seconds()
-			bytesPerSecond := float64(messageSize*numMessages) / duration.Seconds()
-
-			b.ReportMetric(messagesPerSecond, "msgs/sec")
-			b.ReportMetric(bytesPerSecond, "bytes/sec")
-
-			// Report additional batch-specific metrics
-			//msgSent, batchSent, errors := producer.Stats()
-			//b.ReportMetric(float64(batchSent), "batches_sent")
-			//b.ReportMetric(float64(errors), "errors")
-			//b.ReportMetric(float64(msgSent)/float64(batchSent), "avg_batch_size")
 		})
 	}
 }

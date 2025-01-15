@@ -1,7 +1,6 @@
 package producer
 
 import (
-	"log"
 	"sync"
 	"sync/atomic"
 	"time"
@@ -15,46 +14,70 @@ type Message struct {
 	Value []byte
 }
 
-type BatchProducer struct {
-	producer     sarama.SyncProducer
-	input        chan Message
-	batch        []*sarama.ProducerMessage
-	batchSize    int
-	done         chan struct{}
-	wg           sync.WaitGroup
-	messagesSent uint64
-	batchesSent  uint64
-	errors       uint64
-	mu           sync.RWMutex
-	closed       bool
-}
-
 type ProducerConfig struct {
 	BatchSize   int
 	Compression sarama.CompressionCodec
 }
 
+type BatchProducer struct {
+	producer     sarama.AsyncProducer
+	messagesSent uint64
+	batchesSent  uint64
+	errors       uint64
+	mu           sync.RWMutex
+	closed       bool
+	wg           sync.WaitGroup
+}
+
 func NewBatchProducer(brokers []string, config ProducerConfig) (*BatchProducer, error) {
 	saramaConfig := sarama.NewConfig()
-	saramaConfig.Producer.Return.Successes = true
-	saramaConfig.Producer.RequiredAcks = sarama.WaitForAll
-	saramaConfig.Producer.Compression = config.Compression
 
-	producer, err := sarama.NewSyncProducer(brokers, saramaConfig)
+	// Optimize for maximum throughput
+	saramaConfig.Producer.Return.Successes = false // Change to false for better performance
+	saramaConfig.Producer.Return.Errors = true
+	saramaConfig.Producer.Compression = config.Compression
+	saramaConfig.Producer.MaxMessageBytes = 1000000
+	saramaConfig.Producer.Flush.MaxMessages = config.BatchSize
+	saramaConfig.Producer.Flush.Frequency = 1 * time.Millisecond
+	saramaConfig.Producer.RequiredAcks = sarama.NoResponse // Changed for maximum throughput
+
+	// Optimize batch settings
+	saramaConfig.Producer.Flush.Bytes = 64 * 1024 // 64KB batch size
+
+	// Channel buffering
+	saramaConfig.ChannelBufferSize = 256 * 1024 // Increased buffer size
+
+	// Performance optimizations
+	saramaConfig.Producer.Idempotent = false   // Disable idempotence for speed
+	saramaConfig.Producer.CompressionLevel = 1 // Fastest compression level
+	saramaConfig.Producer.Partitioner = sarama.NewHashPartitioner
+
+	producer, err := sarama.NewAsyncProducer(brokers, saramaConfig)
 	if err != nil {
 		return nil, err
 	}
 
-	// Increase buffer size to handle high throughput
-	bufferSize := config.BatchSize * 10 // or another appropriate multiplier
+	bp := &BatchProducer{
+		producer: producer,
+		closed:   false,
+	}
 
-	return &BatchProducer{
-		producer:  producer,
-		input:     make(chan Message, bufferSize),
-		batch:     make([]*sarama.ProducerMessage, 0, config.BatchSize),
-		batchSize: config.BatchSize,
-		done:      make(chan struct{}),
-	}, nil
+	// Only handle errors since we disabled success returns
+	bp.handleAsyncResults()
+	return bp, nil
+}
+
+func (p *BatchProducer) handleAsyncResults() {
+	p.wg.Add(1)
+	// Only handle errors
+	go func() {
+		defer p.wg.Done()
+		for err := range p.producer.Errors() {
+			if err != nil {
+				atomic.AddUint64(&p.errors, 1)
+			}
+		}
+	}()
 }
 
 func (p *BatchProducer) SendMessage(topic, key, value string) error {
@@ -65,74 +88,15 @@ func (p *BatchProducer) SendMessage(topic, key, value string) error {
 	}
 	p.mu.RUnlock()
 
-	// Blocking send
-	p.input <- Message{
+	msg := &sarama.ProducerMessage{
 		Topic: topic,
-		Key:   []byte(key),
-		Value: []byte(value),
+		Key:   sarama.StringEncoder(key),
+		Value: sarama.StringEncoder(value),
 	}
+
+	p.producer.Input() <- msg
+	atomic.AddUint64(&p.messagesSent, 1)
 	return nil
-}
-
-// Make the processing loop more efficient
-func (p *BatchProducer) Start() {
-	//log.Println("Starting batch processor")
-	p.wg.Add(1)
-	go func() {
-		defer p.wg.Done()
-
-		ticker := time.NewTicker(100 * time.Millisecond) // Flush interval
-		defer ticker.Stop()
-
-		for {
-			select {
-			case msg, ok := <-p.input:
-				if !ok {
-					// Channel closed, flush remaining messages and exit
-					if len(p.batch) > 0 {
-						p.flush()
-					}
-					close(p.done)
-					return
-				}
-
-				producerMsg := &sarama.ProducerMessage{
-					Topic: msg.Topic,
-					Key:   sarama.StringEncoder(msg.Key),
-					Value: sarama.StringEncoder(msg.Value),
-				}
-
-				p.batch = append(p.batch, producerMsg)
-
-				if len(p.batch) >= p.batchSize {
-					p.flush()
-				}
-
-			case <-ticker.C:
-				// Periodically flush if there are messages
-				if len(p.batch) > 0 {
-					p.flush()
-				}
-			}
-		}
-	}()
-}
-
-func (p *BatchProducer) flush() {
-	if len(p.batch) == 0 {
-		return
-	}
-
-	err := p.producer.SendMessages(p.batch)
-	if err != nil {
-		atomic.AddUint64(&p.errors, 1)
-		log.Printf("Failed to send messages: %v", err)
-	} else {
-		atomic.AddUint64(&p.messagesSent, uint64(len(p.batch)))
-		atomic.AddUint64(&p.batchesSent, 1)
-	}
-
-	p.batch = p.batch[:0]
 }
 
 func (p *BatchProducer) Close() error {
@@ -144,7 +108,13 @@ func (p *BatchProducer) Close() error {
 	p.closed = true
 	p.mu.Unlock()
 
-	close(p.input)
+	err := p.producer.Close()
 	p.wg.Wait()
-	return p.producer.Close()
+	return err
+}
+
+func (p *BatchProducer) Stats() (uint64, uint64, uint64) {
+	return atomic.LoadUint64(&p.messagesSent),
+		atomic.LoadUint64(&p.batchesSent),
+		atomic.LoadUint64(&p.errors)
 }
