@@ -1,82 +1,100 @@
 package producer
 
 import (
-	"github.com/IBM/sarama"
+	"log"
 	"sync"
-	"time"
+
+	"github.com/IBM/sarama"
 )
 
-// BatchProducer BATCH PRODUCER
-// Pros: Improved throughput, better network utilization
-// Cons: Increased latency for individual messages
-type BatchProducer struct {
-	Producer     sarama.AsyncProducer
-	batchSize    int
-	flushTimeout time.Duration
-	Messages     chan *sarama.ProducerMessage
-	Wg           sync.WaitGroup
+type Message struct {
+	Topic string
+	Key   []byte
+	Value []byte
 }
 
-func NewBatchProducer(brokerList []string, batchSize int, flushTimeout time.Duration) (*BatchProducer, error) {
+type BatchProducer struct {
+	producer  sarama.SyncProducer
+	input     chan Message
+	batch     []*sarama.ProducerMessage
+	batchSize int
+	done      chan struct{}
+	wg        sync.WaitGroup
+}
+
+func NewBatchProducer(brokers []string, batchSize int) (*BatchProducer, error) {
 	config := sarama.NewConfig()
 	config.Producer.Return.Successes = true
-	config.Producer.Return.Errors = true
-	// Batch settings
-	config.Producer.Flush.Messages = batchSize
-	config.Producer.Flush.Frequency = flushTimeout
+	config.Producer.RequiredAcks = sarama.WaitForAll
 
-	producer, err := sarama.NewAsyncProducer(brokerList, config)
+	producer, err := sarama.NewSyncProducer(brokers, config)
 	if err != nil {
 		return nil, err
 	}
 
-	bp := &BatchProducer{
-		Producer:     producer,
-		batchSize:    batchSize,
-		flushTimeout: flushTimeout,
-		Messages:     make(chan *sarama.ProducerMessage, batchSize),
-	}
-
-	bp.start()
-	return bp, nil
+	return &BatchProducer{
+		producer:  producer,
+		input:     make(chan Message),
+		batch:     make([]*sarama.ProducerMessage, 0, batchSize),
+		batchSize: batchSize,
+		done:      make(chan struct{}),
+	}, nil
 }
 
-func (p *BatchProducer) start() {
-	p.Wg.Add(1)
+func (p *BatchProducer) Start() {
+	log.Println("Starting batch processor")
+	p.wg.Add(1)
 	go func() {
-		defer p.Wg.Done()
-		batch := make([]*sarama.ProducerMessage, 0, p.batchSize)
-		timer := time.NewTimer(p.flushTimeout)
+		defer p.wg.Done()
+		for msg := range p.input {
+			producerMsg := &sarama.ProducerMessage{
+				Topic: msg.Topic,
+				Key:   sarama.ByteEncoder(msg.Key),
+				Value: sarama.ByteEncoder(msg.Value),
+			}
 
-		for {
-			select {
-			case msg, ok := <-p.Messages:
-				if !ok {
-					// Channel closed, flush remaining messages
-					p.flush(batch)
-					return
-				}
+			p.batch = append(p.batch, producerMsg)
 
-				batch = append(batch, msg)
-				if len(batch) >= p.batchSize {
-					p.flush(batch)
-					batch = make([]*sarama.ProducerMessage, 0, p.batchSize)
-					timer.Reset(p.flushTimeout)
-				}
-
-			case <-timer.C:
-				if len(batch) > 0 {
-					p.flush(batch)
-					batch = make([]*sarama.ProducerMessage, 0, p.batchSize)
-				}
-				timer.Reset(p.flushTimeout)
+			if len(p.batch) >= p.batchSize {
+				log.Printf("Batch full, flushing %d messages", len(p.batch))
+				p.flush()
 			}
 		}
+
+		// Flush any remaining messages when the input channel is closed
+		log.Println("Messages channel closed, flushing remaining messages")
+		if len(p.batch) > 0 {
+			p.flush()
+		}
+		close(p.done)
 	}()
 }
 
-func (p *BatchProducer) flush(batch []*sarama.ProducerMessage) {
-	for _, msg := range batch {
-		p.Producer.Input() <- msg
+func (p *BatchProducer) flush() {
+	if len(p.batch) == 0 {
+		return
 	}
+
+	log.Printf("Flushing batch of %d messages", len(p.batch))
+	err := p.producer.SendMessages(p.batch)
+	if err != nil {
+		log.Printf("Failed to send messages: %v", err)
+	}
+
+	// Clear the batch
+	p.batch = p.batch[:0]
+}
+
+func (p *BatchProducer) Input() chan<- Message {
+	return p.input
+}
+
+func (p *BatchProducer) Close() error {
+	close(p.input)
+	p.wg.Wait()
+	return p.producer.Close()
+}
+
+func (p *BatchProducer) Done() <-chan struct{} {
+	return p.done
 }
