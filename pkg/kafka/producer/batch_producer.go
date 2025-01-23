@@ -1,32 +1,26 @@
 package producer
 
 import (
+	"log"
 	"sync"
-	"sync/atomic"
 	"time"
 
 	"github.com/IBM/sarama"
 )
 
-type Message struct {
-	Topic string
-	Key   []byte
-	Value []byte
+// BatchProducer BATCH PRODUCER
+// Pros: Improved throughput, better network utilization
+// Cons: Increased latency for individual messages
+type BatchProducer struct {
+	producer sarama.AsyncProducer
+	mu       sync.RWMutex
+	closed   bool
+	wg       sync.WaitGroup
 }
 
 type ProducerConfig struct {
 	BatchSize   int
 	Compression sarama.CompressionCodec
-}
-
-type BatchProducer struct {
-	producer     sarama.AsyncProducer
-	messagesSent uint64
-	batchesSent  uint64
-	errors       uint64
-	mu           sync.RWMutex
-	closed       bool
-	wg           sync.WaitGroup
 }
 
 func NewBatchProducer(brokers []string, config ProducerConfig) (*BatchProducer, error) {
@@ -74,7 +68,7 @@ func (p *BatchProducer) handleAsyncResults() {
 		defer p.wg.Done()
 		for err := range p.producer.Errors() {
 			if err != nil {
-				atomic.AddUint64(&p.errors, 1)
+				log.Printf("Failed to send message: %v\n", err.Err)
 			}
 		}
 	}()
@@ -95,7 +89,6 @@ func (p *BatchProducer) SendMessage(topic, key, value string) error {
 	}
 
 	p.producer.Input() <- msg
-	atomic.AddUint64(&p.messagesSent, 1)
 	return nil
 }
 
@@ -111,10 +104,4 @@ func (p *BatchProducer) Close() error {
 	err := p.producer.Close()
 	p.wg.Wait()
 	return err
-}
-
-func (p *BatchProducer) Stats() (uint64, uint64, uint64) {
-	return atomic.LoadUint64(&p.messagesSent),
-		atomic.LoadUint64(&p.batchesSent),
-		atomic.LoadUint64(&p.errors)
 }

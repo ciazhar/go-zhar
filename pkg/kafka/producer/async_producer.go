@@ -1,7 +1,6 @@
 package producer
 
 import (
-	"errors"
 	"github.com/IBM/sarama"
 	"log"
 	"sync"
@@ -99,6 +98,3 @@ func (p *AsyncProducer) Close() error {
 	p.wg.Wait()
 	return nil
 }
-
-// ErrProducerClosed is returned when trying to send a message to a closed producer
-var ErrProducerClosed = errors.New("producer is closed")

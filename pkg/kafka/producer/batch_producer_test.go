@@ -7,36 +7,6 @@ import (
 	"time"
 )
 
-// BenchmarkBatchProducer_SendMessage benchmarks the sending of messages
-func BenchmarkBatchProducer_SendMessage(b *testing.B) {
-	config := ProducerConfig{
-		BatchSize:   100,
-		Compression: sarama.CompressionNone,
-	}
-
-	producer, err := NewBatchProducer(brokers, config)
-	if err != nil {
-		b.Fatalf("Failed to create producer: %v", err)
-	}
-	//producer.Start()
-	defer producer.Close()
-
-	message := generateMessage(messageSize)
-
-	b.ResetTimer()
-	b.RunParallel(func(pb *testing.PB) {
-		counter := 0
-		for pb.Next() {
-			key := fmt.Sprintf("key-%d", counter)
-			err = producer.SendMessage(testTopic, key, message)
-			if err != nil {
-				b.Fatalf("Failed to send message: %v", err)
-			}
-			counter++
-		}
-	})
-}
-
 func BenchmarkBatchProducer_BatchSizes(b *testing.B) {
 	batchSizes := []int{1, 10, 100, 1000}
 

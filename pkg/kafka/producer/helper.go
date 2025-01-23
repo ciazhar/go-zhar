@@ -1,12 +1,11 @@
 package producer
 
-import "time"
+import "errors"
 
 const (
-	testTopic     = "benchmark_topic"
-	messageSize   = 1000 // 1KB
-	numMessages   = 100000
-	benchmarkTime = 30 * time.Second
+	testTopic   = "benchmark_topic"
+	messageSize = 1000 // 1KB
+	numMessages = 100000
 )
 
 var brokers = []string{"localhost:9092", "localhost:9093", "localhost:9094"}
@@ -19,3 +18,8 @@ func generateMessage(size int) string {
 	}
 	return string(message)
 }
+
+var ErrTxnInProgress = errors.New("transaction already in progress")
+var ErrProducerClosed = errors.New("producer is closed")
+var ErrInvalidMessage = errors.New("invalid message")
+var ErrEmptyBatch = errors.New("empty message batch")
