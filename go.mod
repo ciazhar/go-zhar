@@ -18,6 +18,7 @@ require (
 	github.com/golang-migrate/migrate/v4 v4.18.1
 	github.com/google/uuid v1.6.0
 	github.com/jackc/pgx/v5 v5.7.1
+	github.com/pquerna/otp v1.4.0
 	github.com/prometheus/client_golang v1.11.1
 	github.com/rs/zerolog v1.33.0
 	github.com/shopspring/decimal v1.4.0
@@ -28,7 +29,6 @@ require (
 	github.com/swaggo/swag v1.16.3
 	github.com/testcontainers/testcontainers-go v0.34.0
 	github.com/testcontainers/testcontainers-go/modules/clickhouse v0.34.0
-	github.com/xlzd/gotp v0.1.0
 	go.mongodb.org/mongo-driver v1.11.4
 	go.opentelemetry.io/otel/exporters/otlp/otlptrace v1.34.0
 	go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracegrpc v1.33.0
