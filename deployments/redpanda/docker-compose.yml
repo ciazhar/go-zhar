@@ -81,6 +81,22 @@ services:
     networks:
       - redpanda_network
 
+  schema-registry:
+    image: confluentinc/cp-schema-registry:7.4.0
+    container_name: schema-registry
+    depends_on:
+      - redpanda-1
+      - redpanda-2
+      - redpanda-3
+    ports:
+      - "8081:8081"
+    environment:
+      SCHEMA_REGISTRY_HOST_NAME: schema-registry
+      SCHEMA_REGISTRY_KAFKASTORE_BOOTSTRAP_SERVERS: "PLAINTEXT://redpanda-1:29092,PLAINTEXT://redpanda-2:29093,PLAINTEXT://redpanda-3:29094"
+      SCHEMA_REGISTRY_LOG4J_ROOT_LOGLEVEL: INFO
+    networks:
+      - redpanda_network
+
   redpanda-console:
     image: redpandadata/console:v2.3.3
     container_name: redpanda-console
@@ -95,7 +111,7 @@ services:
       REDPANDA_ADMIN_API_ENABLED: "true"
       REDPANDA_ADMIN_API_URLS: "http://redpanda-1:9644,http://redpanda-2:9644,http://redpanda-3:9644"
       SCHEMA_REGISTRY_ENABLED: "true"
-      SCHEMA_REGISTRY_URLS: "http://redpanda-1:8081,http://redpanda-2:8081,http://redpanda-3:8081"
+      SCHEMA_REGISTRY_URLS: "http://schema-registry:8081"
     networks:
       - redpanda_network
 
