@@ -57,7 +57,7 @@ func consume(topic string, deserializeFunc func([]byte) (model.User, error)) {
 	config := sarama.NewConfig()
 	config.Consumer.Return.Errors = true
 
-	brokers := []string{"localhost:9092", "localhost:9093", "localhost:9094"}
+	brokers := []string{"localhost:19092", "localhost:19093", "localhost:19094"}
 	consumer, err := sarama.NewConsumer(brokers, config)
 	if err != nil {
 		log.Fatal(err)
