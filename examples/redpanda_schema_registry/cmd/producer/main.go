@@ -13,7 +13,10 @@ import (
 
 // Serialize JSON
 func serializeJSON(user model.User) []byte {
-	data, _ := json.Marshal(user)
+	data, err := json.Marshal(user)
+	if err != nil {
+		log.Fatalf("Error serializing JSON: %v", err)
+	}
 	return data
 }
 
@@ -41,7 +44,10 @@ func serializeProtobuf(user model.User) []byte {
 		Name:  user.Name,
 		Email: user.Email,
 	}
-	data, _ := proto2.Marshal(userProto)
+	data, err := proto2.Marshal(userProto)
+	if err != nil {
+		log.Fatalf("Error serializing Protobuf: %v", err)
+	}
 	return data
 }
 
@@ -50,10 +56,10 @@ func produceMessage(topic string, value []byte) {
 	config := sarama.NewConfig()
 	config.Producer.Return.Successes = true
 
-	brokers := []string{"localhost:9092", "localhost:9093", "localhost:9094"}
+	brokers := []string{"localhost:19092", "localhost:29092", "localhost:39092"}
 	producer, err := sarama.NewSyncProducer(brokers, config)
 	if err != nil {
-		log.Fatal(err)
+		log.Fatalf("Failed to create Kafka producer: %v", err)
 	}
 	defer producer.Close()
 
@@ -62,10 +68,12 @@ func produceMessage(topic string, value []byte) {
 		Value: sarama.ByteEncoder(value),
 	}
 
-	_, _, err = producer.SendMessage(msg)
+	partition, offset, err := producer.SendMessage(msg)
 	if err != nil {
-		log.Fatal(err)
+		log.Fatalf("Failed to send message: %v", err)
 	}
+
+	fmt.Printf("Message sent to partition %d at offset %d\n", partition, offset)
 }
 
 func main() {
