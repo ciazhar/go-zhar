@@ -3,9 +3,9 @@ package main
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/IBM/sarama"
 	"github.com/ciazhar/go-start-small/examples/redpanda_schema_registry/internal/model"
 	"github.com/ciazhar/go-start-small/examples/redpanda_schema_registry/proto"
-	"github.com/confluentinc/confluent-kafka-go/kafka"
 	"github.com/linkedin/goavro"
 	proto2 "google.golang.org/protobuf/proto"
 	"log"
@@ -54,32 +54,30 @@ func deserializeProtobuf(data []byte) (model.User, error) {
 
 // Kafka Consumer
 func consume(topic string, deserializeFunc func([]byte) (model.User, error)) {
-	consumer, err := kafka.NewConsumer(&kafka.ConfigMap{
-		"bootstrap.servers": "localhost:9092,localhost:9093,localhost:9094",
-		"group.id":          "benchmark-group",
-		"auto.offset.reset": "earliest",
-	})
+	config := sarama.NewConfig()
+	config.Consumer.Return.Errors = true
+
+	brokers := []string{"localhost:9092", "localhost:9093", "localhost:9094"}
+	consumer, err := sarama.NewConsumer(brokers, config)
 	if err != nil {
 		log.Fatal(err)
 	}
 	defer consumer.Close()
 
-	err = consumer.SubscribeTopics([]string{topic}, nil)
+	partitionConsumer, err := consumer.ConsumePartition(topic, 0, sarama.OffsetOldest)
 	if err != nil {
 		log.Fatal(err)
 	}
+	defer partitionConsumer.Close()
 
-	for {
-		msg, err := consumer.ReadMessage(-1)
-		if err == nil {
-			user, err := deserializeFunc(msg.Value)
-			if err != nil {
-				log.Printf("Failed to deserialize message from topic %s: %v", topic, err)
-				continue
-			}
-			fmt.Printf("Topic: %s | Size: %d bytes | User: %+v\n", topic, len(msg.Value), user)
-			break
+	for msg := range partitionConsumer.Messages() {
+		user, err := deserializeFunc(msg.Value)
+		if err != nil {
+			log.Printf("Failed to deserialize message from topic %s: %v", topic, err)
+			continue
 		}
+		fmt.Printf("Topic: %s | Size: %d bytes | User: %+v\n", topic, len(msg.Value), user)
+		break
 	}
 }
 

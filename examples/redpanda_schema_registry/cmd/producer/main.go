@@ -3,13 +3,12 @@ package main
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/IBM/sarama"
 	"github.com/ciazhar/go-start-small/examples/redpanda_schema_registry/internal/model"
 	"github.com/ciazhar/go-start-small/examples/redpanda_schema_registry/proto"
+	"github.com/linkedin/goavro"
 	proto2 "google.golang.org/protobuf/proto"
 	"log"
-
-	"github.com/confluentinc/confluent-kafka-go/kafka"
-	"github.com/linkedin/goavro"
 )
 
 // Serialize JSON
@@ -48,28 +47,25 @@ func serializeProtobuf(user model.User) []byte {
 
 // Produce message to Kafka
 func produceMessage(topic string, value []byte) {
+	config := sarama.NewConfig()
+	config.Producer.Return.Successes = true
 
-	// Kafka Config
-	var kafkaConfig = &kafka.ConfigMap{
-		"bootstrap.servers": "localhost:9092,localhost:9093,localhost:9094",
-	}
-
-	producer, err := kafka.NewProducer(kafkaConfig)
+	brokers := []string{"localhost:9092", "localhost:9093", "localhost:9094"}
+	producer, err := sarama.NewSyncProducer(brokers, config)
 	if err != nil {
 		log.Fatal(err)
 	}
 	defer producer.Close()
 
-	msg := &kafka.Message{
-		TopicPartition: kafka.TopicPartition{Topic: &topic, Partition: kafka.PartitionAny},
-		Value:          value,
+	msg := &sarama.ProducerMessage{
+		Topic: topic,
+		Value: sarama.ByteEncoder(value),
 	}
 
-	err = producer.Produce(msg, nil)
+	_, _, err = producer.SendMessage(msg)
 	if err != nil {
 		log.Fatal(err)
 	}
-	producer.Flush(1000)
 }
 
 func main() {
