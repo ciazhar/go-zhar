@@ -1,0 +1,7 @@
+version: '3.8'
+services:
+  myapp:
+    image: ciazhar/myapp:latest
+    ports:
+      - "8080:8080"
+    restart: always
