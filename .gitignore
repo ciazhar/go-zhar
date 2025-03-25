@@ -3,3 +3,5 @@
 logfile.log
 experiment
 examples/kafka_clickhouse_table_engine
+prompt
+myapp
