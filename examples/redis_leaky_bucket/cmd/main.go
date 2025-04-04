@@ -98,7 +98,7 @@ func leakBucket() {
 		time.Sleep(leakRate)
 
 		// Ambil semua key yang berkaitan dengan rate limiting
-		keys, err := rdb.Keys(ctx, "rate_limit:*").Result()
+		keys, err := rdb.Keys(ctx, leakyBucketRateLimit+":*").Result()
 		if err != nil {
 			log.Error().Err(err).Msg("Failed to fetch keys")
 			continue
