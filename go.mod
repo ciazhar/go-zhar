@@ -1,10 +1,11 @@
 module github.com/ciazhar/go-start-small
 
-go 1.23.0
+go 1.24.1
 
-toolchain go1.24.1
+replace github.com/ciazhar/private-repo => /Users/ciazhar/GolandProjects/private-repo
 
 require (
+	github.com/ciazhar/private-repo v0.0.0-00010101000000-000000000000
 	github.com/go-chi/chi v1.5.5
 	github.com/go-chi/cors v1.2.1
 	github.com/go-faker/faker/v4 v4.5.0
@@ -19,6 +20,7 @@ require (
 	github.com/jackc/pgx/v5 v5.7.1
 	github.com/linkedin/goavro v2.1.0+incompatible
 	github.com/pquerna/otp v1.4.0
+	github.com/redis/go-redis/v9 v9.7.3
 	github.com/riferrei/srclient v0.7.1
 	github.com/rs/zerolog v1.33.0
 	github.com/shopspring/decimal v1.4.0
