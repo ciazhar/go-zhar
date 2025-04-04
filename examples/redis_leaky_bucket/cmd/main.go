@@ -41,7 +41,11 @@ func rateLimiter(defaultRateLimit int) fiber.Handler {
 		reqCount, _ := rdb.LLen(ctx, bucketKey).Result()
 
 		// Jika bucket penuh, tolak request dengan HTTP 429
-		if reqCount >= int64(getRateLimit(clientID, defaultRateLimit)) {
+		limit := getRateLimit(clientID, defaultRateLimit)
+		c.Set("X-RateLimit-Limit", strconv.Itoa(limit))
+		c.Set("X-RateLimit-Remaining", strconv.Itoa(limit-int(reqCount)))
+
+		if reqCount >= int64(limit) {
 			retryAfter := leakRate.Seconds()
 			log.Warn().Str("client", clientID).Msg("Rate limit exceeded")
 
