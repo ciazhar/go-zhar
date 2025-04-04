@@ -33,7 +33,6 @@ func rateLimiter(defaultRateLimit int) fiber.Handler {
 	return func(c *fiber.Ctx) error {
 		// Granular Limit: Ambil key berdasarkan IP atau User ID
 		clientID := c.IP() // Bisa diganti dengan User ID jika ada autentikasi
-
 		bucketKey := fmt.Sprintf("%s:%s", leakyBucketRateLimit, clientID)
 		now := time.Now().Unix()
 
@@ -45,6 +44,16 @@ func rateLimiter(defaultRateLimit int) fiber.Handler {
 		c.Set("X-RateLimit-Limit", strconv.Itoa(limit))
 		c.Set("X-RateLimit-Remaining", strconv.Itoa(limit-int(reqCount)))
 
+		// Deteksi anomali
+		anomaly := detectAnomaly(clientID)
+		if anomaly {
+			setRateLimit(clientID, limit/2)
+			return c.Status(fiber.StatusTooManyRequests).JSON(fiber.Map{
+				"error": "The system detected an unusual traffic spike. Rate limits are temporarily lowered.",
+			})
+		}
+
+		// Jika request melebihi batas, tolak request
 		if reqCount >= int64(limit) {
 			retryAfter := leakRate.Seconds()
 			log.Warn().Str("client", clientID).Msg("Rate limit exceeded")
@@ -69,6 +78,25 @@ func rateLimiter(defaultRateLimit int) fiber.Handler {
 		// Lanjutkan ke handler berikutnya
 		return c.Next()
 	}
+}
+
+func detectAnomaly(clientID string) bool {
+	now := time.Now().Unix()
+	threshold := 100 // Batas anomali dalam 1 menit
+
+	// Simpan timestamp request
+	rdb.ZAdd(ctx, "traffic_monitor:"+clientID, redis.Z{
+		Score:  float64(now),
+		Member: now,
+	})
+
+	// Hapus data yang lebih lama dari 1 menit
+	rdb.ZRemRangeByScore(ctx, "traffic_monitor:"+clientID, "0", strconv.FormatInt(now-60, 10))
+
+	// Hitung total request dalam 1 menit
+	count, _ := rdb.ZCard(ctx, "traffic_monitor:"+clientID).Result()
+
+	return int(count) > threshold
 }
 
 func getRateLimit(clientID string, defaultLimit int) int {
