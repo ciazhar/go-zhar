@@ -19,10 +19,3 @@ scrape_configs:
           environment: dev
           __path__: /var/log/app.log
 
-    pipeline_stages:
-      - regex:
-          expression: '(?P<level>INFO|ERROR|DEBUG|WARN): (?P<message>.*)'
-      - labels:
-          level:
-      - output:
-          source: message
