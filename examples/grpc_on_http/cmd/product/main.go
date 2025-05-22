@@ -2,6 +2,7 @@ package main
 
 import (
 	"github.com/ciazhar/go-start-small/examples/grpc_on_http/internal/product"
+	grpc_middleware "github.com/ciazhar/go-start-small/examples/grpc_on_http/pkg/middleware"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/reflection"
 	"log"
@@ -14,7 +15,10 @@ func main() {
 		log.Fatalf("failed to listen: %v", err)
 	}
 
-	grpcServer := grpc.NewServer()
+	apiKey := "test-api-key"
+	gm := grpc_middleware.New(apiKey)
+
+	grpcServer := grpc.NewServer(grpc.UnaryInterceptor(gm.UnaryInterceptor))
 	reflection.Register(grpcServer)
 
 	product.Init(grpcServer)

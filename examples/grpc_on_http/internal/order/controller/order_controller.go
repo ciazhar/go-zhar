@@ -1,9 +1,9 @@
 package controller
 
 import (
-	"context"
 	"fmt"
 	"github.com/ciazhar/go-start-small/examples/grpc_on_http/internal/product/controller/grpc/product"
+	"github.com/ciazhar/go-start-small/examples/grpc_on_http/pkg/context_util"
 	"log"
 	"net/http"
 
@@ -31,8 +31,8 @@ func (c *OrderController) GetOrderDetail(ctx *fiber.Ctx) error {
 			productID = int32(parsed)
 		}
 	}
-
-	res, err := c.productClient.GetByID(context.Background(), &product.GetByIDRequest{
+	apiKey := "test-api-key"
+	res, err := c.productClient.GetByID(context_util.NewGrpcAuthContext(ctx.Context(), apiKey), &product.GetByIDRequest{
 		Id: productID,
 	})
 	if err != nil {
