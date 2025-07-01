@@ -18,9 +18,6 @@ type ConsumerGroup struct {
 	Process       MessageProcessor // Function to process messages
 }
 
-// MessageProcessor is a function type for processing messages.
-type MessageProcessor func(msg *sarama.ConsumerMessage) error
-
 // NewKafkaConsumerGroup creates a new KafkaConsumer
 func NewKafkaConsumerGroup(brokers []string, groupID, topic string, process MessageProcessor, assignor string, offsetOldest bool) *ConsumerGroup {
 

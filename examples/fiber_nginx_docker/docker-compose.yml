@@ -1,0 +1,31 @@
+version: '3.8'
+
+services:
+  nginx:
+    image: nginx:latest
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf
+    ports:
+      - "8080:80"
+    depends_on:
+      - app1
+      - app2
+      - app3
+
+  app1:
+    build: ./app
+    environment:
+      - PORT=3000
+      - INSTANCE=Instance-1
+
+  app2:
+    build: ./app
+    environment:
+      - PORT=3000
+      - INSTANCE=Instance-2
+
+  app3:
+    build: ./app
+    environment:
+      - PORT=3000
+      - INSTANCE=Instance-3

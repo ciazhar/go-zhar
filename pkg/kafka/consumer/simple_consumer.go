@@ -10,7 +10,7 @@ import (
 	"time"
 )
 
-// SimpleConsumer SIMPLE CONSUMER WITH RETRY
+// SimpleConsumer optimized for parallel processing and retries.
 // Pros: Simple to understand and use
 // Cons: No automatic partition balancing
 type SimpleConsumer struct {
@@ -20,9 +20,11 @@ type SimpleConsumer struct {
 	Offset     int64
 	consumer   sarama.Consumer
 	maxRetries int
+	workers    int
 }
 
-func NewSimpleConsumer(brokerList []string, topic string, process MessageProcessor, assignor string, offsetOldest bool) *SimpleConsumer {
+// NewSimpleConsumer creates a new SimpleConsumer instance.
+func NewSimpleConsumer(brokerList []string, topic string, process MessageProcessor, assignor string, offsetOldest bool, workers int) *SimpleConsumer {
 	config := sarama.NewConfig()
 	config.Consumer.Return.Errors = true
 	config.Consumer.Retry.Backoff = 2 * time.Second
@@ -53,9 +55,11 @@ func NewSimpleConsumer(brokerList []string, topic string, process MessageProcess
 		maxRetries: 3,
 		Topic:      topic,
 		Process:    process,
+		workers:    workers,
 	}
 }
 
+// ConsumeWithRetry starts consuming messages with retry logic and parallel processing.
 func (c *SimpleConsumer) ConsumeWithRetry(topic string, partition int32, offset int64) error {
 	var retries int
 	var partitionConsumer sarama.PartitionConsumer
@@ -67,7 +71,7 @@ func (c *SimpleConsumer) ConsumeWithRetry(topic string, partition int32, offset 
 			break
 		}
 		retries++
-		time.Sleep(time.Second * time.Duration(retries))
+		time.Sleep(time.Second * time.Duration(1<<retries)) // Exponential backoff
 	}
 
 	if err != nil {
@@ -75,11 +79,27 @@ func (c *SimpleConsumer) ConsumeWithRetry(topic string, partition int32, offset 
 	}
 	defer partitionConsumer.Close()
 
-	for message := range partitionConsumer.Messages() {
-		if err := c.Process(message); err != nil {
-			log.Printf("Error processing message: %v\n", err)
-		}
+	// Worker pool for parallel processing
+	messageCh := make(chan *sarama.ConsumerMessage, 100)
+	var wg sync.WaitGroup
+
+	for i := 0; i < c.workers; i++ {
+		wg.Add(1)
+		go func() {
+			defer wg.Done()
+			for message := range messageCh {
+				if err := c.Process(message); err != nil {
+					log.Printf("Error processing message: %v\n", err)
+				}
+			}
+		}()
 	}
+
+	for message := range partitionConsumer.Messages() {
+		messageCh <- message
+	}
+	close(messageCh)
+	wg.Wait() // Wait for all workers to complete
 
 	return nil
 }
@@ -92,10 +112,11 @@ func StartSimpleConsumer(
 	wg *sync.WaitGroup,
 	assignor string,
 	offsetOldest bool,
+	workers int,
 ) {
 
 	for topic, config := range consumers {
-		kafkaConsumer := NewSimpleConsumer(strings.Split(brokers, ","), config.Topic, config.Process, assignor, offsetOldest)
+		kafkaConsumer := NewSimpleConsumer(strings.Split(brokers, ","), config.Topic, config.Process, assignor, offsetOldest, workers)
 		wg.Add(1)
 		go func() {
 			err := kafkaConsumer.ConsumeWithRetry(topic, config.Partition, config.Offset)

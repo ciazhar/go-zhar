@@ -5,5 +5,6 @@ services:
     image: redis:latest
     container_name: redis
     ports:
-      - "6377:6379"
+      - "6379:6379"
     restart: always
+#    command: [ "redis-server", "--requirepass", "yourStrongPassword" ]

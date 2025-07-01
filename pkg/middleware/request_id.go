@@ -5,23 +5,16 @@ import (
 	"github.com/google/uuid"
 )
 
-func RequestIDMiddleware(c *fiber.Ctx) error {
+const RequestIDKey = "request_id"
 
-	requestID := c.Get("X-Request-ID")
-
-	if requestID == "" {
-		// Generate a new requestID using UUID
-		requestID = uuid.New().String()
+func RequestID() fiber.Handler {
+	return func(c *fiber.Ctx) error {
+		reqID := c.Get("X-Request-ID")
+		if reqID == "" {
+			reqID = uuid.New().String()
+			c.Set("X-Request-ID", reqID)
+		}
+		c.Locals(RequestIDKey, reqID)
+		return c.Next()
 	}
-
-	// Set the requestID in the response headers (optional)
-	c.Set("X-Request-ID", requestID)
-
-	// Store requestID in the context
-	ctx := c.Context()
-	ctx.SetUserValue("requestID", requestID)
-
-	// Call the next handler in the chain with the updated context
-	return c.Next()
-
 }

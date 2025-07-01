@@ -82,7 +82,7 @@ func main() {
 	v := validator.New("id")
 
 	app := fiber.New()
-	app.Use(middleware.RequestIDMiddleware)
+	app.Use(middleware.RequestID)
 	v1 := app.Group("/api/v1")
 	internal.Init(v1, pg, r, v)
 
