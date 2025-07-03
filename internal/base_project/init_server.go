@@ -2,7 +2,7 @@ package base_project
 
 import (
 	user3 "github.com/ciazhar/go-start-small/internal/base_project/controller/rest/user"
-	"github.com/ciazhar/go-start-small/internal/base_project/repository/postgres/user"
+	"github.com/ciazhar/go-start-small/internal/base_project/repository/dummy/user"
 	user2 "github.com/ciazhar/go-start-small/internal/base_project/service/user"
 	"github.com/ciazhar/go-start-small/pkg/validator"
 	"github.com/gofiber/fiber/v2"

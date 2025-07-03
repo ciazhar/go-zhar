@@ -15,7 +15,7 @@ func (uc *UserController) CreateUser(ctx *fiber.Ctx) error {
 	)
 
 	if err := uc.service.CreateUser(ctx.UserContext(), body); err != nil {
-		log.Err(err).Msg("failed to insert user to DB")
+		log.Err(err).Send()
 		return ctx.Status(fiber.StatusBadRequest).JSON(response.NewErrorResponse("failed to insert user to DB", err))
 	}
 

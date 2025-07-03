@@ -44,6 +44,13 @@ func NewBaseResponse(message string) BaseResponse {
 	}
 }
 
+func NewDataResponse(message string, data interface{}) DataResponse {
+	return DataResponse{
+		Message: message,
+		Data:    data,
+	}
+}
+
 func NewErrorResponse(message string, error error) ErrorResponse {
 	return ErrorResponse{
 		Message: message,
@@ -59,6 +66,14 @@ func NewErrorResponseWithErrors(message string, errors []ValidationError) ErrorR
 	return ErrorResponse{
 		Message: message,
 		Errors:  errors,
+	}
+}
+
+func NewPageResponse(message string, data interface{}, total int64) PageResponse {
+	return PageResponse{
+		Message: message,
+		Data:    data,
+		Total:   total,
 	}
 }
 
