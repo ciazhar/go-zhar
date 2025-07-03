@@ -2,10 +2,20 @@ package user
 
 import (
 	"context"
-	"log"
+	"github.com/ciazhar/go-start-small/internal/base_project/model/request"
+	"github.com/ciazhar/go-start-small/pkg/logger"
 )
 
-func (u userService) CreateUser(ctx context.Context, requestID string) error {
-	log.Printf("[request_id=%s] processing CreateUser in service", requestID)
-	return u.repo.CreateUser(ctx, requestID)
+func (u userService) CreateUser(ctx context.Context, req request.CreateUserBodyRequest) error {
+	var (
+		log = logger.FromContext(ctx).With().Any("req", req).Logger()
+	)
+
+	err := u.repo.CreateUser(ctx, req)
+	if err != nil {
+		log.Err(err).Msg("failed to insert user to DB")
+		return err
+	}
+
+	return nil
 }

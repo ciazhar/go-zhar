@@ -11,7 +11,7 @@ func RequestID() fiber.Handler {
 	return func(c *fiber.Ctx) error {
 		reqID := c.Get("X-Request-ID")
 		if reqID == "" {
-			reqID = uuid.New().String()
+			reqID = uuid.NewString()
 			c.Set("X-Request-ID", reqID)
 		}
 		c.Locals(RequestIDKey, reqID)

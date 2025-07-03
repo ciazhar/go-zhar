@@ -2,16 +2,13 @@ package logger
 
 import (
 	"context"
-	"fmt"
+	"github.com/rs/zerolog"
+	"github.com/rs/zerolog/log"
+	"gopkg.in/natefinch/lumberjack.v2"
 	"io"
 	"os"
 	"path/filepath"
 	"strconv"
-
-	"github.com/ciazhar/go-start-small/pkg/context_util"
-	"github.com/rs/zerolog"
-	"github.com/rs/zerolog/log"
-	"gopkg.in/natefinch/lumberjack.v2"
 )
 
 // LogConfig holds the configuration for the logger
@@ -25,26 +22,27 @@ type LogConfig struct {
 	ConsoleOutput bool
 }
 
+// contextKey is used to prevent context key collisions
+type contextKey string
+
+const (
+	LoggerKey contextKey = "logger"
+)
+
 // InitLogger initializes the logger with custom settings and log rotation
 func InitLogger(config LogConfig) {
-	// Setup log writers
 	multiWriter := setupWriters(config)
 
-	// Custom function to format the caller to show only the file name and line number
 	zerolog.CallerMarshalFunc = func(pc uintptr, file string, line int) string {
 		return filepath.Base(file) + ":" + strconv.Itoa(line)
 	}
 
-	// Set log level
 	setLogLevel(config.LogLevel)
 
-	// Enable async logging with buffering
 	log.Logger = zerolog.New(zerolog.SyncWriter(multiWriter)).With().Timestamp().Caller().Logger()
 }
 
-// Setup log writers based on config
 func setupWriters(config LogConfig) io.Writer {
-	// Set up lumberjack for log rotation
 	logRotator := &lumberjack.Logger{
 		Filename:   config.LogFile,
 		MaxSize:    config.MaxSize,
@@ -53,7 +51,6 @@ func setupWriters(config LogConfig) io.Writer {
 		Compress:   config.Compress,
 	}
 
-	// Determine the writers
 	var writers []io.Writer
 	writers = append(writers, logRotator)
 	if config.ConsoleOutput {
@@ -64,7 +61,6 @@ func setupWriters(config LogConfig) io.Writer {
 }
 
 func setLogLevel(level string) {
-	// Set log level based on config.LogLevel
 	switch level {
 	case "debug":
 		zerolog.SetGlobalLevel(zerolog.DebugLevel)
@@ -75,66 +71,34 @@ func setLogLevel(level string) {
 	case "error":
 		zerolog.SetGlobalLevel(zerolog.ErrorLevel)
 	default:
-		zerolog.SetGlobalLevel(zerolog.DebugLevel) // default to debug if invalid
+		zerolog.SetGlobalLevel(zerolog.DebugLevel)
 	}
 }
 
-// logEvent is a helper function to create a log event with common fields
-func logEvent(ctx context.Context, event *zerolog.Event, fields map[string]interface{}) *zerolog.Event {
-	if requestID, ok := ctx.Value(context_util.RequestIDKey).(string); ok {
-		event = event.Str("request_id", requestID)
+// WithLogger returns a new context with the logger attached
+func WithLogger(ctx context.Context, l zerolog.Logger) context.Context {
+	return context.WithValue(ctx, LoggerKey, l)
+}
+
+// FromContext retrieves the logger from the context
+func FromContext(ctx context.Context) zerolog.Logger {
+	if l, ok := ctx.Value(LoggerKey).(zerolog.Logger); ok {
+		return l
 	}
-
-	for key, value := range fields {
-		switch v := value.(type) {
-		case error:
-			event = event.Err(v)
-		case map[string]interface{}:
-			event = event.Fields(v)
-		default:
-			event = event.Interface(key, value)
-		}
-	}
-
-	return event.CallerSkipFrame(1)
-}
-
-// LogAndReturnError logs an error and returns it
-func LogAndReturnError(ctx context.Context, err error, msg string, fields map[string]interface{}) error {
-	logEvent(ctx, log.Error().Err(err), fields).Msg(msg)
-	return fmt.Errorf("%s: %w", msg, err)
-}
-
-func LogError(ctx context.Context, err error, msg string, fields map[string]interface{}) {
-	logEvent(ctx, log.Error().Err(err), fields).Msg(msg)
-}
-
-// LogAndReturnWarning logs a warning and returns it as an error
-func LogAndReturnWarning(ctx context.Context, err error, msg string, fields map[string]interface{}) error {
-	logEvent(ctx, log.Warn().Err(err), fields).Msg(msg)
-	return fmt.Errorf("%s: %w", msg, err)
-}
-
-// LogDebug logs a debug message
-func LogDebug(ctx context.Context, msg string, fields map[string]interface{}) {
-	logEvent(ctx, log.Debug(), fields).Msg(msg)
-}
-
-// LogInfo logs an info message
-func LogInfo(ctx context.Context, msg string, fields map[string]interface{}) {
-	logEvent(ctx, log.Info(), fields).Msg(msg)
-}
-
-// LogFatal logs a fatal message
-func LogFatal(ctx context.Context, err error, msg string, fields map[string]interface{}) {
-	logEvent(ctx, log.Fatal().Err(err), fields).Msg(msg)
-}
-
-func LogWarn(ctx context.Context, err error, msg string, fields map[string]interface{}) {
-	logEvent(ctx, log.Warn().Err(err), fields).Msg(msg)
-}
-
-// GetLogger returns the current global zerolog.Logger instance
-func GetLogger() zerolog.Logger {
 	return log.Logger
+}
+
+// LogFatal is a wrapper for zerolog.LogFatal
+func LogFatal(err error) *zerolog.Event {
+	return log.Fatal().Err(err)
+}
+
+// LogError is a wrapper for zerolog.LogError
+func LogError(err error) *zerolog.Event {
+	return log.Error().Err(err)
+}
+
+// LogWarn is a wrapper for zerolog.LogWarn
+func LogWarn(msg error) *zerolog.Event {
+	return log.Warn().Err(msg)
 }

@@ -1,8 +1,0 @@
-{
-  "anti_fraud_service_url": "http://localhost:8081/antifraud-service",
-  "user_service_url": "http://localhost:8081/user-service",
-  "account_service_url": "http://localhost:8081/account-service",
-  "agreement_service_url": "http://localhost:8081/agreement-service",
-  "signature_service_url": "http://localhost:8081/signature-service",
-  "card_service_url": "http://localhost:8081/card-service"
-}

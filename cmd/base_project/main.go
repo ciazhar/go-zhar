@@ -2,14 +2,31 @@ package main
 
 import (
 	"github.com/ciazhar/go-start-small/internal/base_project"
+	"github.com/ciazhar/go-start-small/pkg/logger"
+	"github.com/ciazhar/go-start-small/pkg/middleware"
+	"github.com/ciazhar/go-start-small/pkg/validator"
 	"github.com/gofiber/fiber/v2"
 )
 
 func main() {
 
-	f := fiber.New()
+	logger.InitLogger(logger.LogConfig{
+		LogLevel:      "debug",
+		LogFile:       "./logfile.log",
+		MaxSize:       10,
+		MaxBackups:    5,
+		MaxAge:        30,
+		Compress:      true,
+		ConsoleOutput: true,
+	})
 
-	base_project.InitServer(f)
+	v := validator.New("id")
+
+	f := fiber.New()
+	f.Use(middleware.RequestID())
+	f.Use(middleware.Logger())
+
+	base_project.InitServer(f, v)
 
 	f.Listen(":3000")
 }

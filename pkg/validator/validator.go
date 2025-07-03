@@ -1,11 +1,10 @@
 package validator
 
 import (
-	"context"
 	"errors"
-	"strings"
-
+	"fmt"
 	"github.com/ciazhar/go-start-small/pkg/logger"
+	"github.com/ciazhar/go-start-small/pkg/response"
 	"github.com/go-playground/locales/en"
 	"github.com/go-playground/locales/id"
 	ut "github.com/go-playground/universal-translator"
@@ -25,7 +24,7 @@ func New(language string) Validator {
 	validate := validator.New()
 	translator, err := getTranslator(validate, language)
 	if err != nil {
-		logger.LogFatal(context.Background(), err, "Failed to get translator", nil)
+		logger.LogFatal(err).Msg("failed to get translator")
 	}
 
 	return Validator{
@@ -59,24 +58,26 @@ func getTranslator(validate *validator.Validate, language string) (ut.Translator
 
 }
 
-func (v Validator) ValidateStruct(s interface{}) error {
+func (v Validator) ValidateStruct(s interface{}) ([]response.ValidationError, error) {
 	if err := v.validate.Struct(s); err != nil {
 
 		var errs validator.ValidationErrors
-		errors.As(err, &errs)
-
-		var concatenatedErr strings.Builder
-		for i, message := range errs {
-			separator := ", "
-			if i == len(errs)-1 {
-				separator = "."
+		if errors.As(err, &errs) {
+			var out []response.ValidationError
+			for _, e := range errs {
+				out = append(out, response.ValidationError{
+					Field:   e.Field(),
+					Message: e.Translate(v.translator),
+				})
 			}
-			concatenatedErr.WriteString(message.Translate(v.translator) + separator)
+			return out, fmt.Errorf("validation failed")
 		}
 
-		return errors.New(concatenatedErr.String())
+		// Non-validation error
+		return nil, err
 	}
-	return nil
+
+	return nil, nil
 }
 
 type CustomValidator struct {
