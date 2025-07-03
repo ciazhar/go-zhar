@@ -12,6 +12,7 @@ func Logger() fiber.Handler {
 
 		logCtx := log.Logger.With().
 			Str("request_id", reqID).
+			Str("path", c.Path()).
 			Logger()
 
 		ctx := logger.WithLogger(c.Context(), logCtx)
