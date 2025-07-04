@@ -7,30 +7,36 @@ import (
 
 type BaseResponse struct {
 	Message string `json:"message"`
+	Code    int    `json:"code,omitempty"` // optional, bisa diisi http.StatusBadRequest, dsb
 }
 
 type DataResponse struct {
 	Message string `json:"message"`
+	Code    int    `json:"code,omitempty"` // optional, bisa diisi http.StatusBadRequest, dsb
 	Data    any    `json:"data"`
 }
 
 type ValidationError struct {
-	Field   string `json:"field,omitempty"` // empty for general errors
-	Message string `json:"message"`
+	Field      string `json:"field,omitempty"` // empty for general errors
+	Message    string `json:"message"`
+	Suggestion string `json:"suggestion,omitempty"`
 }
 
 type ErrorResponse struct {
 	Message string            `json:"message"`
+	Code    int               `json:"code,omitempty"`   // optional, bisa diisi http.StatusBadRequest, dsb
 	Errors  []ValidationError `json:"errors,omitempty"` // `omitempty` jika hanya satu message
 }
 
 type PageResponse struct {
+	Code    int    `json:"code"` // optional, bisa diisi http.StatusBadRequest, dsb
 	Message string `json:"message"`
 	Data    any    `json:"data"`
 	Total   int64  `json:"total"`
 }
 
 type CursorResponse struct {
+	Code     int    `json:"code"` // optional, bisa diisi http.StatusBadRequest, dsb
 	Message  string `json:"message"`
 	Data     any    `json:"data"`
 	PrevPath string `json:"prevPath,omitempty"`
