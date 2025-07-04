@@ -6,6 +6,7 @@ import (
 	"github.com/ciazhar/go-start-small/pkg/middleware"
 	"github.com/ciazhar/go-start-small/pkg/validator"
 	"github.com/gofiber/fiber/v2"
+	"github.com/gofiber/fiber/v2/middleware/recover"
 )
 
 func main() {
@@ -23,6 +24,7 @@ func main() {
 	v := validator.New("id")
 
 	f := fiber.New()
+	f.Use(recover.New())
 	f.Use(middleware.RequestID())
 	f.Use(middleware.Logger())
 
