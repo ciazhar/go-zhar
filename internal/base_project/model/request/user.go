@@ -15,8 +15,10 @@ type UserPathParam struct {
 }
 
 type GetUsersQueryParam struct {
-	Name string `query:"name"` // optional
-	Age  int    `query:"age"`  // optional
-	Page int    `query:"page" validate:"min=1"`
-	Size int    `query:"size" validate:"min=1,max=100"`
+	Name  string `query:"name"` // optional
+	Age   int    `query:"age"`  // optional
+	Page  int    `query:"page" validate:"min=1"`
+	Size  int    `query:"size" validate:"min=1,max=100"`
+	Sort  string `query:"sort" validate:"oneof=name age"`
+	Order string `query:"order" validate:"oneof=asc desc"`
 }
