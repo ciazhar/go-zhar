@@ -44,8 +44,9 @@ func (l *slidingWindowLimiter) GetKeyType() string {
 
 func NewSlidingWindowLimiter(cfg RateLimitConfig) RateLimiter {
 	return &slidingWindowLimiter{
-		store:  cfg.Store,
-		limit:  cfg.Limit,
-		window: cfg.Window,
+		store:   cfg.Store,
+		limit:   cfg.Limit,
+		window:  cfg.Window,
+		keyType: cfg.Key,
 	}
 }

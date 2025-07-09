@@ -34,13 +34,13 @@ type RateLimitConfig struct {
 func NewRateLimiter(cfg RateLimitConfig) RateLimiter {
 	switch cfg.Type {
 	case TokenBucketType:
-		return NewTokenBucket(cfg)
+		return NewTokenBucketLimiter(cfg)
 	case LeakyBucketType:
-		return NewLeakyBucket(cfg)
+		return NewLeakyBucketLimiter(cfg)
 	case FixedWindowType:
-		return NewFixedWindow(cfg)
+		return NewFixedWindowLimiter(cfg)
 	case SlidingWindowType:
-		return NewSlidingWindow(cfg)
+		return NewSlidingWindowLimiter(cfg)
 	default:
 		panic("invalid rate limiter type")
 	}

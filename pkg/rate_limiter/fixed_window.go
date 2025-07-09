@@ -1,31 +1,60 @@
 package rate_limiter
 
 import (
-	"sync"
 	"time"
 )
 
-type fixedWindow struct {
-	requests map[string]int
-	resetAt  map[string]time.Time
-	limit    int
-	window   time.Duration
-	mu       sync.Mutex
+type fixedWindowData struct {
+	Count   int
+	ResetAt time.Time
 }
 
-func (fw *fixedWindow) Allow(key string) bool {
-	fw.mu.Lock()
-	defer fw.mu.Unlock()
+type fixedWindowLimiter struct {
+	store   RateLimitStore
+	limit   int
+	window  time.Duration
+	keyType string
+}
 
+func (f *fixedWindowLimiter) Allow(key string) bool {
 	now := time.Now()
-	if expire, ok := fw.resetAt[key]; !ok || now.After(expire) {
-		fw.requests[key] = 0
-		fw.resetAt[key] = now.Add(fw.window)
+
+	val, ok := f.store.Get(key)
+	var data *fixedWindowData
+	if ok {
+		data = val.(*fixedWindowData)
+	} else {
+		data = &fixedWindowData{
+			Count:   0,
+			ResetAt: now.Add(f.window),
+		}
 	}
 
-	if fw.requests[key] < fw.limit {
-		fw.requests[key]++
+	if now.After(data.ResetAt) {
+		// Reset window
+		data.Count = 0
+		data.ResetAt = now.Add(f.window)
+	}
+
+	if data.Count < f.limit {
+		data.Count++
+		f.store.Set(key, data, f.window)
 		return true
 	}
+
+	f.store.Set(key, data, f.window)
 	return false
+}
+
+func (f *fixedWindowLimiter) GetKeyType() string {
+	return f.keyType
+}
+
+func NewFixedWindowLimiter(cfg RateLimitConfig) RateLimiter {
+	return &fixedWindowLimiter{
+		store:   cfg.Store,
+		limit:   cfg.Limit,
+		window:  cfg.Window,
+		keyType: cfg.Key,
+	}
 }

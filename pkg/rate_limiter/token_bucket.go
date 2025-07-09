@@ -1,33 +1,65 @@
 package rate_limiter
 
 import (
-	"sync"
 	"time"
 )
 
 type tokenBucket struct {
-	capacity   int
 	tokens     float64
 	lastRefill time.Time
-	refillRate float64 // tokens per second
-	mu         sync.Mutex
 }
 
-func (b *tokenBucket) Allow(key string) bool {
-	b.mu.Lock()
-	defer b.mu.Unlock()
+type tokenBucketLimiter struct {
+	store      RateLimitStore
+	capacity   int
+	refillRate float64 // tokens per second
+	window     time.Duration
+	keyType    string
+}
 
+func (l *tokenBucketLimiter) Allow(key string) bool {
 	now := time.Now()
-	elapsed := now.Sub(b.lastRefill).Seconds()
-	b.tokens += elapsed * b.refillRate
-	if b.tokens > float64(b.capacity) {
-		b.tokens = float64(b.capacity)
-	}
-	b.lastRefill = now
 
-	if b.tokens >= 1 {
-		b.tokens -= 1
+	val, ok := l.store.Get(key)
+	var bucket *tokenBucket
+	if ok {
+		bucket = val.(*tokenBucket)
+	} else {
+		bucket = &tokenBucket{
+			tokens:     float64(l.capacity),
+			lastRefill: now,
+		}
+	}
+
+	// Refill token berdasarkan waktu yang telah lewat
+	elapsed := now.Sub(bucket.lastRefill).Seconds()
+	bucket.tokens += elapsed * l.refillRate
+	if bucket.tokens > float64(l.capacity) {
+		bucket.tokens = float64(l.capacity)
+	}
+	bucket.lastRefill = now
+
+	// Cek apakah bisa ambil 1 token
+	if bucket.tokens >= 1 {
+		bucket.tokens -= 1
+		l.store.Set(key, bucket, l.window)
 		return true
 	}
+
+	l.store.Set(key, bucket, l.window)
 	return false
+}
+
+func (l *tokenBucketLimiter) GetKeyType() string {
+	return l.keyType
+}
+
+func NewTokenBucketLimiter(cfg RateLimitConfig) RateLimiter {
+	return &tokenBucketLimiter{
+		store:      cfg.Store,
+		capacity:   cfg.Limit,
+		refillRate: float64(cfg.Limit) / cfg.Window.Seconds(), // tokens per second
+		window:     cfg.Window,
+		keyType:    cfg.Key,
+	}
 }
