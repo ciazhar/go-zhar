@@ -13,7 +13,7 @@ type fixedWindowLimiter struct {
 	store   RateLimitStore
 	limit   int
 	window  time.Duration
-	keyType string
+	keyType KeyType
 }
 
 func (f *fixedWindowLimiter) Allow(key string) bool {
@@ -46,7 +46,7 @@ func (f *fixedWindowLimiter) Allow(key string) bool {
 	return false
 }
 
-func (f *fixedWindowLimiter) GetKeyType() string {
+func (f *fixedWindowLimiter) GetKeyType() KeyType {
 	return f.keyType
 }
 

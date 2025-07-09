@@ -12,7 +12,7 @@ type leakyBucketLimiter struct {
 	capacity int
 	leakRate float64 // tokens per second
 	window   time.Duration
-	keyType  string
+	keyType  KeyType
 }
 
 func (l *leakyBucketLimiter) Allow(key string) bool {
@@ -50,7 +50,7 @@ func (l *leakyBucketLimiter) Allow(key string) bool {
 	return false
 }
 
-func (l *leakyBucketLimiter) GetKeyType() string {
+func (l *leakyBucketLimiter) GetKeyType() KeyType {
 	return l.keyType
 }
 

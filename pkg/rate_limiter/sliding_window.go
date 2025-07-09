@@ -8,7 +8,7 @@ type slidingWindowLimiter struct {
 	store   RateLimitStore
 	limit   int
 	window  time.Duration
-	keyType string
+	keyType KeyType
 }
 
 func (s *slidingWindowLimiter) Allow(key string) bool {
@@ -38,7 +38,7 @@ func (s *slidingWindowLimiter) Allow(key string) bool {
 	return true
 }
 
-func (l *slidingWindowLimiter) GetKeyType() string {
+func (l *slidingWindowLimiter) GetKeyType() KeyType {
 	return l.keyType
 }
 

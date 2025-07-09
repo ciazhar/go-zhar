@@ -5,27 +5,34 @@ import (
 	"time"
 )
 
+type BucketType int
+
 const (
-
-	// Bucket types
-	TokenBucketType   = "token"
-	LeakyBucketType   = "leaky"
-	FixedWindowType   = "fixed"
-	SlidingWindowType = "sliding"
-
-	// Key types
-	IpAddress = "ip_address"
-	ApiKey    = "api_key"
-	UserId    = "user_id"
-
-	// Storage
-	InMemory = "in_memory"
-	Redis    = "redis"
+	SlidingWindowType BucketType = iota
+	TokenBucketType
+	LeakyBucketType
+	FixedWindowType
 )
 
+func (r BucketType) String() string {
+	return [...]string{"sliding_window", "token_bucket", "leaky_bucket", "fixed_window"}[r]
+}
+
+type KeyType int
+
+const (
+	IpAddress KeyType = iota
+	ApiKey
+	UserId
+)
+
+func (r KeyType) String() string {
+	return [...]string{"ip_address", "api_key", "user_id"}[r]
+}
+
 type RateLimitConfig struct {
-	Type   string
-	Key    string
+	Type   BucketType
+	Key    KeyType
 	Store  RateLimitStore
 	Limit  int
 	Window time.Duration
@@ -46,7 +53,7 @@ func NewRateLimiter(cfg RateLimitConfig) RateLimiter {
 	}
 }
 
-func GetKey(c *fiber.Ctx, keyType string) string {
+func GetKey(c *fiber.Ctx, keyType KeyType) string {
 	switch keyType {
 	case IpAddress:
 		return c.IP()

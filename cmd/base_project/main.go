@@ -30,7 +30,7 @@ func main() {
 	store := rate_limiter.NewInMemoryStore(5*time.Minute, 10*time.Minute)
 	limiter := rate_limiter.NewRateLimiter(rate_limiter.RateLimitConfig{
 		Type:   rate_limiter.SlidingWindowType,
-		Key:    rate_limiter.IpAddress,
+		Key:    rate_limiter.ApiKey,
 		Store:  store,
 		Limit:  10,
 		Window: 1 * time.Minute,

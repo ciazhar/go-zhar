@@ -4,7 +4,7 @@ import "time"
 
 type RateLimiter interface {
 	Allow(key string) bool
-	GetKeyType() string
+	GetKeyType() KeyType
 }
 
 type RateLimitStore interface {

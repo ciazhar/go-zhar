@@ -14,7 +14,7 @@ type tokenBucketLimiter struct {
 	capacity   int
 	refillRate float64 // tokens per second
 	window     time.Duration
-	keyType    string
+	keyType    KeyType
 }
 
 func (l *tokenBucketLimiter) Allow(key string) bool {
@@ -50,7 +50,7 @@ func (l *tokenBucketLimiter) Allow(key string) bool {
 	return false
 }
 
-func (l *tokenBucketLimiter) GetKeyType() string {
+func (l *tokenBucketLimiter) GetKeyType() KeyType {
 	return l.keyType
 }
 
