@@ -30,6 +30,17 @@ func (r KeyType) String() string {
 	return [...]string{"ip_address", "api_key", "user_id"}[r]
 }
 
+type StorageType int
+
+const (
+	InMemory StorageType = iota
+	Redis
+)
+
+func (r StorageType) String() string {
+	return [...]string{"in_memory", "redis"}[r]
+}
+
 type RateLimitConfig struct {
 	Type   BucketType
 	Key    KeyType

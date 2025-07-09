@@ -1,12 +1,13 @@
 package rate_limiter
 
 import (
+	"fmt"
 	"time"
 )
 
 type fixedWindowData struct {
-	Count   int
-	ResetAt time.Time
+	Count   int       `json:"count"`
+	ResetAt time.Time `json:"reset_at"`
 }
 
 type fixedWindowLimiter struct {
@@ -16,15 +17,16 @@ type fixedWindowLimiter struct {
 	keyType KeyType
 }
 
-func (f *fixedWindowLimiter) Allow(key string) bool {
+func (f *fixedWindowLimiter) Allow(key string) (bool, error) {
 	now := time.Now()
 
-	val, ok := f.store.Get(key)
-	var data *fixedWindowData
-	if ok {
-		data = val.(*fixedWindowData)
-	} else {
-		data = &fixedWindowData{
+	var data fixedWindowData
+	found, err := f.store.Get(key, &data)
+	if err != nil {
+		return false, fmt.Errorf("failed to get fixed window data: %v", err)
+	}
+	if !found {
+		data = fixedWindowData{
 			Count:   0,
 			ResetAt: now.Add(f.window),
 		}
@@ -38,12 +40,17 @@ func (f *fixedWindowLimiter) Allow(key string) bool {
 
 	if data.Count < f.limit {
 		data.Count++
-		f.store.Set(key, data, f.window)
-		return true
+		if err := f.store.Set(key, data, f.window); err != nil {
+			return false, fmt.Errorf("failed to store fixed window data: %v", err)
+		}
+		return true, nil
 	}
 
-	f.store.Set(key, data, f.window)
-	return false
+	// still store to maintain reset time
+	if err := f.store.Set(key, data, f.window); err != nil {
+		return false, fmt.Errorf("failed to store fixed window data: %v", err)
+	}
+	return false, nil
 }
 
 func (f *fixedWindowLimiter) GetKeyType() KeyType {

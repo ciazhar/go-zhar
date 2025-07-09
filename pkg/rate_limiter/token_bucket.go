@@ -1,12 +1,13 @@
 package rate_limiter
 
 import (
+	"fmt"
 	"time"
 )
 
 type tokenBucket struct {
-	tokens     float64
-	lastRefill time.Time
+	Tokens     float64   `json:"tokens"`
+	LastRefill time.Time `json:"last_refill"`
 }
 
 type tokenBucketLimiter struct {
@@ -17,37 +18,41 @@ type tokenBucketLimiter struct {
 	keyType    KeyType
 }
 
-func (l *tokenBucketLimiter) Allow(key string) bool {
+func (l *tokenBucketLimiter) Allow(key string) (bool, error) {
 	now := time.Now()
 
-	val, ok := l.store.Get(key)
-	var bucket *tokenBucket
-	if ok {
-		bucket = val.(*tokenBucket)
-	} else {
-		bucket = &tokenBucket{
-			tokens:     float64(l.capacity),
-			lastRefill: now,
+	var bucket tokenBucket
+	found, err := l.store.Get(key, &bucket)
+	if err != nil {
+		return false, fmt.Errorf("failed to get token bucket: %v", err)
+	}
+	if !found {
+		bucket = tokenBucket{
+			Tokens:     float64(l.capacity),
+			LastRefill: now,
 		}
 	}
 
-	// Refill token berdasarkan waktu yang telah lewat
-	elapsed := now.Sub(bucket.lastRefill).Seconds()
-	bucket.tokens += elapsed * l.refillRate
-	if bucket.tokens > float64(l.capacity) {
-		bucket.tokens = float64(l.capacity)
+	// Refill token
+	elapsed := now.Sub(bucket.LastRefill).Seconds()
+	bucket.Tokens += elapsed * l.refillRate
+	if bucket.Tokens > float64(l.capacity) {
+		bucket.Tokens = float64(l.capacity)
 	}
-	bucket.lastRefill = now
+	bucket.LastRefill = now
 
-	// Cek apakah bisa ambil 1 token
-	if bucket.tokens >= 1 {
-		bucket.tokens -= 1
-		l.store.Set(key, bucket, l.window)
-		return true
+	if bucket.Tokens >= 1 {
+		bucket.Tokens -= 1
+		if err := l.store.Set(key, bucket, l.window); err != nil {
+			return false, fmt.Errorf("failed to set token bucket: %v", err)
+		}
+		return true, nil
 	}
 
-	l.store.Set(key, bucket, l.window)
-	return false
+	if err := l.store.Set(key, bucket, l.window); err != nil {
+		return false, fmt.Errorf("failed to set token bucket: %v", err)
+	}
+	return false, nil
 }
 
 func (l *tokenBucketLimiter) GetKeyType() KeyType {

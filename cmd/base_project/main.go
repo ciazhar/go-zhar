@@ -29,7 +29,7 @@ func main() {
 	//store := rate_limiter.NewRedisStore(redisClient)
 	store := rate_limiter.NewInMemoryStore(5*time.Minute, 10*time.Minute)
 	limiter := rate_limiter.NewRateLimiter(rate_limiter.RateLimitConfig{
-		Type:   rate_limiter.SlidingWindowType,
+		Type:   rate_limiter.FixedWindowType,
 		Key:    rate_limiter.ApiKey,
 		Store:  store,
 		Limit:  10,
