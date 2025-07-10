@@ -40,22 +40,20 @@ Dari sana, Kafka Connect membaca topik-topik yang relevan, lalu menyimpannya ke 
 
 ```mermaid
 flowchart LR
-    A[PostgreSQL (Source - Singapore)] -->|Write-Ahead Log (WAL)| B[Debezium Connector]
+    A[PostgreSQL - Source Singapore] -->|WAL| B[Debezium Connector]
+    B -->|CDC Events| C[Redpanda Kafka Broker]
+    C -->|Topic: source.public.orders| D[Kafka Connect JDBC Sink]
+    D -->|Upsert| E[PostgreSQL - Replica Europe]
 
-    B -->|CDC Event Stream| C[Redpanda (Kafka Broker)]
-
-    C -->|Topic: source.public.orders| D[Kafka Connect - JDBC Sink Connector]
-
-    D -->|Upsert Rows| E[PostgreSQL (Replica - Europe)]
-
-    subgraph "Debezium CDC Pipeline"
-        A --> B
-        B --> C
+    subgraph Debezium_CDC_Pipeline
+        A
+        B
+        C
     end
 
-    subgraph "Sink (Kafka Connect)"
-        C --> D
-        D --> E
+    subgraph Sink_Kafka_Connect
+        D
+        E
     end
 ```
 
@@ -74,7 +72,7 @@ flowchart LR
 
 Untuk implementasi real-world, kamu bisa mulai dengan proyek berikut:
 
-👉 **[PostgreSQL Replication with Debezium](#)**
+👉 **[PostgreSQL Replication with Debezium](https://github.com/ciazhar/go-start-small/tree/v2/internal/cdc_postgres_debezium_redpanda_kafka_connect_postgres_data_replication)**
 *(Link ke GitHub kamu atau dokumentasi project)*
 
 ---
