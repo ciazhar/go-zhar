@@ -1,0 +1,25 @@
+{
+  "name": "sink-postgres-connector",
+  "config": {
+    "connector.class": "io.debezium.connector.jdbc.JdbcSinkConnector",
+    "tasks.max": "1",
+
+    "topics": "source.public.orders",
+
+    "connection.url": "jdbc:postgresql://postgres-sink:5432/sink_db",
+    "connection.username": "sink_user",
+    "connection.password": "sink_pass",
+
+    "table.name.format": "orders",
+
+    "insert.mode": "upsert",
+    "primary.key.mode": "record_key",
+    "primary.key.fields": "id",
+
+    "auto.create": "true",
+    "auto.evolve": "true",
+
+    "decimal.handling.mode": "double",
+    "time.precision.mode": "adaptive"
+  }
+}

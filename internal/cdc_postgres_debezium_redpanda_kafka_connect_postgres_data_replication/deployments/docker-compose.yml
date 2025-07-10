@@ -1,0 +1,88 @@
+version: '3.8'
+
+services:
+  postgres-source:
+    image: postgres:15
+    environment:
+      - POSTGRES_USER=source_user
+      - POSTGRES_PASSWORD=source_pass
+      - POSTGRES_DB=source_db
+    ports:
+      - 5432:5432
+    volumes:
+      - pgdata_source:/var/lib/postgresql/data
+      - ./init-source.sql:/docker-entrypoint-initdb.d/init.sql
+    command: # required to enable logical replication for cdc
+      - "postgres"
+      - "-c"
+      - "wal_level=logical"
+      - "-c"
+      - "max_wal_senders=10"
+      - "-c"
+      - "max_replication_slots=10"
+
+  postgres-sink:
+    image: postgres:15
+    environment:
+      - POSTGRES_USER=sink_user
+      - POSTGRES_PASSWORD=sink_pass
+      - POSTGRES_DB=sink_db
+    ports:
+      - 5433:5432
+    volumes:
+      - pgdata_sink:/var/lib/postgresql/data
+      - ./init-sink.sql:/docker-entrypoint-initdb.d/init.sql
+
+  redpanda:
+    image: docker.redpanda.com/redpandadata/redpanda:latest
+    container_name: redpanda
+    command:
+      - redpanda start
+      - --overprovisioned
+      - --smp 1
+      - --memory 1G
+      - --reserve-memory 0M
+      - --node-id 0
+      - --check=false
+      - --kafka-addr PLAINTEXT://0.0.0.0:9092
+      - --advertise-kafka-addr PLAINTEXT://redpanda:9092
+    ports:
+      - "9092:9092"
+
+  connect:
+    image: debezium/connect:2.5
+    ports:
+      - 8083:8083
+    environment:
+      - BOOTSTRAP_SERVERS=redpanda:9092
+      - GROUP_ID=1
+      - CONFIG_STORAGE_TOPIC=connect_configs
+      - OFFSET_STORAGE_TOPIC=connect_offsets
+      - STATUS_STORAGE_TOPIC=connect_statuses
+      - KEY_CONVERTER=org.apache.kafka.connect.json.JsonConverter
+      - VALUE_CONVERTER=org.apache.kafka.connect.json.JsonConverter
+      - CONNECT_KEY_CONVERTER_SCHEMAS_ENABLE=true
+      - CONNECT_VALUE_CONVERTER_SCHEMAS_ENABLE=true
+      - CONNECT_CONVERTER_DECIMAL_FORMAT=NUMERIC
+      - CONNECT_REST_ADVERTISED_HOST_NAME=connect
+      - CONNECT_PLUGIN_PATH=/kafka/connect,/usr/share/java
+      - DEBEZIUM_SOURCE_DB_HISTORY_KAFKA_TOPIC=dbhistory.source
+      - DEBEZIUM_DECIMAL_HANDLING_MODE=string
+    depends_on:
+      - redpanda
+      - postgres-source
+
+  redpanda-console:
+    image: docker.redpanda.com/redpandadata/console:latest
+    container_name: redpanda-console
+    ports:
+      - "8080:8080"
+    environment:
+      KAFKA_BROKERS: redpanda:9092
+    depends_on:
+      - redpanda
+
+volumes:
+  pgdata_source:
+  pgdata_sink:
+  redpanda_data:
