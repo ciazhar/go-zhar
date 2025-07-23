@@ -88,6 +88,21 @@ func FromContext(ctx context.Context) zerolog.Logger {
 	return log.Logger
 }
 
+// LogDebug is a wrapper for zerolog.LogDebug
+func LogDebug(msg string) {
+	log.Debug().Msg(msg)
+}
+
+// LogInfo is a wrapper for zerolog.LogInfo
+func LogInfo(msg string) {
+	log.Info().Msg(msg)
+}
+
+// LogInfof is a wrapper for zerolog.LogInfo
+func LogInfof(msg string, args ...interface{}) {
+	log.Info().Msgf(msg, args...)
+}
+
 // LogFatal is a wrapper for zerolog.LogFatal
 func LogFatal(err error) *zerolog.Event {
 	return log.Fatal().Err(err)
@@ -96,6 +111,11 @@ func LogFatal(err error) *zerolog.Event {
 // LogError is a wrapper for zerolog.LogError
 func LogError(err error) *zerolog.Event {
 	return log.Error().Err(err)
+}
+
+// LogErrorf is a wrapper for zerolog.LogError
+func LogErrorf(err error, msg string, args ...interface{}) {
+	log.Error().Err(err).Msgf(msg, args...)
 }
 
 // LogWarn is a wrapper for zerolog.LogWarn
