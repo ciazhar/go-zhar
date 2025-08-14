@@ -1,0 +1,89 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:15
+    environment:
+      - POSTGRES_USER=pguser
+      - POSTGRES_PASSWORD=pgpass
+      - POSTGRES_DB=pgdb
+    ports:
+      - 5432:5432
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+      - ./init.sql:/docker-entrypoint-initdb.d/init.sql:ro
+    command:
+      - "postgres"
+      - "-c"
+      - "wal_level=logical"
+      - "-c"
+      - "max_wal_senders=10"
+      - "-c"
+      - "max_replication_slots=10"
+
+  redpanda:
+    image: docker.redpanda.com/redpandadata/redpanda:latest
+    container_name: redpanda
+    command:
+      - redpanda start
+      - --overprovisioned
+      - --smp 1
+      - --memory 1G
+      - --reserve-memory 0M
+      - --node-id 0
+      - --check=false
+      - --kafka-addr PLAINTEXT://0.0.0.0:9092
+      - --advertise-kafka-addr PLAINTEXT://redpanda:9092
+    ports:
+      - "9092:9092"
+
+  connect:
+    image: debezium/connect:2.5
+    ports:
+      - 8083:8083
+    environment:
+      - BOOTSTRAP_SERVERS=redpanda:9092
+      - GROUP_ID=1
+      - CONFIG_STORAGE_TOPIC=connect_configs
+      - OFFSET_STORAGE_TOPIC=connect_offsets
+      - STATUS_STORAGE_TOPIC=connect_statuses
+      - KEY_CONVERTER=org.apache.kafka.connect.json.JsonConverter
+      - VALUE_CONVERTER=org.apache.kafka.connect.json.JsonConverter
+      - CONNECT_KEY_CONVERTER_SCHEMAS_ENABLE=true
+      - CONNECT_VALUE_CONVERTER_SCHEMAS_ENABLE=true
+      - CONNECT_CONVERTER_DECIMAL_FORMAT=NUMERIC
+      - DEBEZIUM_SOURCE_DB_HISTORY_KAFKA_TOPIC=dbhistory.source
+      - DEBEZIUM_DECIMAL_HANDLING_MODE=string
+      - CONNECT_REST_ADVERTISED_HOST_NAME=connect
+      - CONNECT_PLUGIN_PATH=/kafka/connect,/kafka/connect/clickhouse,/usr/share/java
+    depends_on:
+      - redpanda
+      - postgres
+    volumes:
+      - ./connect-plugins/clickhouse:/kafka/connect/clickhouse
+
+  clickhouse:
+    image: clickhouse/clickhouse-server:latest
+    ports:
+      - 8123:8123
+      - 9000:9000
+    volumes:
+      - clickhouse_data:/var/lib/clickhouse
+      - ./clickhouse/initdb:/docker-entrypoint-initdb.d
+    environment:
+      - CLICKHOUSE_USER=default
+      - CLICKHOUSE_PASSWORD=your_secure_password
+
+  redpanda-console:
+    image: docker.redpanda.com/redpandadata/console:latest
+    container_name: redpanda-console
+    ports:
+      - "8080:8080"
+    environment:
+      KAFKA_BROKERS: redpanda:9092
+    depends_on:
+      - redpanda
+volumes:
+  pgdata:
+  redpanda_data:
+  clickhouse_data:

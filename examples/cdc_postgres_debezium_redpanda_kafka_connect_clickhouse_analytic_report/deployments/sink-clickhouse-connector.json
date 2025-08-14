@@ -1,0 +1,27 @@
+{
+  "name": "clickhouse-sink-connector",
+  "config": {
+    "connector.class": "com.clickhouse.kafka.connect.ClickHouseSinkConnector",
+    "tasks.max": "1",
+    "topics": "source.public.orders",
+
+    "hostname": "clickhouse",
+    "port": "8123",
+    "username": "default",
+    "password": "your_secure_password",
+    "clickhouse.auto.evolve.table": "true",
+
+    "key.converter": "org.apache.kafka.connect.storage.StringConverter",
+    "value.converter": "org.apache.kafka.connect.json.JsonConverter",
+    "key.converter.schemas.enable": "false",
+    "value.converter.schemas.enable": "false",
+    "decimal.format": "BASE64",
+
+    "transforms": "unwrap",
+    "transforms.unwrap.type": "io.debezium.transforms.ExtractNewRecordState",
+    "transforms.unwrap.drop.tombstones": "true",
+
+    "topic2TableMap": "source.public.orders=orders",
+    "clickhouseSettings": ""
+  }
+}

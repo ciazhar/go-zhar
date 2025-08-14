@@ -12,6 +12,7 @@ require (
 	github.com/google/wire v0.6.0
 	github.com/hibiken/asynq v0.25.1
 	github.com/hibiken/asynqmon v0.7.2
+	github.com/jackc/pgx/v5 v5.7.5
 	github.com/linkedin/goavro v2.1.0+incompatible
 	github.com/nats-io/nats.go v1.43.0
 	github.com/patrickmn/go-cache v2.1.0+incompatible
@@ -69,6 +70,9 @@ require (
 	github.com/hashicorp/go-uuid v1.0.3 // indirect
 	github.com/hashicorp/golang-lru v0.5.4 // indirect
 	github.com/hashicorp/serf v0.10.1 // indirect
+	github.com/jackc/pgpassfile v1.0.0 // indirect
+	github.com/jackc/pgservicefile v0.0.0-20240606120523-5a60cdf6a761 // indirect
+	github.com/jackc/puddle/v2 v2.2.2 // indirect
 	github.com/jcmturner/aescts/v2 v2.0.0 // indirect
 	github.com/jcmturner/dnsutils/v2 v2.0.0 // indirect
 	github.com/jcmturner/gofork v1.7.6 // indirect
