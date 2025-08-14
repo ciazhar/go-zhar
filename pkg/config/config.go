@@ -2,6 +2,8 @@ package config
 
 import (
 	"context"
+	"fmt"
+	"strings"
 
 	"github.com/ciazhar/go-start-small/pkg/logger"
 	"github.com/spf13/viper"
@@ -40,6 +42,19 @@ const (
 
 func (r ConfigSource) String() string {
 	return [...]string{"file", "consul", "vault"}[r]
+}
+
+func ParseConfigSource(s string) (ConfigSource, error) {
+	switch strings.ToLower(s) {
+	case "file":
+		return File, nil
+	case "consul":
+		return Consul, nil
+	case "vault":
+		return Vault, nil
+	default:
+		return ConfigSource(-1), fmt.Errorf("invalid ConfigSource: %s", s)
+	}
 }
 
 // InitConfig initializes the configuration based on the provided config struct and source
