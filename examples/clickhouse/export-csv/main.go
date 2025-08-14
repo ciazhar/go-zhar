@@ -278,8 +278,7 @@ func main() {
 		ConsoleLoggingEnabled: true,
 	})
 
-	dsn := "tcp://35.219.11.112:9000?username=default&password=deV2022Ziel!=&database=default"
-	db, err := sql.Open("clickhouse", dsn)
+	db, err := sql.Open("clickhouse", "")
 	if err != nil {
 		log.Errorf("failed to connect to clickhouse: %s", err)
 	}
