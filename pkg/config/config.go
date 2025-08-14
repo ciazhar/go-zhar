@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/ciazhar/go-start-small/pkg/logger"
+	"github.com/ciazhar/go-zhar/pkg/logger"
 	"github.com/spf13/viper"
 	_ "github.com/spf13/viper/remote"
 )

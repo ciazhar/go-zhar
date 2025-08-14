@@ -2,7 +2,7 @@ package user
 
 import (
 	"context"
-	"github.com/ciazhar/go-start-small/pkg/logger"
+	"github.com/ciazhar/go-zhar/pkg/logger"
 )
 
 func (u userService) DeleteUser(ctx context.Context, id string) error {

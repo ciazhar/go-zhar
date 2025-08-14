@@ -3,8 +3,8 @@ package redis
 import (
 	"context"
 	"fmt"
-	"github.com/ciazhar/go-start-small/pkg/bootstrap"
-	"github.com/ciazhar/go-start-small/pkg/logger"
+	"github.com/ciazhar/go-zhar/pkg/bootstrap"
+	"github.com/ciazhar/go-zhar/pkg/logger"
 	"github.com/redis/go-redis/v9"
 )
 

@@ -1,13 +1,13 @@
 package bootstrap
 
 import (
-	user3 "github.com/ciazhar/go-start-small/examples/rest_api_service/internal/controller/rest/user"
-	"github.com/ciazhar/go-start-small/examples/rest_api_service/internal/model/request"
-	"github.com/ciazhar/go-start-small/examples/rest_api_service/internal/repository/dummy/user"
-	user2 "github.com/ciazhar/go-start-small/examples/rest_api_service/internal/service/user"
-	"github.com/ciazhar/go-start-small/pkg/middleware"
-	"github.com/ciazhar/go-start-small/pkg/rate_limiter"
-	"github.com/ciazhar/go-start-small/pkg/validator"
+	user3 "github.com/ciazhar/go-zhar/examples/rest_api_service/internal/controller/rest/user"
+	"github.com/ciazhar/go-zhar/examples/rest_api_service/internal/model/request"
+	"github.com/ciazhar/go-zhar/examples/rest_api_service/internal/repository/dummy/user"
+	user2 "github.com/ciazhar/go-zhar/examples/rest_api_service/internal/service/user"
+	"github.com/ciazhar/go-zhar/pkg/middleware"
+	"github.com/ciazhar/go-zhar/pkg/rate_limiter"
+	"github.com/ciazhar/go-zhar/pkg/validator"
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/recover"
 	"github.com/redis/go-redis/v9"

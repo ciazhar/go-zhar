@@ -3,8 +3,8 @@ package validator
 import (
 	"errors"
 	"fmt"
-	"github.com/ciazhar/go-start-small/pkg/logger"
-	"github.com/ciazhar/go-start-small/pkg/response"
+	"github.com/ciazhar/go-zhar/pkg/logger"
+	"github.com/ciazhar/go-zhar/pkg/response"
 	"github.com/go-playground/locales/en"
 	"github.com/go-playground/locales/id"
 	ut "github.com/go-playground/universal-translator"

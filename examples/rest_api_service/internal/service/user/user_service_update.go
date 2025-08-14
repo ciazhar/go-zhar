@@ -2,8 +2,8 @@ package user
 
 import (
 	"context"
-	"github.com/ciazhar/go-start-small/examples/rest_api_service/internal/model/request"
-	"github.com/ciazhar/go-start-small/pkg/logger"
+	"github.com/ciazhar/go-zhar/examples/rest_api_service/internal/model/request"
+	"github.com/ciazhar/go-zhar/pkg/logger"
 )
 
 func (u userService) UpdateUser(ctx context.Context, id string, req request.UpdateUserBodyRequest) error {

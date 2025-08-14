@@ -1,9 +1,9 @@
 package middleware
 
 import (
-	"github.com/ciazhar/go-start-small/pkg/logger"
-	"github.com/ciazhar/go-start-small/pkg/response"
-	"github.com/ciazhar/go-start-small/pkg/validator"
+	"github.com/ciazhar/go-zhar/pkg/logger"
+	"github.com/ciazhar/go-zhar/pkg/response"
+	"github.com/ciazhar/go-zhar/pkg/validator"
 	"github.com/gofiber/fiber/v2"
 )
 

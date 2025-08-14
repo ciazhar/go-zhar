@@ -1,7 +1,7 @@
 package user
 
 import (
-	"github.com/ciazhar/go-start-small/examples/rest_api_service/internal/service/user"
+	"github.com/ciazhar/go-zhar/examples/rest_api_service/internal/service/user"
 )
 
 type UserController struct {

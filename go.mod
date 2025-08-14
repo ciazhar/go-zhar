@@ -1,4 +1,4 @@
-module github.com/ciazhar/go-start-small
+module github.com/ciazhar/go-zhar
 
 go 1.24.1
 

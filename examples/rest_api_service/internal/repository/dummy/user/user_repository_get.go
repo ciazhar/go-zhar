@@ -2,7 +2,7 @@ package user
 
 import (
 	"context"
-	"github.com/ciazhar/go-start-small/examples/rest_api_service/internal/model/response"
+	"github.com/ciazhar/go-zhar/examples/rest_api_service/internal/model/response"
 	"github.com/rs/zerolog/log"
 )
 

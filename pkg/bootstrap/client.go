@@ -2,7 +2,7 @@ package bootstrap
 
 import (
 	"context"
-	"github.com/ciazhar/go-start-small/pkg/logger"
+	"github.com/ciazhar/go-zhar/pkg/logger"
 )
 
 type ClientService struct {

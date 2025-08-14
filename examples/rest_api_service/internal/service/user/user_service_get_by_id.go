@@ -2,8 +2,8 @@ package user
 
 import (
 	"context"
-	"github.com/ciazhar/go-start-small/examples/rest_api_service/internal/model/response"
-	"github.com/ciazhar/go-start-small/pkg/logger"
+	"github.com/ciazhar/go-zhar/examples/rest_api_service/internal/model/response"
+	"github.com/ciazhar/go-zhar/pkg/logger"
 )
 
 func (u userService) GetUserByID(ctx context.Context, id string) (*response.User, error) {

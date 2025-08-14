@@ -3,8 +3,8 @@ package user
 import (
 	"context"
 	"fmt"
-	"github.com/ciazhar/go-start-small/examples/rest_api_service/internal/model/response"
-	"github.com/ciazhar/go-start-small/pkg/logger"
+	"github.com/ciazhar/go-zhar/examples/rest_api_service/internal/model/response"
+	"github.com/ciazhar/go-zhar/pkg/logger"
 )
 
 func (r userRepository) GetUserByID(ctx context.Context, id string) (*response.User, error) {

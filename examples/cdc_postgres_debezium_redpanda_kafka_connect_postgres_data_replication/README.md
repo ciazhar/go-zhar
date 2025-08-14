@@ -72,7 +72,7 @@ flowchart LR
 
 Untuk implementasi real-world, kamu bisa mulai dengan proyek berikut:
 
-👉 **[PostgreSQL Replication with Debezium](https://github.com/ciazhar/go-start-small/tree/v2/internal/cdc_postgres_debezium_redpanda_kafka_connect_postgres_data_replication)**
+👉 **[PostgreSQL Replication with Debezium](https://github.com/ciazhar/go-zhar/tree/v2/internal/cdc_postgres_debezium_redpanda_kafka_connect_postgres_data_replication)**
 *(Link ke GitHub kamu atau dokumentasi project)*
 
 ---

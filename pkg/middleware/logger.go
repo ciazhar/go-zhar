@@ -1,7 +1,7 @@
 package middleware
 
 import (
-	"github.com/ciazhar/go-start-small/pkg/logger"
+	"github.com/ciazhar/go-zhar/pkg/logger"
 	"github.com/gofiber/fiber/v2"
 	"github.com/rs/zerolog/log"
 )
