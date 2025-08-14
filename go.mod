@@ -7,7 +7,7 @@ replace github.com/ciazhar/private-repo => /Users/ciazhar/GolandProjects/private
 require (
 	github.com/alitto/pond v1.9.2
 	github.com/go-playground/validator/v10 v10.22.1
-	github.com/gofiber/fiber/v2 v2.52.6
+	github.com/gofiber/fiber/v2 v2.52.9
 	github.com/google/uuid v1.6.0
 	github.com/google/wire v0.6.0
 	github.com/hibiken/asynq v0.25.1
