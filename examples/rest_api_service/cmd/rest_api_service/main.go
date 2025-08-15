@@ -11,7 +11,6 @@ import (
 	"github.com/ciazhar/go-zhar/pkg/logger"
 	"github.com/ciazhar/go-zhar/pkg/redis"
 	"github.com/ciazhar/go-zhar/pkg/validator"
-	"github.com/gofiber/fiber/v2"
 	"github.com/spf13/viper"
 	"time"
 )
@@ -78,14 +77,16 @@ func main() {
 		}
 	}
 
+	// === BUILD HTTP MODULE WITH WIRE ===
+	restModule := bootstrap2.InitializeRESTModule(v, redisClient)
+
 	// === INIT SERVERS + WORKERS ===
 	var serversAndWorkers []bootstrap.Service
 	server1 := server.NewFiberServer(
 		fmt.Sprintf("%s:%s", viper.GetString("application.name"), viper.GetString("application.version")),
 		fmt.Sprintf(":%s", viper.GetString("application.port")),
-		func(app *fiber.App) {
-			bootstrap2.InitServer(app, v, redisClient)
-		})
+		restModule.Register, // <- just pass the registrar
+	)
 	serversAndWorkers = append(serversAndWorkers, server1)
 
 	// === START ALL SERVERS + WORKERS ===
