@@ -2,6 +2,7 @@ package bootstrap
 
 import (
 	"context"
+
 	"github.com/ciazhar/go-zhar/pkg/logger"
 )
 

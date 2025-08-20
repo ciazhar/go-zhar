@@ -3,6 +3,7 @@ package server
 import (
 	"context"
 	"fmt"
+
 	"github.com/ciazhar/go-zhar/pkg/logger"
 	"github.com/gofiber/fiber/v2"
 )

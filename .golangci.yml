@@ -1,0 +1,36 @@
+version: "2"
+
+run:
+  timeout: 5m
+  concurrency: 4
+  go: "1.25"
+
+linters:
+  enable:
+    - errcheck
+    - staticcheck
+    - govet
+    - gosec
+    - gocyclo
+    - gocognit
+    - unconvert
+    - whitespace
+    - bodyclose
+    - misspell
+    - ineffassign
+  disable:
+    - dupl
+    - revive
+  settings:
+    gocognit:
+      min-complexity: 50
+    gocyclo:
+      min-complexity: 50
+    gosec:
+      excludes:
+        - G101
+
+formatters:
+  enable:
+    - gofmt
+    - goimports
