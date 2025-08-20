@@ -59,7 +59,6 @@ func ParseConfigSource(s string) (ConfigSource, error) {
 
 // InitConfig initializes the configuration based on the provided config struct and source
 func InitConfig(ctx context.Context, config Config) {
-
 	var (
 		log = logger.FromContext(ctx).With().Any("config", config).Logger()
 	)
