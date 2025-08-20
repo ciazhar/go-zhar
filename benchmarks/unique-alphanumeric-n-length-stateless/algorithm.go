@@ -4,11 +4,12 @@ import (
 	"crypto/md5"
 	"crypto/rand"
 	"fmt"
-	"github.com/google/uuid"
 	"math/big"
 	"strconv"
 	"strings"
 	"time"
+
+	"github.com/google/uuid"
 )
 
 const charset = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"

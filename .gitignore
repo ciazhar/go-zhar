@@ -8,3 +8,4 @@ myapp
 datasets/*/*.csv
 main
 clickhouse-kafka-connect-v1.3.2-confluent.jar
+coverage.out

@@ -2,12 +2,13 @@ package bootstrap
 
 import (
 	"context"
-	"github.com/ciazhar/go-zhar/pkg/logger"
 	"os"
 	"os/signal"
 	"sync"
 	"syscall"
 	"time"
+
+	"github.com/ciazhar/go-zhar/pkg/logger"
 )
 
 // GracefulShutdown waits for termination syscalls and doing clean up operations after received it.

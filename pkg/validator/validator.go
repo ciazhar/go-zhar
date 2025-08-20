@@ -3,6 +3,7 @@ package validator
 import (
 	"errors"
 	"fmt"
+
 	"github.com/ciazhar/go-zhar/pkg/logger"
 	"github.com/ciazhar/go-zhar/pkg/response"
 	"github.com/go-playground/locales/en"
@@ -20,7 +21,6 @@ type Validator struct {
 
 // New initializes a new validator with translations
 func New(language string) Validator {
-
 	validate := validator.New()
 	translator, err := getTranslator(validate, language)
 	if err != nil {
@@ -35,7 +35,8 @@ func New(language string) Validator {
 
 // getTranslator sets up translations based on the language code
 func getTranslator(validate *validator.Validate, language string) (ut.Translator, error) {
-	if language == "en" {
+	switch language {
+	case "en":
 		enT := en.New()
 		uni := ut.New(enT, enT)
 		trans, _ := uni.GetTranslator("en")
@@ -44,7 +45,7 @@ func getTranslator(validate *validator.Validate, language string) (ut.Translator
 			return nil, err
 		}
 		return trans, nil
-	} else if language == "id" {
+	case "id":
 		id := id.New()
 		uni := ut.New(id, id)
 		trans, _ := uni.GetTranslator("id")
@@ -55,12 +56,10 @@ func getTranslator(validate *validator.Validate, language string) (ut.Translator
 		return trans, nil
 	}
 	return nil, errors.New("invalid language")
-
 }
 
 func (v Validator) ValidateStruct(s interface{}) ([]response.ValidationError, error) {
 	if err := v.validate.Struct(s); err != nil {
-
 		var errs validator.ValidationErrors
 		if errors.As(err, &errs) {
 			var out []response.ValidationError
@@ -86,7 +85,6 @@ type CustomValidator struct {
 }
 
 func (v Validator) RegisterCustomValidation(customValidators []CustomValidator) error {
-
 	for _, vv := range customValidators {
 		err := v.validate.RegisterValidation(vv.Tag, vv.Handler)
 		if err != nil {
@@ -101,7 +99,6 @@ func (v Validator) OverrideTranslationFieldOnly(tag string, message string, para
 	return v.validate.RegisterTranslation(tag, v.translator, func(ut ut.Translator) error {
 		return ut.Add(tag, message, true) // see universal-translator for details
 	}, func(ut ut.Translator, fe validator.FieldError) string {
-
 		for i := range params {
 			switch params[i] {
 			case "field":

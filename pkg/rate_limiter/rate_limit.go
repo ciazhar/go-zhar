@@ -1,8 +1,9 @@
 package rate_limiter
 
 import (
-	"github.com/gofiber/fiber/v2"
 	"time"
+
+	"github.com/gofiber/fiber/v2"
 )
 
 type BucketType int
