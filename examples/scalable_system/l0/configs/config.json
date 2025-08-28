@@ -1,0 +1,12 @@
+{
+  "application": {
+    "name": "scalable_system",
+    "version": "1.0.0",
+    "port": 8080
+  },
+  "redis": {
+    "host": "localhost",
+    "port": 6379,
+    "password": "yourpassword"
+  }
+}
