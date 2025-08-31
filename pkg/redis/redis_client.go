@@ -9,7 +9,7 @@ import (
 	"github.com/redis/go-redis/v9"
 )
 
-func InitRedis(ctx context.Context, host string, port int, password string) (*bootstrap.ClientService, *redis.Client, error) {
+func InitRedis(ctx context.Context, host string, port int, password string) (*bootstrap.ClientService, *redis.Client) {
 	var (
 		log = logger.FromContext(ctx).With().Str("host", host).Int("port", port).Logger()
 	)
@@ -20,11 +20,10 @@ func InitRedis(ctx context.Context, host string, port int, password string) (*bo
 		DB:       0, // use default DB
 	})
 	if err := client.Ping(ctx).Err(); err != nil {
-		log.Err(err).Send()
-		return nil, nil, err
+		log.Fatal().Err(err).Msg("failed to ping redis")
 	}
 	return bootstrap.NewClientService("redis", func() error {
 		client.Close()
 		return nil
-	}), client, nil
+	}), client
 }
