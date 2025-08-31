@@ -123,3 +123,7 @@ func LogErrorf(err error, msg string, args ...interface{}) {
 func LogWarn(msg error) *zerolog.Event {
 	return log.Warn().Err(msg)
 }
+
+func GetLogger() zerolog.Logger {
+	return log.Logger
+}
