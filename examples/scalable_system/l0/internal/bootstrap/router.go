@@ -36,6 +36,7 @@ func (m *RESTModule) Register(app *fiber.App) {
 	v1 := app.Group("/v1")
 	v1.Post("/users", middleware.BodyParserMiddleware[request.CreateUserBodyRequest](m.v), m.userCtrl.CreateUser)
 	v1.Get("/users", middleware.QueryParamParserMiddleware[request.GetUsersQueryParam](m.v), m.userCtrl.GetUsers)
+	v1.Get("/users/exist", middleware.QueryParamParserMiddleware[request.UserEmailQueryParam](m.v), m.userCtrl.IsUserExistByEmail)
 	v1.Get("/users/:id", middleware.PathParamParserMiddleware[request.UserPathParam](m.v), m.userCtrl.GetUserByID)
 	v1.Put("/users/:id",
 		middleware.BodyParserMiddleware[request.UpdateUserBodyRequest](m.v),

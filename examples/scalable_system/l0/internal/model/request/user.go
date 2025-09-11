@@ -33,3 +33,7 @@ type GetUsersQueryParam struct {
 	Sort  string `query:"sort" validate:"oneof=name age"`
 	Order string `query:"order" validate:"oneof=asc desc"`
 }
+
+type UserEmailQueryParam struct {
+	Email string `query:"email" validate:"required,email"`
+}
