@@ -23,7 +23,8 @@ lint:
 
 .PHONY: coverage
 coverage:
-	go list ./... | grep -vE '\b(config)\b|route|log|bootstrap|asynq|infrastructure|requester|mock|mocks|healthcheck|route|grpc|middleware' | xargs go test -gcflags=all=-l -coverprofile=coverage.out && go tool cover -html=coverage.out
+	go list ./... | grep -vE '\b(config)\b|route|log|bootstrap|asynq|infrastructure|requester|mock|mocks|healthcheck|route|grpc|middleware|cmd' \
+      | xargs go test -gcflags=all=-l -coverprofile=coverage.out && go tool cover -html=coverage.out
 
 .PHONY: clean_mock
 clean_mock:
