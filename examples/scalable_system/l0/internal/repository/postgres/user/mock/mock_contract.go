@@ -56,20 +56,6 @@ func (mr *MockUserRepositoryContractMockRecorder) CreateUser(ctx, req any) *gomo
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateUser", reflect.TypeOf((*MockUserRepositoryContract)(nil).CreateUser), ctx, req)
 }
 
-// DeleteUser mocks base method.
-func (m *MockUserRepositoryContract) DeleteUser(ctx context.Context, id string) error {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "DeleteUser", ctx, id)
-	ret0, _ := ret[0].(error)
-	return ret0
-}
-
-// DeleteUser indicates an expected call of DeleteUser.
-func (mr *MockUserRepositoryContractMockRecorder) DeleteUser(ctx, id any) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteUser", reflect.TypeOf((*MockUserRepositoryContract)(nil).DeleteUser), ctx, id)
-}
-
 // GetUserByID mocks base method.
 func (m *MockUserRepositoryContract) GetUserByID(ctx context.Context, id string) (*response.User, error) {
 	m.ctrl.T.Helper()
@@ -85,20 +71,49 @@ func (mr *MockUserRepositoryContractMockRecorder) GetUserByID(ctx, id any) *gomo
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetUserByID", reflect.TypeOf((*MockUserRepositoryContract)(nil).GetUserByID), ctx, id)
 }
 
-// GetUsers mocks base method.
-func (m *MockUserRepositoryContract) GetUsers(ctx context.Context, page, limit int) ([]response.User, int64, error) {
+// GetUsersWithPagination mocks base method.
+func (m *MockUserRepositoryContract) GetUsersWithPagination(ctx context.Context, page, limit int) ([]response.User, int64, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetUsers", ctx, page, limit)
+	ret := m.ctrl.Call(m, "GetUsersWithPagination", ctx, page, limit)
 	ret0, _ := ret[0].([]response.User)
 	ret1, _ := ret[1].(int64)
 	ret2, _ := ret[2].(error)
 	return ret0, ret1, ret2
 }
 
-// GetUsers indicates an expected call of GetUsers.
-func (mr *MockUserRepositoryContractMockRecorder) GetUsers(ctx, page, limit any) *gomock.Call {
+// GetUsersWithPagination indicates an expected call of GetUsersWithPagination.
+func (mr *MockUserRepositoryContractMockRecorder) GetUsersWithPagination(ctx, page, limit any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetUsers", reflect.TypeOf((*MockUserRepositoryContract)(nil).GetUsers), ctx, page, limit)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetUsersWithPagination", reflect.TypeOf((*MockUserRepositoryContract)(nil).GetUsersWithPagination), ctx, page, limit)
+}
+
+// IsUserExistsByEmail mocks base method.
+func (m *MockUserRepositoryContract) IsUserExistsByEmail(ctx context.Context, email string) (bool, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "IsUserExistsByEmail", ctx, email)
+	ret0, _ := ret[0].(bool)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// IsUserExistsByEmail indicates an expected call of IsUserExistsByEmail.
+func (mr *MockUserRepositoryContractMockRecorder) IsUserExistsByEmail(ctx, email any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "IsUserExistsByEmail", reflect.TypeOf((*MockUserRepositoryContract)(nil).IsUserExistsByEmail), ctx, email)
+}
+
+// SoftDeleteUser mocks base method.
+func (m *MockUserRepositoryContract) SoftDeleteUser(ctx context.Context, id string) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "SoftDeleteUser", ctx, id)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// SoftDeleteUser indicates an expected call of SoftDeleteUser.
+func (mr *MockUserRepositoryContractMockRecorder) SoftDeleteUser(ctx, id any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SoftDeleteUser", reflect.TypeOf((*MockUserRepositoryContract)(nil).SoftDeleteUser), ctx, id)
 }
 
 // UpdateUser mocks base method.
@@ -113,4 +128,18 @@ func (m *MockUserRepositoryContract) UpdateUser(ctx context.Context, id string, 
 func (mr *MockUserRepositoryContractMockRecorder) UpdateUser(ctx, id, req any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateUser", reflect.TypeOf((*MockUserRepositoryContract)(nil).UpdateUser), ctx, id, req)
+}
+
+// UpsertUserByID mocks base method.
+func (m *MockUserRepositoryContract) UpsertUserByID(ctx context.Context, req request.UpsertUserBodyRequest) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "UpsertUserByID", ctx, req)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// UpsertUserByID indicates an expected call of UpsertUserByID.
+func (mr *MockUserRepositoryContractMockRecorder) UpsertUserByID(ctx, req any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpsertUserByID", reflect.TypeOf((*MockUserRepositoryContract)(nil).UpsertUserByID), ctx, req)
 }

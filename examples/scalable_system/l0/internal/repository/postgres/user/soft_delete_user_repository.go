@@ -7,7 +7,7 @@ import (
 	"github.com/ciazhar/go-zhar/pkg/logger"
 )
 
-func (r UserRepository) DeleteUser(ctx context.Context, id string) error {
+func (r UserRepository) SoftDeleteUser(ctx context.Context, id string) error {
 	var (
 		log = logger.FromContext(ctx).With().Str("id", id).Logger()
 	)

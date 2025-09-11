@@ -67,7 +67,7 @@ func TestDeleteUser(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			tt.mockFunc(mock)
 
-			err := repo.DeleteUser(context.Background(), tt.id)
+			err := repo.SoftDeleteUser(context.Background(), tt.id)
 
 			if tt.wantErr {
 				assert.Error(t, err)

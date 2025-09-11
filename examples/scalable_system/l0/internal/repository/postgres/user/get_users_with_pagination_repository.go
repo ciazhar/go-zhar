@@ -7,7 +7,7 @@ import (
 	"github.com/ciazhar/go-zhar/pkg/logger"
 )
 
-func (r UserRepository) GetUsers(ctx context.Context, page, limit int) ([]response.User, int64, error) {
+func (r UserRepository) GetUsersWithPagination(ctx context.Context, page, limit int) ([]response.User, int64, error) {
 	var (
 		log    = logger.FromContext(ctx).With().Int("page", page).Int("limit", limit).Logger()
 		offset = (page - 1) * limit

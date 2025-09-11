@@ -13,7 +13,7 @@ func (uc *UserController) GetUsers(ctx *fiber.Ctx) error {
 		log   = logger.FromContext(ctx.UserContext()).With().Interface("query", query).Logger()
 	)
 
-	users, total, err := uc.service.GetUsers(ctx.UserContext(), query)
+	users, total, err := uc.service.GetUsersWithPagination(ctx.UserContext(), query.Page, query.Size)
 	if err != nil {
 		log.Err(err).Send()
 		return ctx.Status(fiber.StatusBadRequest).JSON(response.NewErrorResponse("failed to get users from DB", err))

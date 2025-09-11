@@ -12,21 +12,6 @@ const (
 		WHERE id = $1 AND deleted_at IS NULL;
 	`
 
-	queryUpdateUser = `
-		UPDATE users
-		SET username   = $1,
-			email      = $2,
-			full_name  = $3,
-			updated_at = CURRENT_TIMESTAMP
-		WHERE id = $4 AND deleted_at IS NULL;
-	`
-
-	querySoftDeleteUser = `
-		UPDATE users
-		SET deleted_at = CURRENT_TIMESTAMP
-		WHERE id = $1 AND deleted_at IS NULL;
-	`
-
 	queryGetUsersWithPagination = `
 		SELECT id, username, email, full_name, created_at, updated_at
 		FROM users
@@ -41,7 +26,7 @@ const (
 		WHERE deleted_at IS NULL;
 	`
 
-	queryExistsByEmail = `
+	queryIsUserExistsByEmail = `
 		SELECT EXISTS (
 			SELECT 1 
 			FROM users
@@ -49,6 +34,22 @@ const (
 			LIMIT 1; 
 		)
 	`
+
+	querySoftDeleteUser = `
+		UPDATE users
+		SET deleted_at = CURRENT_TIMESTAMP
+		WHERE id = $1 AND deleted_at IS NULL;
+	`
+
+	queryUpdateUser = `
+		UPDATE users
+		SET username   = $1,
+			email      = $2,
+			full_name  = $3,
+			updated_at = CURRENT_TIMESTAMP
+		WHERE id = $4 AND deleted_at IS NULL;
+	`
+
 	queryUpsertUser = `
 		INSERT INTO users (id, username, email, password, full_name)
 		VALUES ($1, $2, $3, $4, $5)

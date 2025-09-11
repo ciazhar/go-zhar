@@ -31,7 +31,7 @@ func TestDeleteUser(t *testing.T) {
 			mockFunc: func(mockRepo *mock_user.MockUserRepositoryContract) {
 				mockRepo.
 					EXPECT().
-					DeleteUser(gomock.Any(), mockID).
+					SoftDeleteUser(gomock.Any(), mockID).
 					Return(nil)
 			},
 			wantErr: false,
@@ -42,7 +42,7 @@ func TestDeleteUser(t *testing.T) {
 			mockFunc: func(mockRepo *mock_user.MockUserRepositoryContract) {
 				mockRepo.
 					EXPECT().
-					DeleteUser(gomock.Any(), mockID).
+					SoftDeleteUser(gomock.Any(), mockID).
 					Return(errors.New("db delete error"))
 			},
 			wantErr: true,
@@ -53,7 +53,7 @@ func TestDeleteUser(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			tt.mockFunc(mockRepo)
 
-			err := service.DeleteUser(context.Background(), tt.id)
+			err := service.SoftDeleteUser(context.Background(), tt.id)
 
 			if tt.wantErr {
 				assert.Error(t, err)

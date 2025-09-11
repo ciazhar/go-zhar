@@ -54,7 +54,7 @@ func TestGetUsers(t *testing.T) {
 			mockFunc: func(mockRepo *mock_user.MockUserRepositoryContract) {
 				mockRepo.
 					EXPECT().
-					GetUsers(gomock.Any(), mockReq.Page, mockReq.Size).
+					GetUsersWithPagination(gomock.Any(), mockReq.Page, mockReq.Size).
 					Return(mockUsers, mockTotal, nil)
 			},
 			wantUsers: mockUsers,
@@ -67,7 +67,7 @@ func TestGetUsers(t *testing.T) {
 			mockFunc: func(mockRepo *mock_user.MockUserRepositoryContract) {
 				mockRepo.
 					EXPECT().
-					GetUsers(gomock.Any(), mockReq.Page, mockReq.Size).
+					GetUsersWithPagination(gomock.Any(), mockReq.Page, mockReq.Size).
 					Return(nil, int64(0), errors.New("db error"))
 			},
 			wantUsers: nil,
@@ -80,7 +80,7 @@ func TestGetUsers(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			tt.mockFunc(mockRepo)
 
-			users, total, err := service.GetUsers(context.Background(), tt.input)
+			users, total, err := service.GetUsersWithPagination(context.Background(), tt.input.Page, tt.input.Size)
 
 			if tt.wantErr {
 				assert.Error(t, err)

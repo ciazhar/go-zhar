@@ -130,7 +130,7 @@ func TestGetUsers(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			tt.mockFunc(mock)
 
-			got, total, err := repo.GetUsers(context.Background(), tt.page, tt.limit)
+			got, total, err := repo.GetUsersWithPagination(context.Background(), tt.page, tt.limit)
 
 			if tt.wantErr {
 				assert.Error(t, err)

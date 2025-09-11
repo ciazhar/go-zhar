@@ -32,7 +32,7 @@ func TestExistsByEmail(t *testing.T) {
 			mockFunc: func(mockPool *mockpostgres.MockPgxPool) {
 				mockPool.
 					EXPECT().
-					QueryRow(gomock.Any(), queryExistsByEmail, mockReq).
+					QueryRow(gomock.Any(), queryIsUserExistsByEmail, mockReq).
 					Return(pgx.Row(postgres.MockRow{Values: []any{true}, Err: nil}))
 			},
 			want:    true,
@@ -44,7 +44,7 @@ func TestExistsByEmail(t *testing.T) {
 			mockFunc: func(mockPool *mockpostgres.MockPgxPool) {
 				mockPool.
 					EXPECT().
-					QueryRow(gomock.Any(), queryExistsByEmail, mockReq).
+					QueryRow(gomock.Any(), queryIsUserExistsByEmail, mockReq).
 					Return(pgx.Row(postgres.MockRow{Values: []any{
 						false,
 					}, Err: nil,
@@ -59,7 +59,7 @@ func TestExistsByEmail(t *testing.T) {
 			mockFunc: func(mockPool *mockpostgres.MockPgxPool) {
 				mockPool.
 					EXPECT().
-					QueryRow(gomock.Any(), queryExistsByEmail, mockReq).
+					QueryRow(gomock.Any(), queryIsUserExistsByEmail, mockReq).
 					Return(pgx.Row(postgres.MockRow{Err: errors.New("db error")}))
 			},
 			want:    false,
@@ -71,7 +71,7 @@ func TestExistsByEmail(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			tt.mockFunc(mock)
 
-			got, err := repo.ExistsByEmail(context.Background(), tt.email)
+			got, err := repo.IsUserExistsByEmail(context.Background(), tt.email)
 
 			if tt.wantErr {
 				assert.Error(t, err)

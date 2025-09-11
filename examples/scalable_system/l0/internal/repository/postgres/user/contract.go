@@ -10,7 +10,9 @@ import (
 type UserRepositoryContract interface {
 	CreateUser(ctx context.Context, req request.CreateUserBodyRequest) error
 	GetUserByID(ctx context.Context, id string) (*response.User, error)
+	GetUsersWithPagination(ctx context.Context, page, size int) ([]response.User, int64, error)
+	IsUserExistsByEmail(ctx context.Context, email string) (bool, error)
+	SoftDeleteUser(ctx context.Context, id string) error
 	UpdateUser(ctx context.Context, id string, req request.UpdateUserBodyRequest) error
-	DeleteUser(ctx context.Context, id string) error
-	GetUsers(ctx context.Context, page, limit int) ([]response.User, int64, error)
+	UpsertUserByID(ctx context.Context, req request.UpsertUserBodyRequest) error
 }
