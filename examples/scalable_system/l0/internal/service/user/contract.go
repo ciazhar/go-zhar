@@ -5,7 +5,6 @@ import (
 
 	"github.com/ciazhar/go-zhar/examples/scalable_system/l0/internal/model/request"
 	"github.com/ciazhar/go-zhar/examples/scalable_system/l0/internal/model/response"
-	"github.com/ciazhar/go-zhar/examples/scalable_system/l0/internal/repository/postgres/user"
 )
 
 type UserService interface {
@@ -14,12 +13,4 @@ type UserService interface {
 	UpdateUser(ctx context.Context, id string, req request.UpdateUserBodyRequest) error
 	DeleteUser(ctx context.Context, id string) error
 	GetUsers(ctx context.Context, req request.GetUsersQueryParam) ([]response.User, int64, error)
-}
-
-type userService struct {
-	repo *user.UserRepository
-}
-
-func NewUserService(repo *user.UserRepository) UserService {
-	return &userService{repo: repo}
 }
