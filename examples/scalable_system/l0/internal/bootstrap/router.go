@@ -44,4 +44,5 @@ func (m *RESTModule) Register(app *fiber.App) {
 		m.userCtrl.UpdateUser,
 	)
 	v1.Delete("/users/:id", middleware.PathParamParserMiddleware[request.UserPathParam](m.v), m.userCtrl.DeleteUser)
+	v1.Post("/users/upsert", middleware.BodyParserMiddleware[request.UpsertUserBodyRequest](m.v), m.userCtrl.UpsertUser)
 }
