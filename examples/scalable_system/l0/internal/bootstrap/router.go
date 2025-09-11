@@ -17,7 +17,6 @@ type RESTModule struct {
 }
 
 func NewRESTModule(v validator.Validator, uc ctrlUser.UserController) *RESTModule {
-
 	return &RESTModule{
 		v: v, userCtrl: uc,
 	}

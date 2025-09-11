@@ -8,5 +8,12 @@
     "host": "localhost",
     "port": 6379,
     "password": "yourpassword"
+  },
+  "postgres": {
+    "host": "localhost",
+    "port": "5432",
+    "dbname": "appdb",
+    "username": "user",
+    "password": "password"
   }
 }

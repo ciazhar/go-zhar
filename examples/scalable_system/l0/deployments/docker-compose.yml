@@ -13,23 +13,23 @@ services:
     networks:
       - app_net
 
-  backend:
-    build:
-      context: ..
-      dockerfile: deployments/Dockerfile
-    container_name: scalable_backend
-    ports:
-      - "8080:8080"
-    volumes:
-      - ../configs:/app/configs:ro
-      - ./logs:/app/logs
-    restart: always
-    environment:
-      - DATABASE_URL=postgres://user:password@postgres:5432/appdb?sslmode=disable
-    depends_on:
-      - postgres
-    networks:
-      - app_net
+#  backend:
+#    build:
+#      context: ..
+#      dockerfile: deployments/Dockerfile
+#    container_name: scalable_backend
+#    ports:
+#      - "8080:8080"
+#    volumes:
+#      - ../configs:/app/configs:ro
+#      - ./logs:/app/logs
+#    restart: always
+#    environment:
+#      - DATABASE_URL=postgres://user:password@postgres:5432/appdb?sslmode=disable
+#    depends_on:
+#      - postgres
+#    networks:
+#      - app_net
 
   postgres:
     image: postgres:15

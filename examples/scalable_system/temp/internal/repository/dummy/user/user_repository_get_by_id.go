@@ -3,6 +3,7 @@ package user
 import (
 	"context"
 	"fmt"
+
 	"github.com/ciazhar/go-zhar/examples/scalable_system/temp/internal/model/response"
 
 	"github.com/ciazhar/go-zhar/pkg/logger"

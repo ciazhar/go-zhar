@@ -1,13 +1,24 @@
 package request
 
 type CreateUserBodyRequest struct {
-	Name string `json:"name" validate:"required"`
-	Age  int    `json:"age" validate:"required,gt=0"`
+	Username string `json:"username" validate:"required"`
+	Email    string `json:"email" validate:"required,email"`
+	Password string `json:"password" validate:"required,min=6"`
+	FullName string `json:"full_name" validate:"required"`
 }
 
 type UpdateUserBodyRequest struct {
-	Name string `json:"name" validate:"required"`
-	Age  int    `json:"age" validate:"required,gt=0"`
+	Username string `json:"username" validate:"required"`
+	Email    string `json:"email" validate:"required,email"`
+	FullName string `json:"full_name" validate:"required"`
+}
+
+type UpsertUserBodyRequest struct {
+	Id       string `json:"id" validate:"uuid"`
+	Username string `json:"username" validate:"required"`
+	Email    string `json:"email" validate:"required,email"`
+	Password string `json:"password" validate:"required,min=6"`
+	FullName string `json:"full_name" validate:"required"`
 }
 
 type UserPathParam struct {

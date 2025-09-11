@@ -3,6 +3,7 @@ package postgres
 import (
 	"context"
 	"fmt"
+
 	"github.com/ciazhar/go-zhar/pkg/bootstrap"
 	"github.com/ciazhar/go-zhar/pkg/logger"
 

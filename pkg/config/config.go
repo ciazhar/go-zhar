@@ -70,7 +70,7 @@ func InitConfig(ctx context.Context, config Config) {
 
 		viper.SetConfigName(config.File.FileName)
 		viper.SetConfigType(config.Type) // REQUIRED if the config file does not have the extension in the name
-		if config.Consul.Path == "" {
+		if config.File.FilePath == "" {
 			viper.AddConfigPath(ConfigPath) // optionally look for configs in the working directory
 		} else {
 			viper.AddConfigPath(config.File.FilePath)

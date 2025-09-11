@@ -4,8 +4,10 @@ import (
 	"context"
 	"flag"
 	"fmt"
-	bootstrap2 "github.com/ciazhar/go-zhar/examples/scalable_system/l0/internal/bootstrap"
 	"time"
+
+	bootstrap2 "github.com/ciazhar/go-zhar/examples/scalable_system/l0/internal/bootstrap"
+	"github.com/ciazhar/go-zhar/pkg/postgres"
 
 	"github.com/ciazhar/go-zhar/pkg/bootstrap"
 	"github.com/ciazhar/go-zhar/pkg/bootstrap/server"
@@ -70,6 +72,15 @@ func main() {
 
 	// === INIT CLIENTS ===
 	var clients []bootstrap.Service
+	postgresSvc, postgresClient := postgres.InitPostgres(ctx,
+		viper.GetString("postgres.host"),
+		viper.GetInt("postgres.port"),
+		viper.GetString("postgres.dbname"),
+		viper.GetString("postgres.username"),
+		viper.GetString("postgres.password"),
+		logLevel,
+	)
+	clients = append(clients, postgresSvc)
 
 	// === START ALL CLIENTS ===
 	for _, svc := range clients {
@@ -79,7 +90,7 @@ func main() {
 	}
 
 	// === BUILD HTTP MODULE WITH WIRE ===
-	restModule := bootstrap2.InitializeRESTModule(v)
+	restModule := bootstrap2.InitializeRESTModule(v, postgresClient)
 
 	// === INIT SERVERS + WORKERS ===
 	var serversAndWorkers []bootstrap.Service

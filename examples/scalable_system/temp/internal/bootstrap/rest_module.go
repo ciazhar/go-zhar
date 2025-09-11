@@ -1,9 +1,10 @@
 package bootstrap
 
 import (
+	"time"
+
 	ctrlUser "github.com/ciazhar/go-zhar/examples/scalable_system/temp/internal/controller/rest/user"
 	"github.com/ciazhar/go-zhar/examples/scalable_system/temp/internal/model/request"
-	"time"
 
 	"github.com/gofiber/fiber/v2/middleware/compress"
 

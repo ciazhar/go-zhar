@@ -8,24 +8,19 @@ package bootstrap
 
 import (
 	user3 "github.com/ciazhar/go-zhar/examples/scalable_system/l0/internal/controller/rest/user"
-	"github.com/ciazhar/go-zhar/examples/scalable_system/l0/internal/repository/dummy/user"
+	"github.com/ciazhar/go-zhar/examples/scalable_system/l0/internal/repository/postgres/user"
 	user2 "github.com/ciazhar/go-zhar/examples/scalable_system/l0/internal/service/user"
 	"github.com/ciazhar/go-zhar/pkg/validator"
-	"github.com/google/wire"
+	"github.com/jackc/pgx/v5/pgxpool"
 )
 
 // Injectors from dependency_injection.go:
 
-// Build the REST module given infra deps from main (validator + redis client).
-func InitializeRESTModule(v validator.Validator) *RESTModule {
-	userRepository := user.NewUserRepository()
+// InitializeRESTModule Build the REST module given infra deps from main (validator + redis client).
+func InitializeRESTModule(v validator.Validator, pool *pgxpool.Pool) *RESTModule {
+	userRepository := user.NewUserRepository(pool)
 	userService := user2.NewUserService(userRepository)
 	userController := user3.NewUserController(userService)
 	restModule := NewRESTModule(v, userController)
 	return restModule
 }
-
-// dependency_injection.go:
-
-// Provider set for the user stack
-var userSet = wire.NewSet(user.NewUserRepository, user2.NewUserService, user3.NewUserController)

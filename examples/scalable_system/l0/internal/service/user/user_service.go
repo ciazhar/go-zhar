@@ -2,9 +2,10 @@ package user
 
 import (
 	"context"
+
 	"github.com/ciazhar/go-zhar/examples/scalable_system/l0/internal/model/request"
 	"github.com/ciazhar/go-zhar/examples/scalable_system/l0/internal/model/response"
-	"github.com/ciazhar/go-zhar/examples/scalable_system/l0/internal/repository/dummy/user"
+	"github.com/ciazhar/go-zhar/examples/scalable_system/l0/internal/repository/postgres/user"
 )
 
 type UserService interface {
@@ -16,9 +17,9 @@ type UserService interface {
 }
 
 type userService struct {
-	repo user.UserRepository
+	repo *user.UserRepository
 }
 
-func NewUserService(repo user.UserRepository) UserService {
+func NewUserService(repo *user.UserRepository) UserService {
 	return &userService{repo: repo}
 }

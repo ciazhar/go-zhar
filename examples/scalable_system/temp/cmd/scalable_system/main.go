@@ -4,8 +4,9 @@ import (
 	"context"
 	"flag"
 	"fmt"
-	bootstrap2 "github.com/ciazhar/go-zhar/examples/scalable_system/temp/internal/bootstrap"
 	"time"
+
+	bootstrap2 "github.com/ciazhar/go-zhar/examples/scalable_system/temp/internal/bootstrap"
 
 	"github.com/ciazhar/go-zhar/pkg/bootstrap"
 	"github.com/ciazhar/go-zhar/pkg/bootstrap/server"
@@ -65,10 +66,11 @@ func main() {
 
 	// === INIT CLIENTS ===
 	var clients []bootstrap.Service
-	redisSvc, redisClient, err := redis.InitRedis(ctx, viper.GetString("redis.host"), viper.GetInt("redis.port"), viper.GetString("redis.password"))
-	if err != nil {
-		logger.LogFatal(err).Msg("failed to init redis client")
-	}
+	redisSvc, redisClient := redis.InitRedis(ctx,
+		viper.GetString("redis.host"),
+		viper.GetInt("redis.port"),
+		viper.GetString("redis.password"),
+	)
 	clients = append(clients, redisSvc)
 
 	// === START ALL CLIENTS ===

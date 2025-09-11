@@ -5,25 +5,26 @@ package bootstrap
 
 import (
 	ctrlUser "github.com/ciazhar/go-zhar/examples/scalable_system/l0/internal/controller/rest/user"
-	repoUser "github.com/ciazhar/go-zhar/examples/scalable_system/l0/internal/repository/dummy/user"
+	repoUser "github.com/ciazhar/go-zhar/examples/scalable_system/l0/internal/repository/postgres/user"
 	svcUser "github.com/ciazhar/go-zhar/examples/scalable_system/l0/internal/service/user"
-	"github.com/google/wire"
-	redisv9 "github.com/redis/go-redis/v9"
-
 	"github.com/ciazhar/go-zhar/pkg/validator"
+	"github.com/google/wire"
+	"github.com/jackc/pgx/v5/pgxpool"
 )
 
-// Provider set for the user stack
-var userSet = wire.NewSet(
-	repoUser.NewUserRepository,
-	svcUser.NewUserService,
-	ctrlUser.NewUserController,
-)
-
-// Build the REST module given infra deps from main (validator + redis client).
-func InitializeRESTModule(v validator.Validator, rdb *redisv9.Client) *RESTModule {
+// InitializeRESTModule Build the REST module given infra deps from main (validator + redis client).
+func InitializeRESTModule(v validator.Validator, pool *pgxpool.Pool) *RESTModule {
 	wire.Build(
-		userSet,
+		//repository
+		repoUser.NewUserRepository,
+
+		//service
+		svcUser.NewUserService,
+
+		//controller
+		ctrlUser.NewUserController,
+
+		//rest module
 		NewRESTModule,
 	)
 	return nil

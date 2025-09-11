@@ -2,6 +2,7 @@ package user
 
 import (
 	"context"
+
 	"github.com/ciazhar/go-zhar/examples/scalable_system/temp/internal/model/request"
 
 	"github.com/ciazhar/go-zhar/pkg/logger"
