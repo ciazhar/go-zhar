@@ -22,7 +22,7 @@ func InitRedis(ctx context.Context, host string, port int, password string) (*bo
 	if err := client.Ping(ctx).Err(); err != nil {
 		log.Fatal().Err(err).Msg("failed to ping redis")
 	}
-	return bootstrap.NewClientService("redis", func() error {
+	return bootstrap.NewClientService(ctx, "redis", func() error {
 		client.Close()
 		return nil
 	}), client

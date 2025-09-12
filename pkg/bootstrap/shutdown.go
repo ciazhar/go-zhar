@@ -13,11 +13,14 @@ import (
 
 // GracefulShutdown waits for termination syscalls and doing clean up operations after received it.
 func GracefulShutdown(ctx context.Context, timeout time.Duration, clients []Service, serverAndWorkers []Service) {
+
+	var log = logger.FromContext(ctx).With().Logger()
+
 	s := make(chan os.Signal, 1)
 	signal.Notify(s, syscall.SIGINT, syscall.SIGTERM, syscall.SIGHUP)
 
 	<-s
-	logger.LogInfo("🚦 Signal received. Shutting down...")
+	log.Info().Msg("🚦 Signal received. Shutting down...")
 
 	ctxTimeout, cancel := context.WithTimeout(ctx, timeout)
 	defer cancel()
@@ -27,9 +30,9 @@ func GracefulShutdown(ctx context.Context, timeout time.Duration, clients []Serv
 		wg.Add(1)
 		go func(client Service) {
 			defer wg.Done()
-			logger.LogInfof("🧹 Shutting down: %s", client.Name())
+			log.Info().Msgf("Shutting down %s...", client.Name())
 			if err := client.Shutdown(ctxTimeout); err != nil {
-				logger.LogErrorf(err, "⚠️ Error shutting down %s:\n", client.Name())
+				log.Error().Err(err).Msgf("Error shutting down %s:\n", client.Name())
 			}
 		}(client)
 	}
@@ -37,13 +40,13 @@ func GracefulShutdown(ctx context.Context, timeout time.Duration, clients []Serv
 		wg.Add(1)
 		go func(svc Service) {
 			defer wg.Done()
-			logger.LogInfof("🧹 Shutting down: %s", svc.Name())
+			log.Info().Msgf("Shutting down %s...", svc.Name())
 			if err := svc.Shutdown(ctxTimeout); err != nil {
-				logger.LogErrorf(err, "⚠️ Error shutting down %s:\n", svc.Name())
+				log.Error().Err(err).Msgf("Error shutting down %s:\n", svc.Name())
 			}
 		}(svc)
 	}
 
 	wg.Wait()
-	logger.LogInfo("✅ All services shut down gracefully.")
+	log.Info().Msg("All services shut down gracefully.")
 }

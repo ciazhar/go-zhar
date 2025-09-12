@@ -36,10 +36,13 @@ func main() {
 	flag.StringVar(&consulPath, "consul-path", "path/to/config", "Path to the configuration in Consul")
 	flag.Parse()
 
+	//Configure logger
+	log := logger.FromContext(ctx)
+
 	// Configuration using flags for source, type, and other details
 	configSource, err := config.ParseConfigSource(source)
 	if err != nil {
-		logger.LogFatal(err).Msg("failed to parse config source")
+		log.Error().Err(err).Msg("failed to parse config source")
 	}
 	fileConfig := config.Config{
 		Source: configSource,
@@ -94,7 +97,7 @@ func main() {
 
 	// === INIT SERVERS + WORKERS ===
 	var serversAndWorkers []bootstrap.Service
-	server1 := server.NewFiberServer(
+	server1 := server.NewFiberServer(ctx,
 		fmt.Sprintf("%s:%s", viper.GetString("application.name"), viper.GetString("application.version")),
 		fmt.Sprintf(":%s", viper.GetString("application.port")),
 		restModule.Register, // <- just pass the registrar
@@ -105,7 +108,7 @@ func main() {
 	for _, svc := range serversAndWorkers {
 		go func(svc bootstrap.Service) {
 			if err := svc.Start(); err != nil {
-				logger.LogFatal(err).Msgf("🔥 %s failed", svc.Name())
+				log.Fatal().Msgf("🔥 %s failed", svc.Name())
 			}
 		}(svc)
 	}

@@ -74,7 +74,7 @@ func InitPostgres(ctx context.Context, host string, port int, dbName string, use
 		log.Fatal().Err(err).Msg("Unable to create connection pool")
 	}
 
-	return bootstrap.NewClientService("postgres", func() error {
+	return bootstrap.NewClientService(ctx, "postgres", func() error {
 		pool.Close()
 		return nil
 	}), pool
