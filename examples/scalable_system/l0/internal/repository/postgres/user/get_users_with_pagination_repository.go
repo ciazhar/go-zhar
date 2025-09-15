@@ -2,6 +2,7 @@ package user
 
 import (
 	"context"
+	"go.opentelemetry.io/otel"
 
 	"github.com/ciazhar/go-zhar/examples/scalable_system/l0/internal/model/response"
 	"github.com/ciazhar/go-zhar/pkg/logger"
@@ -9,12 +10,15 @@ import (
 
 func (r UserRepository) GetUsersWithPagination(ctx context.Context, page, limit int) ([]response.User, int64, error) {
 	var (
-		log    = logger.FromContext(ctx).With().Int("page", page).Int("limit", limit).Logger()
-		offset = (page - 1) * limit
-		resp   = make([]response.User, 0)
+		reqCtx, span = otel.Tracer("repository").Start(ctx, "UserRepository.GetUsersWithPagination")
+		deferFn      = func() { span.End() }
+		log          = logger.FromContext(reqCtx).With().Int("page", page).Int("limit", limit).Logger()
+		offset       = (page - 1) * limit
+		resp         = make([]response.User, 0)
 	)
+	defer deferFn()
 
-	rows, err := r.pg.Query(ctx, queryGetUsersWithPagination, limit, offset)
+	rows, err := r.pg.Query(reqCtx, queryGetUsersWithPagination, limit, offset)
 	if err != nil {
 		log.Error().Err(err).Msg("failed to get users")
 		return nil, 0, err
@@ -31,7 +35,7 @@ func (r UserRepository) GetUsersWithPagination(ctx context.Context, page, limit 
 	}
 
 	var total int64
-	err = r.pg.QueryRow(ctx, queryCountUsers).Scan(&total)
+	err = r.pg.QueryRow(reqCtx, queryCountUsers).Scan(&total)
 	if err != nil {
 		log.Error().Err(err).Msg("failed to count users")
 		return nil, 0, err

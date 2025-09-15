@@ -53,8 +53,6 @@ func NewRESTModule(v validator.Validator, rdb *redisv9.Client, uc ctrlUser.UserC
 // Register plugs everything into a provided *fiber.App (matches your server.NewFiberServer(func(app *fiber.App){...}))
 func (m *RESTModule) Register(app *fiber.App) {
 	app.Use(recover.New())
-	app.Use(middleware.RequestID())
-	app.Use(middleware.Logger())
 
 	compressionMiddleware := compress.New(compress.Config{
 		Level: compress.LevelBestCompression,

@@ -3,6 +3,7 @@ package user
 import (
 	"context"
 	"fmt"
+	"go.opentelemetry.io/otel"
 
 	"github.com/ciazhar/go-zhar/examples/scalable_system/l0/internal/model/request"
 
@@ -11,10 +12,13 @@ import (
 
 func (r UserRepository) UpdateUser(ctx context.Context, id string, req request.UpdateUserBodyRequest) error {
 	var (
-		log = logger.FromContext(ctx).With().Str("id", id).Any("req", req).Logger()
+		reqCtx, span = otel.Tracer("repository").Start(ctx, "UserRepository.UpdateUser")
+		deferFn      = func() { span.End() }
+		log          = logger.FromContext(reqCtx).With().Str("id", id).Any("req", req).Logger()
 	)
+	defer deferFn()
 
-	cmdTag, err := r.pg.Exec(ctx, queryUpdateUser, req.Username, req.Email, req.FullName, id)
+	cmdTag, err := r.pg.Exec(reqCtx, queryUpdateUser, req.Username, req.Email, req.FullName, id)
 	if err != nil {
 		log.Error().Err(err).Msg("failed to update user")
 		return err

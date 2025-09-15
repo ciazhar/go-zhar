@@ -10,8 +10,6 @@ services:
 #      - ./nginx.conf:/etc/nginx/nginx.conf:ro
 #    depends_on:
 #      - backend
-#    networks:
-#      - app_net
 
 #  backend:
 #    build:
@@ -28,8 +26,6 @@ services:
 #      - DATABASE_URL=postgres://user:password@postgres:5432/appdb?sslmode=disable
 #    depends_on:
 #      - postgres
-#    networks:
-#      - app_net
 
   postgres:
     image: postgres:15
@@ -46,28 +42,8 @@ services:
     networks:
       - app_net
 
-  promtail:
-    image: grafana/promtail:2.9.2
-    container_name: promtail
-    volumes:
-      - ./promtail-config.yml:/etc/promtail/config.yml
-      - ./logs:/app/logs
-    command: -config.file=/etc/promtail/config.yml
-    networks:
-      - app_net
-
-  loki:
-    image: grafana/loki:2.9.2
-    container_name: loki
-    ports:
-      - "3100:3100"
-    command: -config.file=/etc/loki/local-config.yaml
-    networks:
-      - app_net
-
   grafana:
-    image: grafana/grafana:10.4.2
-    container_name: grafana
+    image: grafana/grafana:10.4.1
     ports:
       - "3000:3000"
     environment:
@@ -75,13 +51,43 @@ services:
       - GF_SECURITY_ADMIN_PASSWORD=admin
     depends_on:
       - loki
-      - postgres
-    networks:
-      - app_net
+      - tempo
 
-volumes:
-  postgres_data:
+  loki:
+    image: grafana/loki:2.9.4
+    ports:
+      - "3100:3100"
+    command: -config.file=/etc/loki/local-config.yaml
 
-networks:
-  app_net:
-    driver: bridge
+  promtail:
+    image: grafana/promtail:2.9.4
+    volumes:
+      - ../logs:/var/log/app
+      - ./promtail-config.yml:/etc/promtail/promtail-config.yml
+    command: -config.file=/etc/promtail/promtail-config.yml
+    depends_on:
+      - loki
+
+  tempo:
+    image: grafana/tempo:2.4.1
+    ports:
+      - "3200:3200"   # Tempo UI/API
+      - "4319:4319"   # OTLP gRPC receiver
+      - "4320:4320"   # OTLP HTTP receiver
+      - "14268:14268" # Jaeger HTTP receiver
+      - "14250:14250" # Jaeger gRPC receiver
+    command: [ "-config.file=/etc/tempo.yaml" ]
+    volumes:
+      - ./tempo.yaml:/etc/tempo.yaml
+
+  otel-collector:
+    image: otel/opentelemetry-collector-contrib:0.109.0
+    command: [ "--config=/etc/otel-collector-config.yaml" ]
+    volumes:
+      - ./otel-collector-config.yaml:/etc/otel-collector-config.yaml
+    ports:
+      - "4317:4317"   # OTLP gRPC input (for your Go app)
+      - "4318:4318"   # OTLP HTTP input (for your Go app)
+    depends_on:
+      - tempo
+      - loki

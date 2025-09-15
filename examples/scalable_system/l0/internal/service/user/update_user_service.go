@@ -2,6 +2,7 @@ package user
 
 import (
 	"context"
+	"go.opentelemetry.io/otel"
 
 	"github.com/ciazhar/go-zhar/examples/scalable_system/l0/internal/model/request"
 
@@ -10,10 +11,13 @@ import (
 
 func (u userService) UpdateUser(ctx context.Context, id string, req request.UpdateUserBodyRequest) error {
 	var (
-		log = logger.FromContext(ctx).With().Str("id", id).Any("req", req).Logger()
+		reqCtx, span = otel.Tracer("service").Start(ctx, "UserService.UpdateUser")
+		deferFn      = func() { span.End() }
+		log          = logger.FromContext(reqCtx).With().Str("id", id).Any("req", req).Logger()
 	)
+	defer deferFn()
 
-	if err := u.repo.UpdateUser(ctx, id, req); err != nil {
+	if err := u.repo.UpdateUser(reqCtx, id, req); err != nil {
 		log.Err(err).Msg("failed to update user")
 		return err
 	}

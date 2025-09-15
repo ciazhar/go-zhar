@@ -4,6 +4,7 @@ import (
 	"context"
 	"flag"
 	"fmt"
+	"github.com/ciazhar/go-zhar/pkg/jaeger"
 	"time"
 
 	bootstrap2 "github.com/ciazhar/go-zhar/examples/scalable_system/l0/internal/bootstrap"
@@ -69,6 +70,13 @@ func main() {
 		ConsoleOutput: false,
 	}
 	logger.InitLogger(logConfig)
+
+	// Initialize tracer
+	shutdown := jaeger.InitJaegerTracer(ctx,
+		viper.GetString("application.name"),
+		viper.GetString("application.version"),
+		viper.GetString("jaeger.endpoint"))
+	defer shutdown()
 
 	// === INIT VALIDATOR ===
 	v := validator.New("id")

@@ -3,16 +3,20 @@ package user
 import (
 	"context"
 	"fmt"
+	"go.opentelemetry.io/otel"
 
 	"github.com/ciazhar/go-zhar/pkg/logger"
 )
 
 func (r UserRepository) SoftDeleteUser(ctx context.Context, id string) error {
 	var (
-		log = logger.FromContext(ctx).With().Str("id", id).Logger()
+		reqCtx, span = otel.Tracer("repository").Start(ctx, "UserRepository.SoftDeleteUser")
+		deferFn      = func() { span.End() }
+		log          = logger.FromContext(reqCtx).With().Str("id", id).Logger()
 	)
+	defer deferFn()
 
-	cmdTag, err := r.pg.Exec(ctx, querySoftDeleteUser, id)
+	cmdTag, err := r.pg.Exec(reqCtx, querySoftDeleteUser, id)
 	if err != nil {
 		log.Error().Err(err).Msg("failed to delete user")
 		return err

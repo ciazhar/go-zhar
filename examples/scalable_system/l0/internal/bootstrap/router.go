@@ -3,6 +3,7 @@ package bootstrap
 import (
 	ctrlUser "github.com/ciazhar/go-zhar/examples/scalable_system/l0/internal/controller/rest/user"
 	"github.com/ciazhar/go-zhar/examples/scalable_system/l0/internal/model/request"
+	"github.com/gofiber/contrib/otelfiber/v2"
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/recover"
@@ -25,8 +26,7 @@ func NewRESTModule(v validator.Validator, uc ctrlUser.UserController) *RESTModul
 // Register plugs everything into a provided *fiber.App (matches your server.NewFiberServer(func(app *fiber.App){...}))
 func (m *RESTModule) Register(app *fiber.App) {
 	app.Use(recover.New())
-	app.Use(middleware.RequestID())
-	app.Use(middleware.Logger())
+	app.Use(otelfiber.Middleware())
 
 	root := app.Group("/")
 	root.Get("/health", func(ctx *fiber.Ctx) error {

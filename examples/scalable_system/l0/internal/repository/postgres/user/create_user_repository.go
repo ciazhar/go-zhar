@@ -2,6 +2,7 @@ package user
 
 import (
 	"context"
+	"go.opentelemetry.io/otel"
 
 	"github.com/ciazhar/go-zhar/examples/scalable_system/l0/internal/model/request"
 
@@ -10,10 +11,13 @@ import (
 
 func (r UserRepository) CreateUser(ctx context.Context, req request.CreateUserBodyRequest) error {
 	var (
-		log = logger.FromContext(ctx).With().Any("req", req).Logger()
+		reqCtx, span = otel.Tracer("repository").Start(ctx, "UserRepository.CreateUser")
+		deferFn      = func() { span.End() }
+		log          = logger.FromContext(reqCtx).With().Any("req", req).Logger()
 	)
+	defer deferFn()
 
-	_, err := r.pg.Exec(ctx, queryCreateUser,
+	_, err := r.pg.Exec(reqCtx, queryCreateUser,
 		req.Username,
 		req.Email,
 		req.Password,
