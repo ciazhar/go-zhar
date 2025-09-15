@@ -39,8 +39,6 @@ services:
       - postgres_data:/var/lib/postgresql/data
     ports:
       - "5432:5432"
-    networks:
-      - app_net
 
   grafana:
     image: grafana/grafana:10.4.1
