@@ -42,11 +42,14 @@ services:
 
   grafana:
     image: grafana/grafana:10.4.1
+    container_name: grafana
     ports:
       - "3000:3000"
     environment:
       - GF_SECURITY_ADMIN_USER=admin
       - GF_SECURITY_ADMIN_PASSWORD=admin
+    volumes:
+      - ./grafana-provisioning:/etc/grafana/provisioning
     depends_on:
       - loki
       - tempo
@@ -54,12 +57,14 @@ services:
 
   loki:
     image: grafana/loki:2.9.4
+    container_name: loki
     ports:
       - "3100:3100"
     command: -config.file=/etc/loki/local-config.yaml
 
   promtail:
     image: grafana/promtail:2.9.4
+    container_name: promtail
     volumes:
       - ../logs:/var/log/app
       - ./promtail-config.yml:/etc/promtail/promtail-config.yml
@@ -69,6 +74,7 @@ services:
 
   tempo:
     image: grafana/tempo:2.4.1
+    container_name: tempo
     ports:
       - "3200:3200"   # Tempo UI/API
       - "4319:4319"   # OTLP gRPC receiver
@@ -81,12 +87,14 @@ services:
 
   otel-collector:
     image: otel/opentelemetry-collector-contrib:0.109.0
+    container_name: otel-collector
     command: [ "--config=/etc/otel-collector-config.yaml" ]
     volumes:
       - ./otel-collector-config.yaml:/etc/otel-collector-config.yaml
     ports:
       - "4317:4317"   # OTLP gRPC input (for your Go app)
       - "4318:4318"   # OTLP HTTP input (for your Go app)
+      - "8888:8888"   # metrics dari otel-collector
     depends_on:
       - tempo
       - loki
