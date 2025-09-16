@@ -20,7 +20,7 @@ func (uc *UserController) IsUserExistByEmail(ctx *fiber.Ctx) error {
 	exists, err := uc.service.IsUserExistsByEmail(reqCtx, query.Email)
 	if err != nil {
 		log.Err(err).Send()
-		return ctx.Status(fiber.StatusBadRequest).JSON(response.NewErrorResponse(reqCtx, "failed to check user existence"))
+		return ctx.Status(fiber.StatusInternalServerError).JSON(response.NewErrorResponse(reqCtx, "failed to check user existence"))
 	}
 
 	return ctx.Status(fiber.StatusOK).

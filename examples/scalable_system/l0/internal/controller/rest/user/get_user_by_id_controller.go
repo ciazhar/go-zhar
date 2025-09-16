@@ -20,7 +20,7 @@ func (uc *UserController) GetUserByID(ctx *fiber.Ctx) error {
 	user, err := uc.service.GetUserByID(reqCtx, path.ID)
 	if err != nil {
 		log.Err(err).Send()
-		return ctx.Status(fiber.StatusBadRequest).JSON(response.NewErrorResponse(reqCtx, "failed to get user by ID"))
+		return ctx.Status(fiber.StatusInternalServerError).JSON(response.NewErrorResponse(reqCtx, "failed to get user by ID"))
 	}
 	return ctx.Status(fiber.StatusOK).JSON(response.NewDataResponse("Get user by ID success", user))
 }

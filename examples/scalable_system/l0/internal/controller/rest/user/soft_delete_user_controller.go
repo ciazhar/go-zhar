@@ -19,7 +19,7 @@ func (uc *UserController) DeleteUser(ctx *fiber.Ctx) error {
 
 	if err := uc.service.SoftDeleteUser(reqCtx, path.ID); err != nil {
 		log.Err(err).Send()
-		return ctx.Status(fiber.StatusBadRequest).JSON(response.NewErrorResponse(reqCtx, "failed to delete user"))
+		return ctx.Status(fiber.StatusInternalServerError).JSON(response.NewErrorResponse(reqCtx, "failed to delete user"))
 	}
 	return ctx.Status(fiber.StatusOK).JSON(response.NewBaseResponse("Delete user success"))
 }

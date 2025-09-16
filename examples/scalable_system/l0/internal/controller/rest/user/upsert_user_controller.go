@@ -19,7 +19,7 @@ func (uc *UserController) UpsertUser(ctx *fiber.Ctx) error {
 
 	if err := uc.service.UpsertUserByID(reqCtx, body); err != nil {
 		log.Err(err).Send()
-		return ctx.Status(fiber.StatusBadRequest).
+		return ctx.Status(fiber.StatusInternalServerError).
 			JSON(response.NewErrorResponse(reqCtx, "failed to upsert user"))
 	}
 

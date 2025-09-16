@@ -19,7 +19,7 @@ func (uc *UserController) CreateUser(ctx *fiber.Ctx) error {
 
 	if err := uc.service.CreateUser(reqCtx, body); err != nil {
 		log.Err(err).Send()
-		return ctx.Status(fiber.StatusBadRequest).JSON(response.NewErrorResponse(reqCtx, "failed to insert user to DB"))
+		return ctx.Status(fiber.StatusInternalServerError).JSON(response.NewErrorResponse(reqCtx, "failed to insert user to DB"))
 	}
 
 	return ctx.Status(fiber.StatusCreated).JSON(response.NewBaseResponse("Create user success"))

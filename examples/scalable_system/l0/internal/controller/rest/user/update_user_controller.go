@@ -20,7 +20,7 @@ func (uc *UserController) UpdateUser(ctx *fiber.Ctx) error {
 
 	if err := uc.service.UpdateUser(reqCtx, path.ID, body); err != nil {
 		log.Err(err).Send()
-		return ctx.Status(fiber.StatusBadRequest).JSON(response.NewErrorResponse(reqCtx, "failed to update user"))
+		return ctx.Status(fiber.StatusInternalServerError).JSON(response.NewErrorResponse(reqCtx, "failed to update user"))
 	}
 	return ctx.Status(fiber.StatusOK).JSON(response.NewBaseResponse("Update user success"))
 }

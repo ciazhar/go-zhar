@@ -20,7 +20,7 @@ func (uc *UserController) GetUsers(ctx *fiber.Ctx) error {
 	users, total, err := uc.service.GetUsersWithPagination(reqCtx, query.Page, query.Size)
 	if err != nil {
 		log.Err(err).Send()
-		return ctx.Status(fiber.StatusBadRequest).JSON(response.NewErrorResponse(reqCtx, "failed to get users from DB"))
+		return ctx.Status(fiber.StatusInternalServerError).JSON(response.NewErrorResponse(reqCtx, "failed to get users from DB"))
 	}
 
 	return ctx.Status(fiber.StatusOK).JSON(response.NewPageResponse("Get users success", users, total))
