@@ -1,0 +1,15 @@
+global:
+  scrape_interval: 5s
+
+scrape_configs:
+  - job_name: "golang-app"
+    static_configs:
+      - targets: ["host.docker.internal:8080"]  # kalau app jalan di host, ganti backend:8080 jika pake docker
+        labels:
+          service: "scalable_backend"
+
+  - job_name: "otel-collector"
+    static_configs:
+      - targets: ["otel-collector:8888"] # default metrics port OTEL Collector
+        labels:
+          service: "otel-collector"

@@ -4,6 +4,8 @@ import (
 	ctrlUser "github.com/ciazhar/go-zhar/examples/scalable_system/l0/internal/controller/rest/user"
 	"github.com/ciazhar/go-zhar/examples/scalable_system/l0/internal/model/request"
 	"github.com/gofiber/contrib/otelfiber/v2"
+	"github.com/prometheus/client_golang/prometheus/promhttp"
+	"github.com/valyala/fasthttp/fasthttpadaptor"
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/recover"
@@ -27,10 +29,16 @@ func NewRESTModule(v validator.Validator, uc ctrlUser.UserController) *RESTModul
 func (m *RESTModule) Register(app *fiber.App) {
 	app.Use(recover.New())
 	app.Use(otelfiber.Middleware())
+	app.Use(middleware.PrometheusMiddleware())
 
 	root := app.Group("/")
 	root.Get("/health", func(ctx *fiber.Ctx) error {
 		return ctx.Status(fiber.StatusOK).JSON(fiber.Map{"message": "ok"})
+	})
+
+	root.Get("/metrics", func(c *fiber.Ctx) error {
+		fasthttpadaptor.NewFastHTTPHandler(promhttp.Handler())(c.Context())
+		return nil
 	})
 
 	v1 := app.Group("/v1")

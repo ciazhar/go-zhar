@@ -5,6 +5,7 @@ import (
 	"flag"
 	"fmt"
 	"github.com/ciazhar/go-zhar/pkg/jaeger"
+	metrics "github.com/ciazhar/go-zhar/pkg/prometheus"
 	"time"
 
 	bootstrap2 "github.com/ciazhar/go-zhar/examples/scalable_system/l0/internal/bootstrap"
@@ -70,6 +71,9 @@ func main() {
 		ConsoleOutput: false,
 	}
 	logger.InitLogger(logConfig)
+
+	// Initialize metric
+	metrics.InitMetrics()
 
 	// Initialize tracer
 	shutdown := jaeger.InitJaegerTracer(ctx,
