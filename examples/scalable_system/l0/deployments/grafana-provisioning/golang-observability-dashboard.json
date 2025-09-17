@@ -1,0 +1,118 @@
+{
+  "title": "Golang Service Monitoring",
+  "timezone": "browser",
+  "schemaVersion": 30,
+  "version": 1,
+  "panels": [
+    {
+      "title": "Requests per Second (RPS)",
+      "type": "timeseries",
+      "targets": [
+        {
+          "expr": "rate(http_requests_total[1m])",
+          "legendFormat": "{{method}} {{path}}",
+          "refId": "A"
+        }
+      ]
+    },
+    {
+      "title": "Latency - 50th Percentile",
+      "type": "timeseries",
+      "targets": [
+        {
+          "expr": "histogram_quantile(0.5, sum(rate(http_request_duration_seconds_bucket[1m])) by (le, path, method))",
+          "legendFormat": "p50 {{method}} {{path}}",
+          "refId": "B"
+        }
+      ]
+    },
+    {
+      "title": "Latency - 95th Percentile",
+      "type": "timeseries",
+      "targets": [
+        {
+          "expr": "histogram_quantile(0.95, sum(rate(http_request_duration_seconds_bucket[1m])) by (le, path, method))",
+          "legendFormat": "p95 {{method}} {{path}}",
+          "refId": "C"
+        }
+      ]
+    },
+    {
+      "title": "Latency - 99th Percentile",
+      "type": "timeseries",
+      "targets": [
+        {
+          "expr": "histogram_quantile(0.99, sum(rate(http_request_duration_seconds_bucket[1m])) by (le, path, method))",
+          "legendFormat": "p99 {{method}} {{path}}",
+          "refId": "D"
+        }
+      ]
+    },
+    {
+      "title": "Error Rate (4xx)",
+      "type": "timeseries",
+      "targets": [
+        {
+          "expr": "rate(http_requests_total{status=~\"4..\"}[5m]) / rate(http_requests_total[5m])",
+          "legendFormat": "4xx Errors",
+          "refId": "E"
+        }
+      ]
+    },
+    {
+      "title": "Error Rate (5xx)",
+      "type": "timeseries",
+      "targets": [
+        {
+          "expr": "rate(http_requests_total{status=~\"5..\"}[5m]) / rate(http_requests_total[5m])",
+          "legendFormat": "5xx Errors",
+          "refId": "F"
+        }
+      ]
+    },
+    {
+      "title": "Memory Usage (MB)",
+      "type": "timeseries",
+      "targets": [
+        {
+          "expr": "go_memstats_heap_alloc_bytes / 1024 / 1024",
+          "legendFormat": "Heap Alloc (MB)",
+          "refId": "G"
+        }
+      ]
+    },
+    {
+      "title": "Goroutines Count",
+      "type": "timeseries",
+      "targets": [
+        {
+          "expr": "go_goroutines",
+          "legendFormat": "Goroutines",
+          "refId": "H"
+        }
+      ]
+    },
+    {
+      "title": "CPU Usage",
+      "type": "timeseries",
+      "targets": [
+        {
+          "expr": "rate(process_cpu_seconds_total[1m])",
+          "legendFormat": "CPU usage (sec)",
+          "refId": "I"
+        }
+      ]
+    },
+    {
+      "title": "Service Uptime",
+      "type": "timeseries",
+      "targets": [
+        {
+          "expr": "time() - process_start_time_seconds",
+          "legendFormat": "Uptime (seconds)",
+          "refId": "J"
+        }
+      ]
+    }
+  ]
+}

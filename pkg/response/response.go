@@ -1,12 +1,15 @@
 package response
 
 import (
+	"context"
 	"github.com/gofiber/fiber/v2"
 	"github.com/rs/zerolog"
+	"go.opentelemetry.io/otel/trace"
 )
 
 type BaseResponse struct {
 	Message string `json:"message"`
+	TraceID string `json:"trace_id,omitempty"`
 	Code    int    `json:"code,omitempty"` // optional, bisa diisi http.StatusBadRequest, dsb
 }
 
@@ -24,6 +27,7 @@ type ValidationError struct {
 
 type ErrorResponse struct {
 	Message string            `json:"message"`
+	TraceID string            `json:"trace_id,omitempty"`
 	Code    int               `json:"code,omitempty"`   // optional, bisa diisi http.StatusBadRequest, dsb
 	Errors  []ValidationError `json:"errors,omitempty"` // `omitempty` jika hanya satu message
 }
@@ -57,14 +61,13 @@ func NewDataResponse(message string, data interface{}) DataResponse {
 	}
 }
 
-func NewErrorResponse(message string, error error) ErrorResponse {
+func NewErrorResponse(ctx context.Context, message string) ErrorResponse {
+	span := trace.SpanFromContext(ctx)
+	spanCtx := span.SpanContext()
+
 	return ErrorResponse{
 		Message: message,
-		Errors: []ValidationError{
-			{
-				Message: error.Error(),
-			},
-		},
+		TraceID: spanCtx.TraceID().String(),
 	}
 }
 

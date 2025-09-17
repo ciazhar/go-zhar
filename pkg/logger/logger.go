@@ -2,6 +2,7 @@ package logger
 
 import (
 	"context"
+	"go.opentelemetry.io/otel/trace"
 	"io"
 	"os"
 	"path/filepath"
@@ -22,13 +23,6 @@ type LogConfig struct {
 	Compress      bool
 	ConsoleOutput bool
 }
-
-// contextKey is used to prevent context key collisions
-type contextKey string
-
-const (
-	LoggerKey contextKey = "logger"
-)
 
 // InitLogger initializes the logger with custom settings and log rotation
 func InitLogger(config LogConfig) {
@@ -76,32 +70,17 @@ func setLogLevel(level string) {
 	}
 }
 
-// WithLogger returns a new context with the logger attached
-func WithLogger(ctx context.Context, l zerolog.Logger) context.Context {
-	return context.WithValue(ctx, LoggerKey, l)
-}
-
 // FromContext retrieves the logger from the context
 func FromContext(ctx context.Context) zerolog.Logger {
-	if l, ok := ctx.Value(LoggerKey).(zerolog.Logger); ok {
-		return l
+	span := trace.SpanFromContext(ctx)
+	spanCtx := span.SpanContext()
+	if spanCtx.HasTraceID() {
+		return log.Logger.With().
+			Str("trace_id", spanCtx.TraceID().String()).
+			Str("span_id", spanCtx.SpanID().String()).
+			Logger()
 	}
 	return log.Logger
-}
-
-// LogDebug is a wrapper for zerolog.LogDebug
-func LogDebug(msg string) {
-	log.Debug().Msg(msg)
-}
-
-// LogInfo is a wrapper for zerolog.LogInfo
-func LogInfo(msg string) {
-	log.Info().Msg(msg)
-}
-
-// LogInfof is a wrapper for zerolog.LogInfo
-func LogInfof(msg string, args ...interface{}) {
-	log.Info().Msgf(msg, args...)
 }
 
 // LogFatal is a wrapper for zerolog.LogFatal
@@ -109,17 +88,6 @@ func LogFatal(err error) *zerolog.Event {
 	return log.Fatal().Err(err)
 }
 
-// LogError is a wrapper for zerolog.LogError
-func LogError(err error) *zerolog.Event {
-	return log.Error().Err(err)
-}
-
-// LogErrorf is a wrapper for zerolog.LogError
-func LogErrorf(err error, msg string, args ...interface{}) {
-	log.Error().Err(err).Msgf(msg, args...)
-}
-
-// LogWarn is a wrapper for zerolog.LogWarn
-func LogWarn(msg error) *zerolog.Event {
-	return log.Warn().Err(msg)
+func GetLogger() zerolog.Logger {
+	return log.Logger
 }
