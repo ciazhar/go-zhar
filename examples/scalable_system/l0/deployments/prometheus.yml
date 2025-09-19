@@ -4,7 +4,8 @@ global:
 scrape_configs:
   - job_name: "golang-app"
     static_configs:
-      - targets: ["host.docker.internal:8080"]  # kalau app jalan di host, ganti backend:8080 jika pake docker
+      - targets: ["host.docker.internal:8080"]  # kalau app jalan di host
+#      - targets: ["backend:8080"]  # kalau app jalan di docker
         labels:
           service: "scalable_backend"
 

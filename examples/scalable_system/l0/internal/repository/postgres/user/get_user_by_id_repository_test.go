@@ -8,7 +8,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/ciazhar/go-zhar/examples/scalable_system/l0/internal/model/response"
+	"github.com/ciazhar/go-zhar-scalable-system-l0/internal/model/response"
 	mockpostgres "github.com/ciazhar/go-zhar/pkg/postgres/mock"
 	"github.com/jackc/pgx/v5"
 	"github.com/stretchr/testify/assert"

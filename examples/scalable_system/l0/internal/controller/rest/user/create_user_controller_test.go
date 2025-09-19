@@ -8,8 +8,8 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/ciazhar/go-zhar/examples/scalable_system/l0/internal/model/request"
-	mockuser "github.com/ciazhar/go-zhar/examples/scalable_system/l0/internal/service/user/mock"
+	"github.com/ciazhar/go-zhar-scalable-system-l0/internal/model/request"
+	mockuser "github.com/ciazhar/go-zhar-scalable-system-l0/internal/service/user/mock"
 	"github.com/gofiber/fiber/v2"
 	"github.com/stretchr/testify/assert"
 	"go.uber.org/mock/gomock"

@@ -8,7 +8,7 @@ import (
 	metrics "github.com/ciazhar/go-zhar/pkg/prometheus"
 	"time"
 
-	bootstrap2 "github.com/ciazhar/go-zhar/examples/scalable_system/l0/internal/bootstrap"
+	bootstrap2 "github.com/ciazhar/go-zhar-scalable-system-l0/internal/bootstrap"
 	"github.com/ciazhar/go-zhar/pkg/postgres"
 
 	"github.com/ciazhar/go-zhar/pkg/bootstrap"
@@ -31,9 +31,9 @@ func main() {
 	flag.StringVar(&logLevel, "log-level", "debug", "Log level (default: debug)")
 	flag.BoolVar(&consoleOutput, "console-output", true, "Console output (default: true)")
 	flag.StringVar(&source, "source", "file", "Configuration source (file or consul)")
-	flag.StringVar(&fileName, "file-name", "config.json", "Name of the configuration file")
+	flag.StringVar(&fileName, "file-name", "config.yaml", "Name of the configuration file")
 	flag.StringVar(&filePath, "file-path", "configs", "Path to the configuration file")
-	flag.StringVar(&configType, "config-type", "json", "Configuration file type")
+	flag.StringVar(&configType, "config-type", "yaml", "Configuration file type")
 	flag.StringVar(&consulEndpoint, "consul-endpoint", "localhost:8500", "Consul endpoint")
 	flag.StringVar(&consulPath, "consul-path", "path/to/config", "Path to the configuration in Consul")
 	flag.Parse()
@@ -83,7 +83,7 @@ func main() {
 	defer shutdown()
 
 	// === INIT VALIDATOR ===
-	v := validator.New("id")
+	v := validator.New(ctx, "id")
 
 	// === INIT CLIENTS ===
 	var clients []bootstrap.Service
@@ -100,7 +100,7 @@ func main() {
 	// === START ALL CLIENTS ===
 	for _, svc := range clients {
 		if err := svc.Start(); err != nil {
-			logger.LogFatal(err).Msgf("🔥 %s failed", svc.Name())
+			log.Fatal().Err(err).Msgf("🔥 %s failed", svc.Name())
 		}
 	}
 
@@ -120,7 +120,7 @@ func main() {
 	for _, svc := range serversAndWorkers {
 		go func(svc bootstrap.Service) {
 			if err := svc.Start(); err != nil {
-				log.Fatal().Msgf("🔥 %s failed", svc.Name())
+				log.Fatal().Err(err).Msgf("🔥 %s failed", svc.Name())
 			}
 		}(svc)
 	}

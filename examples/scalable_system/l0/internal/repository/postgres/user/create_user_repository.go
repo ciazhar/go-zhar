@@ -4,7 +4,7 @@ import (
 	"context"
 	"go.opentelemetry.io/otel"
 
-	"github.com/ciazhar/go-zhar/examples/scalable_system/l0/internal/model/request"
+	"github.com/ciazhar/go-zhar-scalable-system-l0/internal/model/request"
 
 	"github.com/ciazhar/go-zhar/pkg/logger"
 )

@@ -1,8 +1,8 @@
 package bootstrap
 
 import (
-	ctrlUser "github.com/ciazhar/go-zhar/examples/scalable_system/l0/internal/controller/rest/user"
-	"github.com/ciazhar/go-zhar/examples/scalable_system/l0/internal/model/request"
+	ctrlUser "github.com/ciazhar/go-zhar-scalable-system-l0/internal/controller/rest/user"
+	"github.com/ciazhar/go-zhar-scalable-system-l0/internal/model/request"
 	"github.com/gofiber/contrib/otelfiber/v2"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"github.com/valyala/fasthttp/fasthttpadaptor"

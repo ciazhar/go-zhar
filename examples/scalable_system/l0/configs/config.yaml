@@ -1,0 +1,21 @@
+application:
+  name: scalable_system   # service name
+  version: "1.0.0"        # app version
+  port: 8080              # app port
+
+redis:
+  host: localhost
+  port: 6379
+  password: yourpassword
+
+postgres:
+#  host: postgres          # docker
+  host: localhost        # host
+  port: "5432"
+  dbname: appdb
+  username: user
+  password: password
+
+jaeger:
+#  endpoint: http://tempo:14268/api/traces # docker
+  endpoint: http://localhost:14268/api/traces # host
