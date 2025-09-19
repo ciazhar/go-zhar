@@ -5,7 +5,7 @@ import (
 	"errors"
 	"testing"
 
-	"github.com/ciazhar/go-zhar/examples/scalable_system/l0/internal/model/request"
+	"github.com/ciazhar/go-zhar-scalable-system-l0/internal/model/request"
 	mockpostgres "github.com/ciazhar/go-zhar/pkg/postgres/mock"
 	"github.com/jackc/pgx/v5/pgconn"
 	"github.com/stretchr/testify/assert"

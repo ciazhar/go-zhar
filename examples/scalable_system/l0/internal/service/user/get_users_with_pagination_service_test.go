@@ -5,9 +5,9 @@ import (
 	"errors"
 	"testing"
 
-	"github.com/ciazhar/go-zhar/examples/scalable_system/l0/internal/model/request"
-	"github.com/ciazhar/go-zhar/examples/scalable_system/l0/internal/model/response"
-	mock_user "github.com/ciazhar/go-zhar/examples/scalable_system/l0/internal/repository/postgres/user/mock"
+	"github.com/ciazhar/go-zhar-scalable-system-l0/internal/model/request"
+	"github.com/ciazhar/go-zhar-scalable-system-l0/internal/model/response"
+	mock_user "github.com/ciazhar/go-zhar-scalable-system-l0/internal/repository/postgres/user/mock"
 	"github.com/stretchr/testify/assert"
 	"go.uber.org/mock/gomock"
 )

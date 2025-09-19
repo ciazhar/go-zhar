@@ -1,7 +1,7 @@
 package user
 
 import (
-	"github.com/ciazhar/go-zhar/examples/scalable_system/l0/internal/model/request"
+	"github.com/ciazhar/go-zhar-scalable-system-l0/internal/model/request"
 	"github.com/ciazhar/go-zhar/pkg/logger"
 	"github.com/ciazhar/go-zhar/pkg/response"
 	"github.com/gofiber/fiber/v2"

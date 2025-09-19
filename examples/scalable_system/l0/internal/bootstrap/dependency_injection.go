@@ -4,9 +4,9 @@
 package bootstrap
 
 import (
-	ctrlUser "github.com/ciazhar/go-zhar/examples/scalable_system/l0/internal/controller/rest/user"
-	repoUser "github.com/ciazhar/go-zhar/examples/scalable_system/l0/internal/repository/postgres/user"
-	svcUser "github.com/ciazhar/go-zhar/examples/scalable_system/l0/internal/service/user"
+	ctrlUser "github.com/ciazhar/go-zhar-scalable-system-l0/internal/controller/rest/user"
+	repoUser "github.com/ciazhar/go-zhar-scalable-system-l0/internal/repository/postgres/user"
+	svcUser "github.com/ciazhar/go-zhar-scalable-system-l0/internal/service/user"
 	"github.com/ciazhar/go-zhar/pkg/validator"
 	"github.com/google/wire"
 	"github.com/jackc/pgx/v5/pgxpool"

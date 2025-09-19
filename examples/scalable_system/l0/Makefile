@@ -36,3 +36,6 @@ mock_only: ; $(info $(M) generating mock...) @
 
 .PHONY: mock
 mock: clean_mock mock_only
+
+sync-go-zhar:
+	go get github.com/ciazhar/go-zhar@master

@@ -13,8 +13,8 @@ import (
 	context "context"
 	reflect "reflect"
 
-	request "github.com/ciazhar/go-zhar/examples/scalable_system/l0/internal/model/request"
-	response "github.com/ciazhar/go-zhar/examples/scalable_system/l0/internal/model/response"
+	request "github.com/ciazhar/go-zhar-scalable-system-l0/internal/model/request"
+	response "github.com/ciazhar/go-zhar-scalable-system-l0/internal/model/response"
 	gomock "go.uber.org/mock/gomock"
 )
 

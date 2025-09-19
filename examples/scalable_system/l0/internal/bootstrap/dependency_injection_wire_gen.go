@@ -7,9 +7,9 @@
 package bootstrap
 
 import (
-	user3 "github.com/ciazhar/go-zhar/examples/scalable_system/l0/internal/controller/rest/user"
-	"github.com/ciazhar/go-zhar/examples/scalable_system/l0/internal/repository/postgres/user"
-	user2 "github.com/ciazhar/go-zhar/examples/scalable_system/l0/internal/service/user"
+	user3 "github.com/ciazhar/go-zhar-scalable-system-l0/internal/controller/rest/user"
+	"github.com/ciazhar/go-zhar-scalable-system-l0/internal/repository/postgres/user"
+	user2 "github.com/ciazhar/go-zhar-scalable-system-l0/internal/service/user"
 	"github.com/ciazhar/go-zhar/pkg/validator"
 	"github.com/jackc/pgx/v5/pgxpool"
 )

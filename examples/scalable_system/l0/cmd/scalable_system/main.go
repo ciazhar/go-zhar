@@ -8,7 +8,7 @@ import (
 	metrics "github.com/ciazhar/go-zhar/pkg/prometheus"
 	"time"
 
-	bootstrap2 "github.com/ciazhar/go-zhar/examples/scalable_system/l0/internal/bootstrap"
+	bootstrap2 "github.com/ciazhar/go-zhar-scalable-system-l0/internal/bootstrap"
 	"github.com/ciazhar/go-zhar/pkg/postgres"
 
 	"github.com/ciazhar/go-zhar/pkg/bootstrap"
@@ -83,7 +83,7 @@ func main() {
 	defer shutdown()
 
 	// === INIT VALIDATOR ===
-	v := validator.New("id")
+	v := validator.New(ctx, "id")
 
 	// === INIT CLIENTS ===
 	var clients []bootstrap.Service
@@ -100,7 +100,7 @@ func main() {
 	// === START ALL CLIENTS ===
 	for _, svc := range clients {
 		if err := svc.Start(); err != nil {
-			logger.LogFatal(err).Msgf("🔥 %s failed", svc.Name())
+			log.Fatal().Err(err).Msgf("🔥 %s failed", svc.Name())
 		}
 	}
 
@@ -120,7 +120,7 @@ func main() {
 	for _, svc := range serversAndWorkers {
 		go func(svc bootstrap.Service) {
 			if err := svc.Start(); err != nil {
-				log.Fatal().Msgf("🔥 %s failed", svc.Name())
+				log.Fatal().Err(err).Msgf("🔥 %s failed", svc.Name())
 			}
 		}(svc)
 	}
