@@ -83,11 +83,6 @@ func FromContext(ctx context.Context) zerolog.Logger {
 	return log.Logger
 }
 
-// LogFatal is a wrapper for zerolog.LogFatal
-func LogFatal(err error) *zerolog.Event {
-	return log.Fatal().Err(err)
-}
-
 func GetLogger() zerolog.Logger {
 	return log.Logger
 }
