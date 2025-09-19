@@ -1,6 +1,7 @@
 package validator
 
 import (
+	"context"
 	"errors"
 	"fmt"
 
@@ -20,11 +21,12 @@ type Validator struct {
 }
 
 // New initializes a new validator with translations
-func New(language string) Validator {
+func New(ctx context.Context, language string) Validator {
 	validate := validator.New()
+	log := logger.FromContext(ctx)
 	translator, err := getTranslator(validate, language)
 	if err != nil {
-		logger.LogFatal(err).Msg("failed to get translator")
+		log.Fatal().Err(err).Msg("failed to get translator")
 	}
 
 	return Validator{
