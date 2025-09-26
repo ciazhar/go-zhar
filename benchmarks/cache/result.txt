@@ -1,0 +1,15 @@
+goos: darwin
+goarch: arm64
+cpu: Apple M1
+BenchmarkRedisSet-8       	   11706	     88148 ns/op	     273 B/op	       8 allocs/op
+BenchmarkRedisGet-8       	   13410	     90978 ns/op	     192 B/op	       6 allocs/op
+BenchmarkMapSet-8         	 5208207	       270.8 ns/op	     152 B/op	       2 allocs/op
+BenchmarkMapGet-8         	198241964	         6.193 ns/op	       0 B/op	       0 allocs/op
+BenchmarkRistrettoSet-8   	 4045575	       385.0 ns/op	     269 B/op	       4 allocs/op
+BenchmarkRistrettoGet-8   	30681480	        39.02 ns/op	       6 B/op	       0 allocs/op
+BenchmarkBigCacheSet-8    	 4244593	       349.5 ns/op	      71 B/op	       2 allocs/op
+BenchmarkBigCacheGet-8    	33033036	        31.92 ns/op	       8 B/op	       1 allocs/op
+BenchmarkFreeCacheSet-8   	 4750627	       346.9 ns/op	      66 B/op	       2 allocs/op
+BenchmarkFreeCacheGet-8   	12978537	        91.93 ns/op	       5 B/op	       1 allocs/op
+PASS
+ok  	command-line-arguments	17.898s
